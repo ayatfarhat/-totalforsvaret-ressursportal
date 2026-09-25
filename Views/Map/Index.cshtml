@@ -1,0 +1,98 @@
+@model Kriseportal.Models.MapViewModel
+
+@{
+    ViewData["Title"] = "Kart";
+}
+
+<!-- Henter Leaflet CSS -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Overskrift -->
+<h1>Velg en posisjon</h1>
+
+<!-- Forklaring -->
+<p>Klikk på kartet for å velge en posisjon.</p>
+
+<!-- Viser kartet -->
+<div id="map" style="height: 500px; width: 100%;"></div>
+
+<!-- Viser koordinater -->
+<p id="coordinates" style="margin-top: 15px;">
+    Ingen posisjon valgt.
+</p>
+
+<!-- Sender koordinater til controller -->
+<form action="/Map" method="post">
+
+    <!-- Lagrer breddegrad -->
+    <input type="hidden"
+           id="latitude"
+           name="Latitude" />
+
+    <!-- Lagrer lengdegrad -->
+    <input type="hidden"
+           id="longitude"
+           name="Longitude" />
+
+    <!-- Sender posisjonen -->
+    <button type="submit"
+            id="submitButton"
+            class="btn btn-primary"
+            disabled>
+        Bekreft posisjon
+    </button>
+
+</form>
+
+<!-- Henter Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Oppretter kartet
+    const map = L.map('map').setView([64.5, 11.0], 5);
+
+    // Legger til kartlag
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Lagrer markøren
+    let marker = null;
+
+    // Registrerer klikk
+    map.on('click', function (e) {
+
+        // Henter breddegrad
+        const lat = e.latlng.lat;
+
+        // Henter lengdegrad
+        const lng = e.latlng.lng;
+
+        // Lager markør
+        if (marker === null) {
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+
+        // Flytter markøren
+        else {
+            marker.setLatLng([lat, lng]);
+        }
+
+        // Viser koordinater
+        document.getElementById('coordinates').innerHTML =
+            '<strong>Valgt posisjon:</strong><br>' +
+            'Breddegrad: ' + lat.toFixed(5) + '<br>' +
+            'Lengdegrad: ' + lng.toFixed(5);
+
+        // Lagrer breddegrad
+        document.getElementById('latitude').value = lat;
+
+        // Lagrer lengdegrad
+        document.getElementById('longitude').value = lng;
+
+        // Aktiverer knappen
+        document.getElementById('submitButton').disabled = false;
+    });
+</script>

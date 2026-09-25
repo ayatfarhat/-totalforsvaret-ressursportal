@@ -1,0 +1,27 @@
+@model Kriseportal.Models.MapViewModel
+
+@{
+    ViewData["Title"] = "Valgt posisjon";
+}
+
+<!-- Overskrift -->
+<h1>Valgt posisjon</h1>
+
+<!-- Viser breddegrad -->
+<p>
+    <strong>Breddegrad:</strong>
+    @Model.Latitude
+</p>
+
+<!-- Viser lengdegrad -->
+<p>
+    <strong>Lengdegrad:</strong>
+    @Model.Longitude
+</p>
+
+<!-- Tilbake til kartet -->
+<a asp-controller="Map"
+   asp-action="Index"
+   class="btn btn-primary">
+    Tilbake til kartet
+</a>
