@@ -8,7 +8,7 @@ Kriseportal skal koble behov fra offentlige aktører med ressurser fra innbygger
 
 <!-- Liste eller tabell avgjøres senere -->
 | Oppgave | Gruppe-Medlem |
-|-------------------
+|---------|----------|
 |Datamodell og Database|Torbjørn|
 |Innlogging, roller og sikkerhet|Hassan|
 |Behov og Statusflyt|Christian|
