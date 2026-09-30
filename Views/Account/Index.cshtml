@@ -1,0 +1,19 @@
+@model KontoViewModel
+@{
+    ViewData["Title"] = "Min konto";
+}
+
+<h1>Min konto</h1>
+
+<p><strong>E-post:</strong> @Model.Epost</p>
+<p><strong>Rolle:</strong> @Model.Rolle</p>
+
+@if (Model.TofaErPa)
+{
+    <p><strong>2FA:</strong> På</p>
+}
+else
+{
+    <p><strong>2FA:</strong> Av</p>
+    <a asp-action="AktiverTofa" class="btn btn-primary">Slå på 2FA</a>
+}

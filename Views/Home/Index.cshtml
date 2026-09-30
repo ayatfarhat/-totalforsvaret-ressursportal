@@ -1,8 +1,107 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Nabohjelp";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@* ---------------------------------------------------------------
+   Forsiden. Bygget etter godkjent design (se mockup-artifact):
+   to-delt "hero" (tekst + illustrasjon), deretter en enkel
+   3-stegs guide. Fargene og fontene kommer fra :root-variablene
+   i _Layout.cshtml, så alt henger sammen med resten av siden.
+   --------------------------------------------------------------- *@
+
+<div class="row align-items-center py-5 gy-4">
+    <div class="col-lg-7">
+        <h1 class="display-5 fw-bold mb-3">
+            Når krisen rammer, er det
+            <span style="color: var(--nh-danger)">naboen</span>
+            som når frem
+            <span style="color: var(--nh-success)">først</span>.
+        </h1>
+        <p class="lead mb-4" style="max-width: 46ch;">
+            Nabohjelp kobler folk som trenger hjelp under en krise &mdash; strømbrudd,
+            ekstremvær, evakuering &mdash; med naboer og frivillige som kan stille med
+            utstyr, kjøretøy, husrom eller egen innsats.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+            <a class="btn btn-success btn-lg" asp-controller="Ressurs" asp-action="Index">Gå til Nabohjelp</a>
+            <a class="btn btn-outline-secondary btn-lg" href="#steg">Se hvordan det fungerer</a>
+        </div>
+    </div>
+
+    <div class="col-lg-5 order-first order-lg-last text-center">
+        @* Illustrasjon: logoen vår i midten, med fire "naboer" rundt.
+           Ett hus er markert rødt (trenger hjelp), resten grønt (kan hjelpe) -
+           selve poenget med Nabohjelp. *@
+        <svg class="neighbor-network" viewBox="0 0 440 420" role="img" aria-label="Nettverk av naboer som hjelper hverandre">
+            <defs>
+                <symbol id="mini-house" viewBox="0 0 256 256">
+                    <circle cx="128" cy="128" r="122" fill="var(--nh-bg)" stroke="var(--nh-line)" stroke-width="6" />
+                    <path d="M40 112 128 42l88 70" fill="none" stroke="var(--house-color, var(--nh-success))" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M61 111v81h134v-81" fill="none" stroke="var(--house-color, var(--nh-success))" stroke-width="14" stroke-linejoin="round" />
+                </symbol>
+
+                @* Samme logo som i navbaren (hus med hjerte) - brukes bare på det
+                   midterste, største huset her. *@
+                <symbol id="full-logo" viewBox="0 0 256 256">
+                    <circle cx="128" cy="128" r="120" fill="#F4EBDD" />
+                    <path d="M40 112 128 42l88 70" fill="none" stroke="#2e7d46" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M61 111v81h134v-81" fill="#fffaf2" stroke="#2e7d46" stroke-width="12" stroke-linejoin="round" />
+                    <path d="M128 173s-43-24-43-52c0-22 28-31 43-10 15-21 43-12 43 10 0 28-43 52-43 52Z" fill="#c0392b" />
+                    <path d="M111 127c8 4 13 9 17 16 4-7 9-12 17-16" fill="none" stroke="#F4EBDD" stroke-width="7" stroke-linecap="round" />
+                </symbol>
+            </defs>
+
+            <g stroke="var(--nh-line)" stroke-width="2" stroke-dasharray="5 6" fill="none">
+                <path d="M95 120 L210 205" />
+                <path d="M210 205 L100 300" />
+                <path d="M210 205 L340 130" />
+                <path d="M210 205 L355 300" />
+            </g>
+
+            <use href="#full-logo" x="150" y="135" width="120" height="120" />
+            <use href="#mini-house" x="45" y="70" width="80" height="80" style="--house-color: var(--nh-danger)" />
+            <use href="#mini-house" x="55" y="270" width="70" height="70" />
+            <use href="#mini-house" x="315" y="80" width="64" height="64" />
+            <use href="#mini-house" x="330" y="270" width="74" height="74" />
+        </svg>
+    </div>
+</div>
+
+<div class="border-top pt-5 pb-4" id="steg" style="border-color: var(--nh-line) !important;">
+    <h2 class="h3 mb-4">Slik bruker du Nabohjelp</h2>
+
+    <div class="step-row">
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <h3 class="h6">Velg spor</h3>
+            <p class="text-secondary small mb-0">Trykk &laquo;Jeg trenger hjelp&raquo; eller &laquo;Jeg kan hjelpe&raquo; &mdash; hver har sitt eget enkle skjema.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <h3 class="h6">Fyll ut skjema</h3>
+            <p class="text-secondary small mb-0">Type, posisjon og eventuelt navn/telefon. Tar under ett minutt å sende inn.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <h3 class="h6">Send inn</h3>
+            <p class="text-secondary small mb-0">Du får en kvittering, og meldingen din blir synlig for kriseledelsen med en gang.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center border-top py-3 mb-4" style="border-color: var(--nh-line) !important;">
+    <div class="col-12 text-center">
+        <span class="text-secondary small">
+            <strong style="color: var(--nh-danger)">Akutt fare for liv og helse?</strong>
+            Ring 112 / 113 / 110 direkte &mdash; ikke vent på svar her.
+        </span>
+    </div>
+</div>
+
+<div class="row justify-content-center mb-4">
+    <div class="col-12 text-center">
+        <a class="link-secondary small" asp-controller="Kommandobro" asp-action="Index">
+            For nødetater, politi og kriseledelse &rarr;
+        </a>
+    </div>
 </div>

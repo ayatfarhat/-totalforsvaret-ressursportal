@@ -1,19 +1,38 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="no">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Kriseportal</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Kriseportal.styles.css" asp-append-version="true" />
+
+    <!-- To skrifttyper: Baloo 2 til overskrifter (rundere, mer vennlig - passer
+         "naboer som hjelper naboer"), Inter til all annen tekst (lettlest). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- All Nabohjelp-styling (farger, knapper, kort, illustrasjon, steg-guide)
+         ligger samlet i DesignCSS/css/site.css, i stedet for i en <style>-blokk
+         her. Det gjør at Rider/VS forstår CSS-variablene riktig (ingen falske
+         "cannot resolve"-feilmeldinger), og filen her blir kortere. -->
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <!-- Sikkerhetsbanner: vises øverst på ALLE sider, kan ikke lukkes -->
+        <div class="safety-banner">
+            Akutt fare for liv og helse? Ring 112/113/110.
+        </div>
+
+        <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Kriseportal</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="logo-icon logo-icon-small">
+                        <partial name="_Logo" />
+                    </span>
+                    Kriseportal
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -21,27 +40,49 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Forside</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Ressurs" asp-action="Index">Nabohjelp</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav">
+                        @* Vises bare for Admin/Kommune - vanlige privatpersoner (rollen "Frivillig")
+                           og ikke-innloggede besøkende ser den ikke, siden den ikke er for dem. *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-muted small" asp-area="" asp-controller="Kommandobro" asp-action="Index">
+                                    For nødetater/politi &rarr;
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <!-- Innlogging/registrering fra Hassan sin del: viser "Logg inn"/"Registrer deg",
+                         eller navn + "Logg ut" hvis man allerede er logget inn. -->
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
+            @* Viser en melding fra controlleren, f.eks. "2FA er slått på!" *@
+            @if (TempData["Melding"] != null)
+            {
+                <div class="alert alert-success">@TempData["Melding"]</div>
+            }
             @RenderBody()
         </main>
     </div>
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - Kriseportal - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - Kriseportal - Gruppe 15
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

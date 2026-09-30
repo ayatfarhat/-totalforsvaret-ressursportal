@@ -1,0 +1,34 @@
+@model TofaViewModel
+@{
+    ViewData["Title"] = "Slå på 2FA";
+
+    // Teksten som gjøres om til QR-kode. Autentiseringsappen forstår dette formatet.
+    var qrTekst = "otpauth://totp/Kriseportal:" + User.Identity?.Name + "?secret=" + Model.Nokkel + "&issuer=Kriseportal";
+}
+
+<h1>Slå på 2FA</h1>
+
+<p>1. Skann QR-koden med Microsoft Authenticator eller Google Authenticator:</p>
+<div id="qrkode" class="mb-2"></div>
+<p class="text-muted">Eller skriv inn nøkkelen i appen: <code>@Model.Nokkel</code></p>
+
+<p>2. Skriv inn koden som vises i appen:</p>
+<form asp-action="AktiverTofa" method="post" style="max-width: 300px">
+    @* Nøkkelen sendes med, så den kan vises igjen hvis koden er feil *@
+    <input type="hidden" asp-for="Nokkel" />
+
+    <div class="mb-3">
+        <input asp-for="Kode" class="form-control" placeholder="123456" />
+        <span asp-validation-for="Kode" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Slå på 2FA</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        new QRCode(document.getElementById("qrkode"), { text: "@Html.Raw(qrTekst)", width: 180, height: 180 });
+    </script>
+}
