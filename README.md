@@ -68,7 +68,7 @@ Rollene `Operator` og `PublicActor` kommer fra en tidligere versjon av databaseo
 
 Applikasjonen bygges med en Dockerfile i to steg: først bygges appen med .NET SDK, deretter kopieres det ferdige resultatet over i et mindre bilde som bare kjører appen. Containeren lytter på port 8080.
 
-Statiske filer (CSS, JavaScript og Bootstrap) ligger i mappen `DesignCSS` i stedet for standardmappen `wwwroot`. Fordi `dotnet publish` bare tar med `wwwroot` automatisk, kopieres `DesignCSS` inn i containeren i et eget steg i Dockerfilen.
+Statiske filer (CSS, JavaScript og Bootstrap) ligger i standardmappen `wwwroot`, som `dotnet publish` tar med automatisk.
 
 Databasen er MariaDB, som kjører i en egen container definert i `docker-compose.yml`. Data lagres i et eget Docker-volum og overlever både at containeren stoppes og startes på nytt.
 
