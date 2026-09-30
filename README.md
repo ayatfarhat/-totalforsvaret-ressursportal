@@ -38,11 +38,13 @@ docker compose up --build
 
 Åpne deretter <http://localhost:8080> i nettleseren.
 
-Første gang tar det noen minutter, fordi Docker må laste ned .NET-bildene.
+Første gang tar det noen minutter, fordi Docker må laste ned .NET- og MariaDB-bildene.
+
+`docker compose` starter to containere: selve webapplikasjonen og en MariaDB-database. Applikasjonen kjører databasemigrasjoner automatisk ved oppstart, så databasen er klar til bruk med det samme.
 
 ### Stoppe applikasjonen
 
-Trykk `Ctrl + C` i terminalen. For å fjerne containeren helt:
+Trykk `Ctrl + C` i terminalen. For å fjerne containerne helt (inkludert databasen):
 
 ```bash
 docker compose down
@@ -50,13 +52,17 @@ docker compose down
 
 ### Testbrukere
 
-Ved oppstart opprettes tre testbrukere:
+Ved oppstart opprettes fem testbrukere:
 
 | E-post | Passord | Rolle |
 |---|---|---|
-| admin@test.no | Admin123 | Admin |
-| kommune@test.no | Kommune123 | Kommune |
-| privatperson@test.no | Privat123 | Frivillig |
+| admin@test.no | Admin123! | Admin |
+| kommune@test.no | Kommune123! | Kommune |
+| privatperson@test.no | Privat123! | Frivillig |
+| operator@test.no | Operator123! | Operator |
+| public@test.no | Public123! | PublicActor |
+
+Rollene `Operator` og `PublicActor` kommer fra en tidligere versjon av databaseoppsettet og er ikke lenger i bruk noe sted i applikasjonen – de er kun beholdt som testbrukere inntil videre. All tilgangsstyring i appen (innlogging, Kommandobro, kartet, Behov) bruker `Admin`, `Kommune` og `Frivillig`.
 
 ### Docker-oppsett
 
@@ -64,11 +70,11 @@ Applikasjonen bygges med en Dockerfile i to steg: først bygges appen med .NET S
 
 Statiske filer (CSS, JavaScript og Bootstrap) ligger i mappen `DesignCSS` i stedet for standardmappen `wwwroot`. Fordi `dotnet publish` bare tar med `wwwroot` automatisk, kopieres `DesignCSS` inn i containeren i et eget steg i Dockerfilen.
 
-Databasen er en SQLite-fil som lagres inne i containeren. Den beholdes når containeren stoppes med `Ctrl + C`, men slettes med `docker compose down`.
+Databasen er MariaDB, som kjører i en egen container definert i `docker-compose.yml`. Data lagres i et eget Docker-volum og overlever både at containeren stoppes og startes på nytt.
 
 ### Kjøre uten Docker
 
-Prosjektet kan også startes lokalt fra terminalen med .NET SDK:
+Prosjektet kan startes lokalt med .NET SDK, men da må en MariaDB-database være tilgjengelig separat (for eksempel startet med `docker compose up mariadb`), siden applikasjonen ikke lenger har noen innebygd fil-database å falle tilbake på.
 
 ```bash
 dotnet run
@@ -82,14 +88,12 @@ Eksempel:
 http://localhost:5144
 ```
 
-Kartfunksjonen kan åpnes fra navigasjonsmenyen ved å velge **Kart**.
-
 ## Teknologi
 
 Prosjektet bruker:
 
 - ASP.NET Core MVC
-- .NET 10
+- .NET 9
 - C#
 - Razor
 - HTML
@@ -98,86 +102,41 @@ Prosjektet bruker:
 - Bootstrap
 - Leaflet
 - OpenStreetMap
+- MariaDB
+- Entity Framework Core (migrasjoner)
+- Docker og Docker Compose
 - Git og GitHub
 
-## Systemarkitektur
+## Prosjektstruktur
 
-Prosjektet følger MVC-arkitekturen:
+Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View-mappe og (ved behov) en egen Model eller ViewModel:
 
-### Model
+| Funksjon | Controller | Views | Model / ViewModel |
+|---|---|---|---|
+| Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel` |
+| Ressurser | `RessursController` | `Views/Ressurs/` | `RessursFormViewModel` |
+| Behov | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel` |
+| Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
+| Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
+| Forside | `HomeController` | `Views/Home/` | `HomeViewModel` |
 
-Models brukes til å representere og overføre data i applikasjonen.
-
-Kartfunksjonen bruker:
-
-`Models/MapViewModel.cs`
-
-Denne inneholder:
-
-- Latitude
-- Longitude
-
-Koordinatene brukes til å overføre valgt posisjon fra kartet til controlleren og videre til resultatsiden.
-
-### View
-
-Views brukes til å vise brukergrensesnittet og data til brukeren.
-
-Kartfunksjonen bruker:
-
-- `Views/Map/Index.cshtml`
-- `Views/Map/Result.cshtml`
-
-`Index.cshtml` viser det interaktive kartet og lar brukeren velge en posisjon.
-
-`Result.cshtml` viser koordinatene som brukeren har valgt.
-
-### Controller
-
-Controllers håndterer forespørsler mellom View og Model.
-
-Kartfunksjonen bruker:
-
-`Controllers/MapController.cs`
-
-Controlleren inneholder:
-
-- HTTP GET for å vise kartet.
-- HTTP POST for å motta valgt posisjon.
+Database-tilgangen går gjennom `ApplicationDbContext` i `Data/`, sammen med `SeedData.cs` (testbrukere) og `RoleInitializer.cs` (roller). Selve databasestrukturen styres av migrasjonsfilene i `Migrations/`.
 
 ## Kartfunksjonalitet
 
-Kartfunksjonen lar brukeren velge en geografisk posisjon på et interaktivt kart.
+Kartet viser en sanntidsoversikt over alle registrerte ressurser og behov, direkte på Kommandobro-siden. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
 
-Kartet er laget med Leaflet og bruker kartdata fra OpenStreetMap.
+Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for brukere med rollen `Admin` eller `Kommune`, på samme måte som resten av Kommandobro.
 
 ### Hvordan kartfunksjonen fungerer
 
-1. Brukeren åpner kartsiden.
-2. Et interaktivt kart vises.
-3. Brukeren klikker på ønsket posisjon.
-4. En markør plasseres på kartet.
-5. Breddegrad og lengdegrad vises.
-6. Koordinatene lagres i skjulte input-felter.
-7. Knappen "Bekreft posisjon" aktiveres.
-8. Brukeren bekrefter posisjonen.
-9. Koordinatene sendes med HTTP POST til `MapController`.
-10. Dataene mottas gjennom `MapViewModel`.
-11. `Result.cshtml` viser den valgte breddegraden og lengdegraden.
+1. Brukeren logger inn som `Admin` eller `Kommune` og åpner Kommandobro.
+2. `KommandobroController` henter alle ressurser som har en registrert posisjon, og alle behov fra databasen.
+3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
+4. Ressurser vises som grønne punkter, behov som røde punkter.
+5. Brukeren kan klikke på et punkt for å se hva det gjelder.
 
-## GET og POST
-
-Applikasjonen håndterer både GET- og POST-forespørsler.
-
-### GET
-
-Når brukeren åpner kartsiden, brukes en GET-forespørsel for å vise kartet.
-
-### POST
-
-Når brukeren har valgt en posisjon og trykker på "Bekreft posisjon", sendes koordinatene med en POST-forespørsel til `MapController`.
-
-Controlleren mottar koordinatene gjennom `MapViewModel` og sender modellen videre til resultatsiden.
+Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.
 
 ## Responsivt design
 
@@ -185,87 +144,65 @@ Applikasjonen bruker Bootstrap for responsivt design.
 
 Navigasjonsmenyen tilpasser seg størrelsen på skjermen. På mindre skjermer vises navigasjonen som en mobilmeny.
 
-Kartet bruker hele den tilgjengelige bredden på siden slik at det tilpasser seg forskjellige skjermstørrelser.
+Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det tilpasser seg forskjellige skjermstørrelser.
 
 ## Testing
 
-Kartfunksjonen er testet manuelt.
+Kartfunksjonen er testet manuelt underveis i utviklingen.
 
-### Test 1 – Kartet vises
+### Test 1 – Kartet vises på Kommandobro
 
-**Handling:**  
-Brukeren åpner kartsiden.
+**Handling:**
+En bruker med rollen Admin eller Kommune logger inn og åpner Kommandobro.
 
-**Forventet resultat:**  
-Leaflet-kartet skal vises.
+**Forventet resultat:**
+Leaflet-kartet skal vises innebygd på siden, med markører for registrerte ressurser og behov.
 
-**Resultat:**  
+**Resultat:**
 Bestått.
 
-### Test 2 – Velge posisjon
+### Test 2 – Tilgangsstyring
 
-**Handling:**  
-Brukeren klikker på kartet.
+**Handling:**
+En bruker uten rollen Admin eller Kommune prøver å åpne Kommandobro.
 
-**Forventet resultat:**  
-En markør skal vises på valgt posisjon, og breddegrad og lengdegrad skal vises.
+**Forventet resultat:**
+Brukeren skal ikke få tilgang til siden eller kartet.
 
-**Resultat:**  
+**Resultat:**
+Bestått (håndheves av `[Authorize(Roles = "Admin,Kommune")]` på `KommandobroController`).
+
+### Test 3 – Velge posisjon ved oppretting av ressurs
+
+**Handling:**
+Brukeren fyller ut skjemaet for å opprette en ressurs og klikker på kartet for å velge posisjon.
+
+**Forventet resultat:**
+En markør skal vises der brukeren klikket, og koordinatene skal fylles ut i skjemaet.
+
+**Resultat:**
 Bestått.
 
-### Test 3 – Flytte valgt posisjon
+### Test 4 – Lagring av koordinater
 
-**Handling:**  
-Brukeren klikker på en ny posisjon på kartet.
+**Handling:**
+Brukeren bekrefter og lagrer en ny ressurs med valgt posisjon.
 
-**Forventet resultat:**  
-Markøren skal flyttes til den nye posisjonen, og koordinatene skal oppdateres.
+**Forventet resultat:**
+Ressursen skal dukke opp som en grønn markør på kartet på Kommandobro, på riktig posisjon.
 
-**Resultat:**  
-Bestått.
+**Resultat:**
+Bør verifiseres på nytt etter siste sammenslåing med hovedbranchen (databaseoppsettet ble byttet fra SQLite til MariaDB underveis).
 
-### Test 4 – Sende koordinater
+### Test 5 – Responsiv visning
 
-**Handling:**  
-Brukeren velger en posisjon og trykker på "Bekreft posisjon".
-
-**Forventet resultat:**  
-Koordinatene skal sendes med HTTP POST til `MapController`.
-
-**Resultat:**  
-Bestått.
-
-### Test 5 – Vise valgt posisjon
-
-**Handling:**  
-Brukeren bekrefter valgt posisjon.
-
-**Forventet resultat:**  
-Resultatsiden skal vise samme breddegrad og lengdegrad som brukeren valgte på kartet.
-
-**Resultat:**  
-Bestått.
-
-### Test 6 – Tilbake til kartet
-
-**Handling:**  
-Brukeren trykker på "Tilbake til kartet".
-
-**Forventet resultat:**  
-Brukeren skal returnere til kartsiden.
-
-**Resultat:**  
-Bestått.
-
-### Test 7 – Responsiv navigasjon
-
-**Handling:**  
+**Handling:**
 Applikasjonen åpnes i et smalt nettleservindu.
 
-**Forventet resultat:**  
-Navigasjonen skal endres til en mobilmeny, og kartlenken skal fortsatt være tilgjengelig.
+**Forventet resultat:**
+Navigasjonen skal endres til en mobilmeny, og kortet med kartet skal fortsatt vises korrekt.
 
-**Resultat:**  
+**Resultat:**
 Bestått.
 
 ## Git og GitHub
@@ -274,13 +211,7 @@ Utviklingen gjøres med Git og GitHub.
 
 Funksjonalitet utvikles på egne feature branches før den integreres med resten av prosjektet.
 
-Kartfunksjonaliteten er utviklet på:
-
-```text
-feature/map
-```
-
-Dette gjør det mulig å utvikle og teste kartfunksjonen uten å påvirke hovedbranchen direkte.
+Kartfunksjonaliteten ble opprinnelig utviklet på `feature/map`, og senere videreutviklet og koblet inn i Kommandobro på `feature/ressurs-kart`. Dette gjorde det mulig å utvikle og teste kartfunksjonen uten å påvirke hovedbranchen direkte.
 
 ## Dokumentasjon i kode
 
