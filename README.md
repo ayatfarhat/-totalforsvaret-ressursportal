@@ -332,6 +332,12 @@ KI har blant annet blitt brukt til:
 - Feilsøking av byggefeil i Docker etter at prosjektet ble omdøpt.
 - Feilsøking av manglende CSS i Docker fordi DesignCSS ikke ble med i publish.
 - Struktur og drift-del i README.
+- Oppsett av MariaDB i Docker.
+- Valg og installasjon av riktige .NET- og Entity Framework-pakker.
+- Tilkobling av databasen til ASP.NET Core-applikasjonen.
+- Forståelse av hvordan database, Entity Framework og applikasjonen henger sammen.
+- Feilsøking av feilmeldinger knyttet til database og pakker.
+- Navigering i GitHub.
 
 ### Eksempler på prompts
 
@@ -368,3 +374,5 @@ Under utviklingen ble forslagene:
 6. Justert før fungerende kode ble beholdt.
 
 Et eksempel var overføring av koordinater fra kartet. Kartet viste riktige koordinater, men resultatsiden viste først `0`. Network-verktøyet i nettleseren ble brukt for å kontrollere at koordinatene faktisk ble sendt med POST. Deretter ble problemet isolert til behandlingen av dataene i ASP.NET Core, og implementasjonen ble justert og testet på nytt.
+
+I databasearbeidet fungerte ikke alle forslag med en gang. Flere løsninger måtte gjøres om, og feilmeldinger ble feilsøkt steg for steg før databasen fungerte i Docker.
