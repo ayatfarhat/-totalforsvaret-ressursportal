@@ -2,13 +2,13 @@
 
 IS-200 / IS-201 / IS-202 – Kriseberedskap, ressurs- og behovsportal for Totalforsvaret.
 
-## Om prosjektet
+## Om Prosjektet
 
 Nabohjelp er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 
-## Gruppemedlemmer og roller
+## Gruppemedlemmer og Roller
 
 | Ansvarsområde | Gruppemedlem |
 |---|---|
@@ -23,10 +23,18 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 
 ### Forutsetninger
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) må være installert og startet
-- [Git](https://git-scm.com/) for å hente koden
+Applikasjonen kan kjøres på to måter:
 
-.NET SDK trengs ikke, siden applikasjonen bygges inne i Docker.
+| | Med Docker (anbefalt) | Uten Docker |
+|---|---|---|
+| **Må være installert** | [Docker Desktop](https://www.docker.com/products/docker-desktop/) og [Git](https://git-scm.com/) | [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0), Docker Desktop og Git |
+| **Startes med** | `docker compose up --build` | `docker compose up -d mariadb` og `dotnet run` |
+| **Åpnes på** | <http://localhost:8080> | <http://localhost:5144> |
+| **Brukes til** | Vanlig kjøring og testing | Utvikling |
+
+Docker Desktop må være startet før du kjører `docker compose`.
+
+Begge bruker den samme MariaDB-databasen for brukere og behov. Ressurser lagres foreløpig bare i minnet, så de forsvinner når applikasjonen startes på nytt og deles ikke mellom de to kjøremåtene. Kjør bare én av dem om gangen.
 
 ### Starte applikasjonen med Docker
 
@@ -42,27 +50,35 @@ Første gang tar det noen minutter, fordi Docker må laste ned .NET- og MariaDB-
 
 `docker compose` starter to containere: selve webapplikasjonen og en MariaDB-database. Applikasjonen kjører databasemigrasjoner automatisk ved oppstart, så databasen er klar til bruk med det samme.
 
-### Stoppe applikasjonen
+### Stoppe Applikasjonen
 
-Trykk `Ctrl + C` i terminalen. For å fjerne containerne helt (inkludert databasen):
+Trykk `Ctrl + C` i terminalen. For å fjerne containerne helt:
 
 ```bash
 docker compose down
 ```
 
+Databasen beholdes i et Docker-volum. For å slette den også:
+
+```bash
+docker compose down -v
+```
+
 ### Testbrukere
 
-Ved oppstart opprettes fem testbrukere:
+Ved oppstart opprettes tre testbrukere:
 
 | E-post | Passord | Rolle |
 |---|---|---|
 | admin@test.no | Admin123! | Admin |
 | kommune@test.no | Kommune123! | Kommune |
 | privatperson@test.no | Privat123! | Frivillig |
-| operator@test.no | Operator123! | Operator |
-| public@test.no | Public123! | PublicActor |
+<!-- | operator@test.no | Operator123! | Operator |
+| public@test.no | Public123! | PublicActor | 
 
-Rollene `Operator` og `PublicActor` kommer fra en tidligere versjon av databaseoppsettet og er ikke lenger i bruk noe sted i applikasjonen – de er kun beholdt som testbrukere inntil videre. All tilgangsstyring i appen (innlogging, Kommandobro, kartet, Behov) bruker `Admin`, `Kommune` og `Frivillig`.
+Rollene `Operator` og `PublicActor` kommer fra en tidligere versjon av databaseoppsettet og er ikke lenger i bruk noe sted i applikasjonen – de er kun beholdt som testbrukere inntil videre. All tilgangsstyring i appen (innlogging, Kommandobro, kartet, Behov) bruker `Admin`, `Kommune` og `Frivillig`. -->
+
+Tilgangsstyringen i appen bruker rollene `Admin`, `Kommune` og `Frivillig`. Rollene `Operator` og `PublicActor` fra en tidligere versjon av databaseoppsettet er fjernet.
 
 ### Docker-oppsett
 
@@ -74,15 +90,14 @@ Databasen er MariaDB, som kjører i en egen container definert i `docker-compose
 
 ### Kjøre uten Docker
 
-Prosjektet kan startes lokalt med .NET SDK, men da må en MariaDB-database være tilgjengelig separat (for eksempel startet med `docker compose up mariadb`), siden applikasjonen ikke lenger har noen innebygd fil-database å falle tilbake på.
+Dette krever .NET 9 SDK. Databasen må fortsatt kjøre, og startes i Docker:
 
 ```bash
+docker compose up -d mariadb
 dotnet run
 ```
 
-Terminalen viser adressen applikasjonen kjører på.
-
-Eksempel:
+`-d` gjør at databasen kjører i bakgrunnen. Terminalen viser adressen applikasjonen kjører på, for eksempel:
 
 ```text
 http://localhost:5144
@@ -107,7 +122,7 @@ Prosjektet bruker:
 - Docker og Docker Compose
 - Git og GitHub
 
-## Prosjektstruktur
+## Systemarkitektur
 
 Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View-mappe og (ved behov) en egen Model eller ViewModel:
 
@@ -131,12 +146,19 @@ Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for
 ### Hvordan kartfunksjonen fungerer
 
 1. Brukeren logger inn som `Admin` eller `Kommune` og åpner Kommandobro.
-2. `KommandobroController` henter alle ressurser som har en registrert posisjon, og alle behov fra databasen.
+2. `KommandobroController` henter ressurser med registrert posisjon fra en midlertidig liste i minnet, og behov fra databasen.
 3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
 4. Ressurser vises som grønne punkter, behov som røde punkter.
 5. Brukeren kan klikke på et punkt for å se hva det gjelder.
 
 Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.
+
+## GET og POST
+
+Applikasjonen håndterer både GET- og POST-forespørsler. Et eksempel er registrering av ressurs i `RessursController`:
+
+- **GET:** Skjemaet for ny ressurs vises, med et interaktivt kart for å velge posisjon.
+- **POST:** Når skjemaet sendes, mottas dataene og koordinatene gjennom `RessursFormViewModel`, og brukeren sendes videre til en bekreftelsesside som viser den valgte posisjonen på et kart.
 
 ## Responsivt design
 
@@ -237,59 +259,46 @@ KI har ikke blitt brukt som erstatning for testing av løsningen. Forslag til ko
 
 Følgende KI-verktøy har blitt brukt:
 
-- ChatGPT og Claude 
+- ChatGPT
+- Claude 
 
 ### Bruksområder
 
 KI har blant annet blitt brukt til:
 
-- Forklaring av ASP.NET Core MVC.
-- Forståelse av Model, View og Controller.
-- Veiledning ved implementering av Leaflet.
-- Henting av latitude og longitude fra kartet.
-- HTTP GET og POST.
-- Overføring av data med ViewModel.
-- Feilsøking av model binding.
-- Feilsøking av koordinater som ble vist som 0.
-- Navigasjon med `_Layout.cshtml`.
-- Git og feature branches.
-- Dokumentasjon av funksjonalitet.
-- Utforming av testscenarioer.
-- Oppsett av Dockerfile, .dockerignore og docker-compose.yml.
-- Forklaring av hva hvert steg i Dockerfilen gjør.
-- Oppsett av GitHub-repo, branches og pull requests.
-- Feilsøking når kloning feilet på grunn av kolon i et filnavn.
-- Feilsøking av tegnkoding (æ, ø og å) i filer laget med PowerShell.
-- Feilsøking av byggefeil i Docker etter at prosjektet ble omdøpt.
-- Feilsøking av manglende CSS i Docker fordi DesignCSS ikke ble med i publish.
-- Struktur og drift-del i README.
-- Oppsett av MariaDB i Docker.
-- Valg og installasjon av riktige .NET- og Entity Framework-pakker.
-- Tilkobling av databasen til ASP.NET Core-applikasjonen.
-- Forståelse av hvordan database, Entity Framework og applikasjonen henger sammen.
-- Feilsøking av feilmeldinger knyttet til database og pakker.
-- Navigering i GitHub.
+**Idé og planlegging**
+- Gjennomgang av casen og tolkning av kravene i oppgaven.
+- Planlegging av MVC-strukturen og oppgavefordeling i gruppen.
+
+**Utvikling**
+- Forklaring av ASP.NET Core MVC, GET/POST og overføring av data med ViewModel.
+- Implementering av Leaflet-kart og henting av koordinater.
+- Utvikling av matching- og tildelingslogikk.
+- Oppsett av MariaDB og Entity Framework, og tilkobling til applikasjonen.
+
+**Docker, Git og drift**
+- Oppsett av Dockerfile og docker-compose.yml, med forklaring av hvert steg.
+- Branches, pull requests og samarbeid i GitHub.
+
+**Feilsøking**
+- Model binding og koordinater som ble vist som 0.
+- Byggefeil, manglende pakker og database-feilmeldinger.
+- Kloning som feilet på Windows, tegnkoding og manglende CSS i Docker.
+
+**Dokumentasjon**
+- Struktur i README, testscenarioer og kommentarer i koden.
 
 ### Eksempler på prompts
 
 Under utviklingen ble KI blant annet spurt om:
 
-- "Hvordan lager jeg et interaktivt Leaflet-kart i ASP.NET Core MVC?"
 - "Hvordan henter jeg latitude og longitude når brukeren klikker på et Leaflet-kart?"
-- "Hvordan plasserer jeg en markør der brukeren klikker?"
-- "Hvordan sender jeg koordinater fra en Razor View til en Controller med HTTP POST?"
-- "Hvordan bruker jeg en ViewModel til å sende koordinater mellom View og Controller?"
-- "Hvordan viser jeg koordinatene på en annen Razor View?"
 - "Hvorfor blir Latitude og Longitude 0 etter POST i ASP.NET Core MVC?"
-- "Hvordan kan jeg kontrollere Form Data i Network-verktøyet i nettleseren?"
-- "Hvordan legger jeg MapController inn i navigasjonen i _Layout.cshtml?"
-- "Hvordan bruker jeg en feature branch i Git uten å påvirke main?"
-- "Hvordan dokumenterer jeg testscenarioer og resultater i README?"
-- "Hva gjør hver linje i denne Dockerfilen?"
-- "Hvorfor feiler git clone med 'invalid path' på Windows?"
-- "Hvorfor vises æ, ø og å feil på GitHub etter at jeg lagret filen i PowerShell?"
-- "Hvorfor mangler CSS når appen kjører i Docker, men ikke med dotnet run?"
+- "Hvordan kan behov og tilgjengelige ressurser matches etter type?"
+- "Hvordan kan jeg implementere tildeling med GET og POST i ASP.NET Core MVC?"
 - "Ett steg om gangen."
+- "Hva gjør kodene..."
+- "Hvorfor må navnet endres?"
 
 ### Hvordan KI-forslag ble kontrollert
 
