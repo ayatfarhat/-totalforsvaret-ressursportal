@@ -122,7 +122,7 @@ Prosjektet bruker:
 - Docker og Docker Compose
 - Git og GitHub
 
-## Prosjektstruktur
+## Systemarkitektur
 
 Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View-mappe og (ved behov) en egen Model eller ViewModel:
 
@@ -152,6 +152,13 @@ Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for
 5. Brukeren kan klikke på et punkt for å se hva det gjelder.
 
 Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.
+
+## GET og POST
+
+Applikasjonen håndterer både GET- og POST-forespørsler. Et eksempel er registrering av ressurs i `RessursController`:
+
+- **GET:** Skjemaet for ny ressurs vises, med et interaktivt kart for å velge posisjon.
+- **POST:** Når skjemaet sendes, mottas dataene og koordinatene gjennom `RessursFormViewModel`, og brukeren sendes videre til en bekreftelsesside som viser den valgte posisjonen på et kart.
 
 ## Responsivt design
 
