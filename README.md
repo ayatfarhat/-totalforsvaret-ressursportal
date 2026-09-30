@@ -8,6 +8,82 @@ Nabohjelp er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 
+## Gruppemedlemmer og roller
+
+| Ansvarsområde | Gruppemedlem |
+|---|---|
+| Datamodell og database | Torbjørn |
+| Innlogging, roller og sikkerhet | Hassan |
+| Behov og statusflyt | Christian |
+| Kart, tildeling og matching | Ayat |
+| Ressurser, design og layout | Marceli |
+| Infrastruktur og sanntid | Thea |
+
+## Drift og kjøring
+
+### Forutsetninger
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) må være installert og startet
+- [Git](https://git-scm.com/) for å hente koden
+
+.NET SDK trengs ikke, siden applikasjonen bygges inne i Docker.
+
+### Starte applikasjonen med Docker
+
+```bash
+git clone https://github.com/ayatfarhat/-totalforsvaret-ressursportal.git ressursportal
+cd ressursportal
+docker compose up --build
+```
+
+Åpne deretter <http://localhost:8080> i nettleseren.
+
+Første gang tar det noen minutter, fordi Docker må laste ned .NET-bildene.
+
+### Stoppe applikasjonen
+
+Trykk `Ctrl + C` i terminalen. For å fjerne containeren helt:
+
+```bash
+docker compose down
+```
+
+### Testbrukere
+
+Ved oppstart opprettes tre testbrukere:
+
+| E-post | Passord | Rolle |
+|---|---|---|
+| admin@test.no | Admin123 | Admin |
+| kommune@test.no | Kommune123 | Kommune |
+| privatperson@test.no | Privat123 | Frivillig |
+
+### Docker-oppsett
+
+Applikasjonen bygges med en Dockerfile i to steg: først bygges appen med .NET SDK, deretter kopieres det ferdige resultatet over i et mindre bilde som bare kjører appen. Containeren lytter på port 8080.
+
+Statiske filer (CSS, JavaScript og Bootstrap) ligger i mappen `DesignCSS` i stedet for standardmappen `wwwroot`. Fordi `dotnet publish` bare tar med `wwwroot` automatisk, kopieres `DesignCSS` inn i containeren i et eget steg i Dockerfilen.
+
+Databasen er en SQLite-fil som lagres inne i containeren. Den beholdes når containeren stoppes med `Ctrl + C`, men slettes med `docker compose down`.
+
+### Kjøre uten Docker
+
+Prosjektet kan også startes lokalt fra terminalen med .NET SDK:
+
+```bash
+dotnet run
+```
+
+Terminalen viser adressen applikasjonen kjører på.
+
+Eksempel:
+
+```text
+http://localhost:5144
+```
+
+Kartfunksjonen kan åpnes fra navigasjonsmenyen ved å velge **Kart**.
+
 ## Teknologi
 
 Prosjektet bruker:
@@ -191,30 +267,6 @@ Navigasjonen skal endres til en mobilmeny, og kartlenken skal fortsatt være til
 
 **Resultat:**  
 Bestått.
-
-## Drift og kjøring
-
-Prosjektet kan startes lokalt fra terminalen med:
-
-```bash
-dotnet run
-```
-
-Terminalen viser adressen applikasjonen kjører på.
-
-Eksempel:
-
-```text
-http://localhost:5144
-```
-
-Kartfunksjonen kan åpnes fra navigasjonsmenyen ved å velge **Kart**.
-
-### Docker
-
-Den ferdige applikasjonen skal kjøres i Docker.
-
-Docker-konfigurasjonen dokumenteres her når gruppens Docker-oppsett er ferdig og testet.
 
 ## Git og GitHub
 
