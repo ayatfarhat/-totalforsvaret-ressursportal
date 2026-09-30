@@ -1,0 +1,51 @@
+@model Kriseportal.Models.RessursFormViewModel
+
+@{
+    ViewData["Title"] = "Kvittering";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 text-center">
+            <h1 class="text-success">Takk for din registrering!</h1>
+            <p class="lead">Ressursen din er nå registrert og synlig for koordinatorer.</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mt-3">
+        <div class="col-12 col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sammendrag</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Type</dt>
+                        <dd class="col-sm-8">@Model.Type</dd>
+
+                        <dt class="col-sm-4">Posisjon</dt>
+                        <dd class="col-sm-8">@Model.Posisjon</dd>
+
+                        <dt class="col-sm-4">Tilgjengelig fra</dt>
+                        <dd class="col-sm-8">@Model.VisTilgjengeligFra()</dd>
+
+                        <dt class="col-sm-4">Beskrivelse</dt>
+                        <dd class="col-sm-8">@Model.VisBeskrivelse()</dd>
+
+                        <dt class="col-sm-4">Navn</dt>
+                        <dd class="col-sm-8">@Model.VisNavn()</dd>
+
+                        <dt class="col-sm-4">Telefon</dt>
+                        <dd class="col-sm-8">@Model.VisTelefon()</dd>
+
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">@Model.Status</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a asp-action="Create" class="btn btn-success">Send en ny melding</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">Til forsiden</a>
+            </div>
+        </div>
+    </div>
+</div>

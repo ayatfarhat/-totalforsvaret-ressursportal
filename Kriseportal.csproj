@@ -3,7 +3,15 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <WebRootPath>DesignCSS</WebRootPath>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ASP.NET Core Identity (innlogging, roller, 2FA) lagret i database via Entity Framework Core -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+    <!-- SQLite: en enkel fil-database, trenger ingen egen databaseserver -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+  </ItemGroup>
 
 </Project>

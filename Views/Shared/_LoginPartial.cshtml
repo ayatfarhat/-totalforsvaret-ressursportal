@@ -1,0 +1,25 @@
+@* Høyre side av menyen. Viser "Logg inn" eller hvem som er logget inn. *@
+
+<ul class="navbar-nav">
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Index">@User.Identity.Name</a>
+        </li>
+        <li class="nav-item">
+            @* Utlogging er et skjema (POST), ikke en vanlig lenke *@
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="nav-link btn btn-link text-dark">Logg ut</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Registrer deg</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Logg inn</a>
+        </li>
+    }
+</ul>
