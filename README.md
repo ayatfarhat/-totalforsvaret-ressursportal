@@ -57,3 +57,8 @@ docker compose down
 ## Bruk av KI
 
 <!-- Samlet for hele gruppa. Alle sender verktøy, bruk og eksempel på prompt til Thea -->
+Vi brukte Claude (Anthropic) gjennom hele prosjektet, fra analyse til drift. I starten brukte vi det til å gå gjennom casen og tilbakemeldingen på Deliverable 1, og til å tolke kravene i Oppgave 1, blant annet for å se hvilke krav som manglet en ansvarlig i oppgavefordelingen. Et eksempel på prompt var «Ikke gjør noe. Start med å lese casen», etterfulgt av casedokumentet.
+
+I arbeidet med Docker og drift brukte vi Claude til å sette opp Dockerfile, .dockerignore og docker-compose.yml, og til steg-for-steg-veiledning i Git med branches, pull requests og merge. Vi ba om ett steg om gangen og om forklaringer på hva hver linje gjorde, for eksempel «Hva gjør kodene...». Claude ble også brukt til feilsøking, blant annet da kloning feilet fordi et filnavn inneholdt kolon, og da æ, ø og å ble lagret med feil tegnkoding. I tillegg ga Claude forslag til kommentarer i Docker-filene og til struktur og drift-del i denne README-en.
+
+KI var mest nyttig til å forstå hva kommandoer og feilmeldinger betydde. Forslagene ble testet ved å bygge og kjøre applikasjonen i Docker før de ble lagt inn i repoet.
