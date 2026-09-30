@@ -1,0 +1,207 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}
+
+/* -----------------------------------------------------------------
+   Nabohjelp-temaet. Flyttet hit fra <style> i _Layout.cshtml fordi
+   Rider ikke klarer å løse opp CSS-variabler (--nh-radius osv.) når
+   de står i en <style>-blokk inni en .cshtml-fil - det er en kjent
+   begrensning i Rider, ikke en ekte feil. Her, i en ren .css-fil,
+   forsvinner de falske feilmeldingene, og alt fungerer likt.
+
+   Fargene og avstandene er definert som CSS-variabler øverst (i :root),
+   slik at man bare trenger å endre dem ÉN gang her, i stedet for å
+   lete gjennom hele filen etter hver farge.
+   ----------------------------------------------------------------- */
+:root {
+    --nh-bg: #fdf6ec;          /* varm, lys bakgrunn */
+    --nh-nav-bg: #f3e2c7;      /* varm beige navbar */
+    --nh-line: #e4d5bc;        /* lys, varm kantlinje */
+    --nh-danger: #c0392b;      /* "trenger hjelp"-rødt */
+    --nh-danger-dark: #a5311f;
+    --nh-success: #2e7d46;     /* "kan hjelpe"-grønt */
+    --nh-success-dark: #235f36;
+    --nh-text: #2b2420;
+    --nh-radius: 12px;
+    --nh-shadow: 0 2px 10px rgba(43, 36, 32, 0.08);
+    --nh-shadow-hover: 0 8px 20px rgba(43, 36, 32, 0.12);
+    --font-display: 'Baloo 2', 'Segoe UI', sans-serif;
+}
+
+body {
+    background-color: var(--nh-bg);
+    color: var(--nh-text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+}
+
+.navbar {
+    background-color: var(--nh-nav-bg) !important;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.safety-banner {
+    background-color: var(--nh-danger);
+    color: #ffffff;
+    text-align: center;
+    font-weight: 600;
+    padding: 10px;
+}
+
+/* Kort (cards) får myk skygge og avrundede hjørner, og løfter seg
+   litt når man holder musepekeren over. */
+.card {
+    border-radius: var(--nh-radius);
+    box-shadow: var(--nh-shadow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--nh-shadow-hover);
+}
+
+.btn {
+    border-radius: 999px;
+    font-weight: 600;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+.btn-success {
+    background-color: var(--nh-success);
+    border-color: var(--nh-success);
+}
+
+.btn-success:hover {
+    background-color: var(--nh-success-dark);
+    border-color: var(--nh-success-dark);
+}
+
+.btn-danger {
+    background-color: var(--nh-danger);
+    border-color: var(--nh-danger);
+}
+
+.btn-danger:hover {
+    background-color: var(--nh-danger-dark);
+    border-color: var(--nh-danger-dark);
+}
+
+/* Størrelser for den gjenbrukbare logoen (Views/Shared/_Logo.cshtml).
+   SVG-en selv har ingen fast størrelse - den skaleres av disse klassene. */
+.logo-icon {
+    display: inline-block;
+}
+
+.logo-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.logo-icon-small {
+    width: 28px;
+    height: 28px;
+}
+
+.logo-icon-large {
+    width: 96px;
+    height: 96px;
+}
+
+/* Illustrasjonen på forsiden (nettverk av naboer rundt logoen) */
+.neighbor-network {
+    max-width: 480px;
+    width: 100%;
+    height: auto;
+}
+
+/* "Slik bruker du Nabohjelp"-stegene: en tynn linje som binder dem
+   sammen, siden de faktisk er en rekkefølge (steg 1, 2, 3). */
+.step-row {
+    display: flex;
+    gap: 24px;
+    position: relative;
+}
+
+.step-row::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 16.6%;
+    right: 16.6%;
+    height: 2px;
+    background: var(--nh-line);
+}
+
+.step-item {
+    flex: 1;
+    position: relative;
+}
+
+.step-num {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: var(--nh-bg);
+    border: 2px solid var(--nh-success);
+    color: var(--nh-success);
+    font-family: var(--font-display);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 767px) {
+    .step-row {
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .step-row::before {
+        display: none;
+    }
+}

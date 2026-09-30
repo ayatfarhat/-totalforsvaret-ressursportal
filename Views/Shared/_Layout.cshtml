@@ -1,5 +1,5 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="no">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,28 +7,42 @@
     <!-- Sidetittel -->
     <title>@ViewData["Title"] - Nabohjelp</title>
 
-    <script type="importmap"></script>
-
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-    <!-- Egen CSS -->
+    <!-- Prosjektets CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Nabohjelp.styles.css" asp-append-version="true" />
+
+    <!-- Skrifttyper brukt i Nabohjelp -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
 </head>
 
 <body>
 
     <!-- Navigasjon -->
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+
+        <!-- Sikkerhetsinformasjon -->
+        <div class="safety-banner">
+            Akutt fare for liv og helse? Ring 112/113/110.
+        </div>
+
+        <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow mb-3">
             <div class="container-fluid">
 
-                <!-- Logo -->
+                <!-- Logo og lenke til forsiden -->
                 <a class="navbar-brand"
                    asp-area=""
                    asp-controller="Home"
                    asp-action="Index">
+
+                    <span class="logo-icon logo-icon-small">
+                        <partial name="_Logo" />
+                    </span>
+
                     Nabohjelp
                 </a>
 
@@ -40,11 +54,13 @@
                         aria-controls="navbarSupportedContent"
                         aria-expanded="false"
                         aria-label="Toggle navigation">
+
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Meny -->
+                <!-- Navigasjonslenker -->
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+
                     <ul class="navbar-nav flex-grow-1">
 
                         <!-- Forside -->
@@ -53,17 +69,17 @@
                                asp-area=""
                                asp-controller="Home"
                                asp-action="Index">
-                                Home
+                                Forside
                             </a>
                         </li>
 
-                        <!-- Privacy -->
+                        <!-- Ressurser / Nabohjelp -->
                         <li class="nav-item">
                             <a class="nav-link text-dark"
                                asp-area=""
-                               asp-controller="Home"
-                               asp-action="Privacy">
-                                Privacy
+                               asp-controller="Ressurs"
+                               asp-action="Index">
+                                Nabohjelp
                             </a>
                         </li>
 
@@ -78,27 +94,51 @@
                         </li>
 
                     </ul>
+
+                    <!-- Lenke for Admin/Kommune -->
+                    <ul class="navbar-nav">
+                        @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-muted small"
+                                   asp-area=""
+                                   asp-controller="Kommandobro"
+                                   asp-action="Index">
+                                    For nødetater/politi &rarr;
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <!-- Innlogging / registrering -->
+                    <partial name="_LoginPartial" />
+
                 </div>
             </div>
         </nav>
     </header>
 
-    <!-- Sideinnhold -->
+    <!-- Hovedinnhold -->
     <div class="container">
         <main role="main" class="pb-3">
+
+            <!-- Viser meldinger sendt fra controller -->
+            @if (TempData["Melding"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Melding"]
+                </div>
+            }
+
             @RenderBody()
+
         </main>
     </div>
 
     <!-- Bunntekst -->
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - Nabohjelp -
-            <a asp-area=""
-               asp-controller="Home"
-               asp-action="Privacy">
-                Privacy
-            </a>
+            &copy; 2026 - Nabohjelp - Gruppe 15
         </div>
     </footer>
 
@@ -107,7 +147,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    <!-- Scripts fra views -->
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>
