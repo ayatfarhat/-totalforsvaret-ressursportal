@@ -16,13 +16,13 @@ public class BehovController : Controller
     public BehovController(ApplicationDbContext db) => _db = db;
 
     [HttpGet]
-    [Authorize(Roles = "PublicActor,Operator")]
+    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public IActionResult Opprett()
     {
         return View(new BehovViewModel());
     }
     [HttpPost, ValidateAntiForgeryToken]           
-    [Authorize(Roles = "PublicActor,Operator")]
+    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Opprett(BehovViewModel vm)
     {
         
@@ -50,7 +50,7 @@ public class BehovController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Operator")]
+    [Authorize(Roles = "Admin,Kommune")]
     public async Task<IActionResult> Ko()
     {
         var liste = await _db.Behovsliste
@@ -74,7 +74,7 @@ public class BehovController : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    [Authorize(Roles = "Operator")]
+    [Authorize(Roles = "Admin,Kommune")]
     public async Task<IActionResult> EndreStatus(int id, BehovStatus nyStatus)
     {
         var behov = await _db.Behovsliste.FindAsync(id);

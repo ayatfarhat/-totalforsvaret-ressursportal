@@ -7,15 +7,11 @@ public static class RoleInitializer
     public static async Task InitializeAsync(
         RoleManager<IdentityRole> roleManager)
     {
-        // NB: "PublicActor"/"Operator" er Torbjørn/Ayat sine rollenavn (brukt av
-        // Behov-funksjonen og databaseoppsettet). "Admin"/"Kommune"/"Frivillig" er
-        // Hassan sine rollenavn (brukt av innlogging/registrering, Kommandobro og
-        // kartet). Begge sett må finnes helt til gruppa har blitt enige om ett
-        // felles rollenavn-system — se oppgavefordelingen/gruppechat.
+        // Rollene brukt i resten av appen (innlogging/registrering, Kommandobro,
+        // kartet og Behov). Erstatter de tidligere "PublicActor"/"Operator"-
+        // navnene som Behov-funksjonen og databaseoppsettet opprinnelig brukte.
         string[] roles =
         {
-            "PublicActor",
-            "Operator",
             "Admin",
             "Kommune",
             "Frivillig"

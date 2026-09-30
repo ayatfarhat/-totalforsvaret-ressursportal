@@ -15,23 +15,6 @@ public static class SeedData
 
         await LagBruker(
             userManager,
-            "operator@test.no",
-            "Operator123!",
-            "Operator"
-        );
-
-        await LagBruker(
-            userManager,
-            "public@test.no",
-            "Public123!",
-            "PublicActor"
-        );
-
-        // Testbrukere for Hassan sine rollenavn (innlogging, Kommandobro, kartet).
-        // Se merknaden i RoleInitializer.cs - to rollenavn-systemer lever side om
-        // side inntil gruppa er enige om ett felles.
-        await LagBruker(
-            userManager,
             "admin@test.no",
             "Admin123!",
             "Admin"

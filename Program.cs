@@ -27,7 +27,7 @@ builder.Services
 var app = builder.Build();
 
 // Kjører migrasjoner automatisk
-// og oppretter rollene PublicActor og Operator
+// og oppretter rollene Admin, Kommune og Frivillig
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider
