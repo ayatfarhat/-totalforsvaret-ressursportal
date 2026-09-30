@@ -324,6 +324,14 @@ KI har blant annet blitt brukt til:
 - Git og feature branches.
 - Dokumentasjon av funksjonalitet.
 - Utforming av testscenarioer.
+- Oppsett av Dockerfile, .dockerignore og docker-compose.yml.
+- Forklaring av hva hvert steg i Dockerfilen gjør.
+- Oppsett av GitHub-repo, branches og pull requests.
+- Feilsøking når kloning feilet på grunn av kolon i et filnavn.
+- Feilsøking av tegnkoding (æ, ø og å) i filer laget med PowerShell.
+- Feilsøking av byggefeil i Docker etter at prosjektet ble omdøpt.
+- Feilsøking av manglende CSS i Docker fordi DesignCSS ikke ble med i publish.
+- Struktur og drift-del i README.
 
 ### Eksempler på prompts
 
@@ -340,6 +348,11 @@ Under utviklingen ble KI blant annet spurt om:
 - "Hvordan legger jeg MapController inn i navigasjonen i _Layout.cshtml?"
 - "Hvordan bruker jeg en feature branch i Git uten å påvirke main?"
 - "Hvordan dokumenterer jeg testscenarioer og resultater i README?"
+- "Hva gjør hver linje i denne Dockerfilen?"
+- "Hvorfor feiler git clone med 'invalid path' på Windows?"
+- "Hvorfor vises æ, ø og å feil på GitHub etter at jeg lagret filen i PowerShell?"
+- "Hvorfor mangler CSS når appen kjører i Docker, men ikke med dotnet run?"
+- "Ett steg om gangen."
 
 ### Hvordan KI-forslag ble kontrollert
 
