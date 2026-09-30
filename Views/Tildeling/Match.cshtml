@@ -1,0 +1,187 @@
+@model Nabohjelp.ViewModels.TildelingViewModel
+
+@{
+    ViewData["Title"] = "Match ressurs";
+}
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<!-- Overskrift -->
+<h1>Match ressurs</h1>
+
+<!-- Informasjon om behovet -->
+<div class="card mb-4">
+    <div class="card-body">
+
+        <h2 class="h5">
+            Behov #@Model.BehovId
+        </h2>
+
+        <p>
+            <strong>Type:</strong>
+            @Model.BehovType
+        </p>
+
+        <p>
+            <strong>Prioritet:</strong>
+            @Model.Prioritet
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            @Model.Status
+        </p>
+
+        <p>
+            <strong>Beskrivelse:</strong>
+            @(string.IsNullOrWhiteSpace(Model.Beskrivelse)
+                ? "Ingen beskrivelse"
+                : Model.Beskrivelse)
+        </p>
+
+    </div>
+</div>
+
+<!-- Kart over behovets registrerte posisjon -->
+<h2 class="h4">Posisjon</h2>
+
+<div id="map"
+     style="height: 400px; width: 100%;"
+     class="mb-3">
+</div>
+
+<p>
+    <strong>Breddegrad:</strong>
+    @Model.Latitude
+    <br />
+
+    <strong>Lengdegrad:</strong>
+    @Model.Longitude
+</p>
+
+<hr />
+
+<!-- Matchende ressurser -->
+<h2 class="h4">Matchende ressurser</h2>
+
+@if (TempData["Feil"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Feil"]
+    </div>
+}
+
+@if (!Model.MatchendeRessurser.Any())
+{
+    <!-- Ingen ressurs passer akkurat nå -->
+    <div class="alert alert-warning">
+        Ingen tilgjengelige ressurser matcher dette behovet.
+    </div>
+}
+else
+{
+    <div class="row">
+
+        @foreach (var ressurs in Model.MatchendeRessurser)
+        {
+            <div class="col-12 col-md-6 mb-3">
+
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <h3 class="h5">
+                            @ressurs.Type
+                        </h3>
+
+                        <p>
+                            <strong>Posisjon:</strong>
+                            @ressurs.Posisjon
+                        </p>
+
+                        <p>
+                            <strong>Status:</strong>
+                            @ressurs.Status
+                        </p>
+
+                        <p>
+                            <strong>Navn:</strong>
+                            @(string.IsNullOrWhiteSpace(ressurs.Navn)
+                                ? "Ikke oppgitt"
+                                : ressurs.Navn)
+                        </p>
+
+                        <p>
+                            <strong>Match:</strong>
+                            @ressurs.MatchBegrunnelse
+                        </p>
+
+                        <!-- POST-er selve tildelingen -->
+                        <form asp-controller="Tildeling"
+                              asp-action="Tildel"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="behovId"
+                                   value="@Model.BehovId" />
+
+                            <input type="hidden"
+                                   name="ressursId"
+                                   value="@ressurs.RessursId" />
+
+                            <button type="submit"
+                                    class="btn btn-success">
+                                Tildel ressurs
+                            </button>
+
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        }
+
+    </div>
+}
+
+<!-- Tilbake til behovslisten -->
+<a asp-controller="Tildeling"
+   asp-action="Index"
+   class="btn btn-outline-secondary mt-3">
+    Tilbake
+</a>
+
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Henter behovets koordinater fra ViewModel.
+    const latitude = @Model.Latitude.ToString(
+        System.Globalization.CultureInfo.InvariantCulture);
+
+    const longitude = @Model.Longitude.ToString(
+        System.Globalization.CultureInfo.InvariantCulture);
+
+    // Oppretter kartet rundt behovet.
+    const map = L.map('map').setView(
+        [latitude, longitude],
+        13
+    );
+
+    // Legger til OpenStreetMap.
+    L.tileLayer(
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(map);
+
+    // Viser behovet med en markør.
+    L.marker([latitude, longitude])
+        .addTo(map)
+        .bindPopup('Behov #@Model.BehovId')
+        .openPopup();
+</script>

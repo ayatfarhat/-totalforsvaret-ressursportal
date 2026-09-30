@@ -1,4 +1,4 @@
-namespace Kommandobro.Models;
+namespace Nabohjelp.Models;
 public enum BehovType { Transport, Drone, Generator, Evakuering, Annet }
 public enum BehovPrioritet { Urgent = 0, Planned = 1 }   
 public enum BehovStatus { New, UnderReview, Assigned, Resolved }

@@ -1,4 +1,4 @@
-@model Kriseportal.Models.RessursFormViewModel
+@model Nabohjelp.Models.RessursFormViewModel
 
 @{
     ViewData["Title"] = "Registrer en ressurs";
@@ -16,7 +16,7 @@
                 <label asp-for="Type" class="form-label">Type ressurs</label>
                 <select asp-for="Type" class="form-select">
                     <option value="">-- Velg type --</option>
-                    @foreach (var type in Kriseportal.Models.RessursFormViewModel.Typer)
+                    @foreach (var type in Nabohjelp.Models.RessursFormViewModel.Typer)
                     {
                         <option value="@type">@type</option>
                     }

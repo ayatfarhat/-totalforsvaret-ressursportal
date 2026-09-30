@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Kriseportal.Data;
+using Nabohjelp.Data;
 
 // Mappen for statiske filer (CSS, JS, bilder, biblioteker) heter "DesignCSS"
 // i stedet for standardnavnet "wwwroot" — dette må settes med det samme,

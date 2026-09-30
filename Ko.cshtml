@@ -1,4 +1,4 @@
-@model List<Kommandobro.ViewModels.BehovKoItem>
+@model List<Nabohjelp.ViewModels.BehovKoItem>
 @{ ViewData["Title"] = "Kø"; }
 
 <h1>Prioritert kø</h1>
@@ -21,7 +21,7 @@ else
         <tbody>
         @foreach (var b in Model)
         {
-            <tr class="@(b.Prioritet == Kommandobro.Models.BehovPrioritet.Urgent ? "table-danger" : "")">
+            <tr class="@(b.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "table-danger" : "")">
                 <td>@b.Type</td>
                 <td>@b.Prioritet</td>
                 <td>@b.Status</td>

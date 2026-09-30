@@ -1,4 +1,4 @@
-namespace Kriseportal.Models;
+namespace Nabohjelp.Models;
 
 // Det som vises på "Min konto"
 public class KontoViewModel

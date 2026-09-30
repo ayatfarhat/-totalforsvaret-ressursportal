@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kriseportal.Controllers
+namespace Nabohjelp.Controllers
 {
     // Bare Admin og Kommune (Hassans roller) kommer inn her. Alle andre blir
     // sendt til /Account/AccessDenied. Ikke logget inn i det hele tatt ->

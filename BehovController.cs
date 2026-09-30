@@ -1,12 +1,12 @@
 using System.Security.Claims;
-using Kommandobro.Data;
-using Kommandobro.Models;
-using Kommandobro.ViewModels;
+using Nabohjelp.Data;
+using Nabohjelp.Models;
+using Nabohjelp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kommandobro.Controllers;
+namespace Nabohjelp.Controllers;
 
 [Authorize]   
 public class BehovController : Controller

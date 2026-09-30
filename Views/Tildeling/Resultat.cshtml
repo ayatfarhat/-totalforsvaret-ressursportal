@@ -1,0 +1,82 @@
+@model Nabohjelp.ViewModels.TildelingViewModel
+
+@{
+    ViewData["Title"] = "Tildeling fullført";
+
+    // Resultatet inneholder ressursen som ble tildelt.
+    var ressurs = Model.MatchendeRessurser.FirstOrDefault();
+}
+
+<!-- Overskrift -->
+<h1>Tildeling fullført</h1>
+
+<div class="alert alert-success">
+    Ressursen er tildelt behovet.
+</div>
+
+<!-- Informasjon om behovet -->
+<div class="card mb-3">
+    <div class="card-body">
+
+        <h2 class="h5">
+            Behov #@Model.BehovId
+        </h2>
+
+        <p>
+            <strong>Behovstype:</strong>
+            @Model.BehovType
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            @Model.Status
+        </p>
+
+        <p>
+            <strong>Posisjon:</strong>
+            @Model.Latitude, @Model.Longitude
+        </p>
+
+    </div>
+</div>
+
+@if (ressurs != null)
+{
+    <!-- Informasjon om den tildelte ressursen -->
+    <div class="card mb-3">
+        <div class="card-body">
+
+            <h2 class="h5">
+                Tildelt ressurs
+            </h2>
+
+            <p>
+                <strong>Type:</strong>
+                @ressurs.Type
+            </p>
+
+            <p>
+                <strong>Posisjon:</strong>
+                @ressurs.Posisjon
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                @ressurs.Status
+            </p>
+
+            <p>
+                <strong>Match:</strong>
+                @ressurs.MatchBegrunnelse
+            </p>
+
+        </div>
+    </div>
+}
+
+<!-- Tilbake til tildelingsoversikten -->
+<a asp-controller="Tildeling"
+   asp-action="Index"
+   class="btn btn-primary">
+    Tilbake til tildeling
+</a>

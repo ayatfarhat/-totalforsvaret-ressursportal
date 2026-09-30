@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Kriseportal.Models;
+namespace Nabohjelp.Models;
 
 // Data fra registreringsskjemaet
 public class RegisterViewModel

@@ -1,4 +1,4 @@
-@model Kommandobro.ViewModels.BehovViewModel
+@model Nabohjelp.ViewModels.BehovViewModel
 @{ ViewData["Title"] = "Registrer behov"; }
 
 <h1>Registrer behov</h1>
@@ -7,7 +7,7 @@
 
     <div class="mb-3">
         <label asp-for="Type"></label>
-        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<Kommandobro.Models.BehovType>()">
+        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<Nabohjelp.Models.BehovType>()">
             <option value="">-- Velg type --</option>
         </select>
         <span asp-validation-for="Type" class="text-danger"></span>
@@ -34,7 +34,7 @@
 
     <div class="mb-3">
         <label asp-for="Prioritet"></label>
-        <select asp-for="Prioritet" class="form-select" asp-items="Html.GetEnumSelectList<Kommandobro.Models.BehovPrioritet>()">
+        <select asp-for="Prioritet" class="form-select" asp-items="Html.GetEnumSelectList<Nabohjelp.Models.BehovPrioritet>()">
             <option value="">-- Velg prioritet --</option>
         </select>
         <span asp-validation-for="Prioritet" class="text-danger"></span>

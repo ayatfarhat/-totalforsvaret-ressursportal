@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace Kriseportal.Data;
+namespace Nabohjelp.Data;
 
 // Kjøres når appen starter. Lager databasen, rollene og tre testbrukere.
 public static class SeedData

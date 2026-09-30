@@ -1,13 +1,31 @@
-using Kriseportal.Models;
+using Nabohjelp.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kriseportal.Controllers
+namespace Nabohjelp.Controllers
 {
     public class RessursController : Controller
     {
-        // TODO: erstatt med EF Core når Torbjørns modell er klar
-        // Midlertidig "database" i minnet — kun for å bygge og teste hele flyten
+        // Midlertidig lagring av ressurser i minnet.
+        // Skal senere erstattes med EF Core/database.
         private static readonly List<RessursFormViewModel> _midlertidigListe = new();
+
+        // Gjør ressursene tilgjengelige for matching.
+        // Listen kan leses, men ikke erstattes utenfra.
+        public static IReadOnlyList<RessursFormViewModel> HentRessurser()
+        {
+            return _midlertidigListe.AsReadOnly();
+        }
+
+        // Henter én bestemt ressurs.
+        public static RessursFormViewModel? HentRessurs(int id)
+        {
+            if (id < 0 || id >= _midlertidigListe.Count)
+            {
+                return null;
+            }
+
+            return _midlertidigListe[id];
+        }
 
         // GET: /Ressurs
         public IActionResult Index()
@@ -27,30 +45,32 @@ namespace Kriseportal.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(RessursFormViewModel model)
         {
-            // Type og Posisjon sjekkes allerede av [Required] i RessursFormViewModel.
-            // Her sjekker vi bare det [Required] ikke kan uttrykke: at tidspunktet
-            // ikke ligger i fortiden.
+            // Kontrollerer at tidspunktet ikke ligger i fortiden.
             if (!model.ErValidTilgjengeligFra())
             {
-                ModelState.AddModelError("TilgjengeligFra", "Tidspunkt kan ikke ligge i fortiden.");
+                ModelState.AddModelError(
+                    "TilgjengeligFra",
+                    "Tidspunkt kan ikke ligge i fortiden.");
             }
 
+            // Viser skjemaet igjen hvis dataene er ugyldige.
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Status settes automatisk, ikke av bruker
+            // Ny ressurs blir tilgjengelig for matching.
             model.Status = "Tilgjengelig";
 
-            // TODO: erstatt med EF Core-lagring
             _midlertidigListe.Add(model);
 
-            // Post-Redirect-Get: unngå dobbel innsending ved refresh
-            return RedirectToAction("Confirmation", new { id = _midlertidigListe.Count - 1 });
+            // Sender brukeren til bekreftelsessiden.
+            return RedirectToAction(
+                "Confirmation",
+                new { id = _midlertidigListe.Count - 1 });
         }
 
-        // GET: /Ressurs/Confirmation/5
+        // GET: /Ressurs/Confirmation
         public IActionResult Confirmation(int id)
         {
             if (id < 0 || id >= _midlertidigListe.Count)

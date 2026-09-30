@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using Kommandobro.Models;
+using Nabohjelp.Models;
 
-namespace Kommandobro.ViewModels;
+namespace Nabohjelp.ViewModels;
 public class BehovViewModel : IValidatableObject
 {
     [Required(ErrorMessage = "Velg behovstype.")]

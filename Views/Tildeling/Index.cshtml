@@ -1,0 +1,68 @@
+@model IEnumerable<Nabohjelp.Models.Behov>
+
+@{
+    ViewData["Title"] = "Tildeling";
+}
+
+<!-- Overskrift -->
+<h1>Tildeling og matching</h1>
+
+<p>
+    Velg et behov for å finne tilgjengelige ressurser som passer.
+</p>
+
+@if (!Model.Any())
+{
+    <!-- Vises når det ikke finnes aktive behov -->
+    <div class="alert alert-info">
+        Det finnes ingen aktive behov som kan tildeles.
+    </div>
+}
+else
+{
+    <!-- Gjør tabellen responsiv på små skjermer -->
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Behov</th>
+                    <th>Prioritet</th>
+                    <th>Status</th>
+                    <th>Beskrivelse</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var behov in Model)
+                {
+                    <tr>
+                        <td>@behov.Id</td>
+                        <td>@behov.Type</td>
+                        <td>@behov.Prioritet</td>
+                        <td>@behov.Status</td>
+
+                        <td>
+                            @(string.IsNullOrWhiteSpace(behov.Beskrivelse)
+                                ? "Ingen beskrivelse"
+                                : behov.Beskrivelse)
+                        </td>
+
+                        <td>
+                            <!-- Åpner matching for dette behovet -->
+                            <a asp-controller="Tildeling"
+                               asp-action="Match"
+                               asp-route-id="@behov.Id"
+                               class="btn btn-primary btn-sm">
+                                Finn ressurs
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+}
