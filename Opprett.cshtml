@@ -1,0 +1,57 @@
+@model Kommandobro.ViewModels.BehovViewModel
+@{ ViewData["Title"] = "Registrer behov"; }
+
+<h1>Registrer behov</h1>
+<form asp-action="Opprett" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Type"></label>
+        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<Kommandobro.Models.BehovType>()">
+            <option value="">-- Velg type --</option>
+        </select>
+        <span asp-validation-for="Type" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Beskrivelse"></label>
+        <textarea asp-for="Beskrivelse" class="form-control"></textarea>
+        <span asp-validation-for="Beskrivelse" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col mb-3">
+            <label asp-for="Latitude"></label>
+            <input asp-for="Latitude" class="form-control" />
+            <span asp-validation-for="Latitude" class="text-danger"></span>
+        </div>
+        <div class="col mb-3">
+            <label asp-for="Longitude"></label>
+            <input asp-for="Longitude" class="form-control" />
+            <span asp-validation-for="Longitude" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Prioritet"></label>
+        <select asp-for="Prioritet" class="form-select" asp-items="Html.GetEnumSelectList<Kommandobro.Models.BehovPrioritet>()">
+            <option value="">-- Velg prioritet --</option>
+        </select>
+        <span asp-validation-for="Prioritet" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="KontaktTelefon"></label>
+        <input asp-for="KontaktTelefon" class="form-control" />
+        <span asp-validation-for="KontaktTelefon" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="KontaktEpost"></label>
+        <input asp-for="KontaktEpost" class="form-control" />
+        <span asp-validation-for="KontaktEpost" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Send inn</button>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

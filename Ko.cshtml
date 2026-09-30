@@ -1,0 +1,44 @@
+@model List<Kommandobro.ViewModels.BehovKoItem>
+@{ ViewData["Title"] = "Kø"; }
+
+<h1>Prioritert kø</h1>
+
+@if (TempData["Feil"] is string feil)
+{
+    <div class="alert alert-danger">@feil</div>
+}
+
+@if (!Model.Any())
+{
+    <p>Ingen aktive behov.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Type</th><th>Prioritet</th><th>Status</th><th>Beskrivelse</th><th>Registrert</th><th></th></tr>
+        </thead>
+        <tbody>
+        @foreach (var b in Model)
+        {
+            <tr class="@(b.Prioritet == Kommandobro.Models.BehovPrioritet.Urgent ? "table-danger" : "")">
+                <td>@b.Type</td>
+                <td>@b.Prioritet</td>
+                <td>@b.Status</td>
+                <td>@b.Beskrivelse</td>
+                <td>@b.OpprettetTid.ToLocalTime().ToString("g")</td>
+                <td>
+                    @foreach (var neste in b.MuligeNesteStatuser)
+                    {
+                        <form asp-action="EndreStatus" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@b.Id" />
+                            <input type="hidden" name="nyStatus" value="@neste" />
+                            <button class="btn btn-sm btn-outline-secondary">→ @neste</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
