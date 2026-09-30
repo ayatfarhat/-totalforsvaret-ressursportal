@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Kriseportal.Models;
+using Nabohjelp.Models;
 
-namespace Kriseportal.Controllers;
+namespace Nabohjelp.Controllers;
 
 public class HomeController : Controller
 {

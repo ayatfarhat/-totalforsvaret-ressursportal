@@ -1,4 +1,4 @@
-namespace Kriseportal.Models;
+namespace Nabohjelp.Models;
 
 public class MapViewModel
 {
