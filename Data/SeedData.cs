@@ -15,16 +15,23 @@ public static class SeedData
 
         await LagBruker(
             userManager,
-            "operator@test.no",
-            "Operator123!",
-            "Operator"
+            "admin@test.no",
+            "Admin123!",
+            "Admin"
         );
 
         await LagBruker(
             userManager,
-            "public@test.no",
-            "Public123!",
-            "PublicActor"
+            "kommune@test.no",
+            "Kommune123!",
+            "Kommune"
+        );
+
+        await LagBruker(
+            userManager,
+            "privatperson@test.no",
+            "Privat123!",
+            "Frivillig"
         );
     }
 
