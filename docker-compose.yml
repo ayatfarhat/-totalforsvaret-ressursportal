@@ -1,14 +1,46 @@
-﻿# Definerer containerne som trengs for å kjøre løsningen.
-# Start med: docker compose up --build
-services:
-  # Webapplikasjonen (ASP.NET Core MVC)
+﻿services:
+
   web:
-    # Bygger containeren fra Dockerfile i denne mappa
     build: .
-    # Kobler port 8080 på egen maskin til port 8080 i containeren,
-    # slik at appen kan åpnes på http://localhost:8080
     ports:
       - "8080:8080"
-    # Development gir detaljerte feilmeldinger under utvikling
+
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=nabohjelp;User=nabohjelp_user;Password=nabohjelp_password;"
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+
+  mariadb:
+    image: mariadb:12
+
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: nabohjelp
+      MARIADB_USER: nabohjelp_user
+      MARIADB_PASSWORD: nabohjelp_password
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - nabohjelp_data:/var/lib/mysql
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+volumes:
+  nabohjelp_data:
