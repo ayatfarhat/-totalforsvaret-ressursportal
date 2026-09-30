@@ -21,10 +21,6 @@ WORKDIR /app
 # Henter den ferdige appen fra steg 1
 COPY --from=build /app/publish .
 
-# Statiske filer (CSS, JS, Bootstrap) ligger i DesignCSS i stedet for wwwroot,
-# og blir derfor ikke med i publish. Kopierer dem inn manuelt.
-COPY --from=build /src/DesignCSS ./DesignCSS
-
 # Appen lytter på port 8080 inne i containeren
 EXPOSE 8080
 
