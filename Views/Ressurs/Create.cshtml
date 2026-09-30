@@ -4,6 +4,9 @@
     ViewData["Title"] = "Registrer en ressurs";
 }
 
+<!-- Leaflet-kart, samme bibliotek som Ayat brukte i kart-funksjonen -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 <div class="row justify-content-center">
     <div class="col-12 col-md-8">
         <h1>Registrer en ressurs</h1>
@@ -28,6 +31,18 @@
                 <label asp-for="Posisjon" class="form-label">Posisjon</label>
                 <input asp-for="Posisjon" class="form-control" placeholder="Skriv inn adresse" />
                 <span asp-validation-for="Posisjon" class="text-danger"></span>
+            </div>
+
+            <!-- Kart: valgfritt tillegg til adressen over, for nøyaktig posisjon -->
+            <div class="mb-3">
+                <label class="form-label">Velg posisjon på kart (valgfritt)</label>
+                <p class="text-muted small mb-2">Klikk på kartet for å legge til nøyaktige koordinater sammen med adressen.</p>
+
+                <div id="ressursKart" style="height: 350px; width: 100%; border-radius: var(--nh-radius);"></div>
+                <p id="valgtPosisjon" class="mt-2 mb-0 small text-muted">Ingen posisjon valgt.</p>
+
+                <input asp-for="Breddegrad" type="hidden" id="breddegradInput" />
+                <input asp-for="Lengdegrad" type="hidden" id="lengdegradInput" />
             </div>
 
             <div class="mb-3">
@@ -57,3 +72,43 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Oppretter kartet, sentrert over Norge
+        const kart = L.map('ressursKart').setView([64.5, 11.0], 5);
+
+        // Legger til kartlaget (selve kartbildet)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(kart);
+
+        // Markøren som vises når man har valgt en posisjon
+        let markor = null;
+
+        // Kjøres hver gang brukeren klikker på kartet
+        kart.on('click', function (e) {
+            const breddegrad = e.latlng.lat;
+            const lengdegrad = e.latlng.lng;
+
+            // Flytter markøren, eller lager en ny hvis det ikke finnes en
+            if (markor === null) {
+                markor = L.marker([breddegrad, lengdegrad]).addTo(kart);
+            } else {
+                markor.setLatLng([breddegrad, lengdegrad]);
+            }
+
+            // Viser koordinatene i teksten under kartet
+            document.getElementById('valgtPosisjon').innerText =
+                'Valgt posisjon: ' + breddegrad.toFixed(5) + ', ' + lengdegrad.toFixed(5);
+
+            // Lagrer koordinatene i skjemaet, slik at de sendes inn sammen med resten
+            document.getElementById('breddegradInput').value = breddegrad;
+            document.getElementById('lengdegradInput').value = lengdegrad;
+        });
+    </script>
+}

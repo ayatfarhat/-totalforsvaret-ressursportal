@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Nabohjelp.Data;
+using Nabohjelp.Models;
 
 namespace Nabohjelp.Controllers
 {
@@ -13,9 +16,49 @@ namespace Nabohjelp.Controllers
     [Authorize(Roles = "Admin,Kommune")]
     public class KommandobroController : Controller
     {
-        public IActionResult Index()
+        private readonly ApplicationDbContext _db;
+
+        public KommandobroController(ApplicationDbContext db)
         {
-            return View();
+            _db = db;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            // Kartet vises direkte på Kommandobro-siden, så vi bygger
+            // punktene her i stedet for på en egen kart-side.
+            var modell = new MapViewModel();
+
+            // Ressurser: hentes fra Marcelis midlertidige liste i minnet.
+            // Bare de som faktisk har en posisjon valgt på kartet, vises.
+            foreach (var ressurs in RessursController.HentRessurser())
+            {
+                if (ressurs.Breddegrad == null || ressurs.Lengdegrad == null)
+                {
+                    continue;
+                }
+
+                modell.Ressurser.Add(new KartPunkt
+                {
+                    Tittel = ressurs.Type,
+                    Breddegrad = (double)ressurs.Breddegrad.Value,
+                    Lengdegrad = (double)ressurs.Lengdegrad.Value
+                });
+            }
+
+            // Behov: hentes fra databasen.
+            var behovsliste = await _db.Behovsliste.ToListAsync();
+            foreach (var behov in behovsliste)
+            {
+                modell.Behov.Add(new KartPunkt
+                {
+                    Tittel = behov.Type.ToString(),
+                    Breddegrad = behov.Latitude,
+                    Lengdegrad = behov.Longitude
+                });
+            }
+
+            return View(modell);
         }
     }
 }

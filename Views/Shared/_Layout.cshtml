@@ -83,19 +83,10 @@
                             </a>
                         </li>
 
-                        <!-- Kart -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Map"
-                               asp-action="Index">
-                                Kart
-                            </a>
-                        </li>
-
                     </ul>
 
-                    <!-- Lenke for Admin/Kommune -->
+                    <!-- Vises bare for Admin/Kommune. Kartet over behov/ressurser
+                         ligger nå direkte inne på Kommandobro-siden, ikke som egen lenke. -->
                     <ul class="navbar-nav">
                         @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
                         {

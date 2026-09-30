@@ -1,7 +1,13 @@
+@using System.Text.Json
+@model Nabohjelp.Models.MapViewModel
+
 @{
     ViewData["Title"] = "Kommandobro";
     Layout = "_KommandobroLayout";
 }
+
+<!-- Leaflet-kart -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <div class="row mb-4">
     <div class="col-12">
@@ -37,12 +43,53 @@
     </div>
 </div>
 
-<div class="kort-kommandobro p-4">
-    <h5>Kart og prioritert kø kommer her</h5>
-    <p class="text-secondary mb-0">
-        Dette er foreløpig en plassholderside for selve tilgangspunktet til Kommandobro,
-        med riktig fargetema. Kartet, matching-logikken og den prioriterte køen er
-        Ayat sitt ansvarsområde (kart, tildeling og matching) og bygges som egen del
-        av prosjektet — se oppgavefordelingen for gruppa.
+<div class="kort-kommandobro p-4 mb-3">
+    <h5>Kart over behov og ressurser</h5>
+    <p class="text-secondary">
+        Grønne markører er registrerte ressurser, røde er registrerte behov.
     </p>
+    <div id="oversiktsKart" style="height: 500px; width: 100%; border-radius: var(--kb-radius);"></div>
 </div>
+
+<div class="kort-kommandobro p-4">
+    <h5>Prioritert kø skal være her</h5>
+</div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Kartet, sentrert over Norge
+        const kart = L.map('oversiktsKart').setView([64.5, 11.0], 5);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(kart);
+
+        // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her
+        const ressurser = @Html.Raw(JsonSerializer.Serialize(Model.Ressurser));
+        const behov = @Html.Raw(JsonSerializer.Serialize(Model.Behov));
+
+        // Ressurser vises som grønne punkter
+        ressurser.forEach(function (punkt) {
+            L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
+                color: '#2e7d46',
+                fillColor: '#2e7d46',
+                fillOpacity: 0.8
+            })
+                .addTo(kart)
+                .bindPopup('<strong>Ressurs:</strong> ' + punkt.Tittel);
+        });
+
+        // Behov vises som røde punkter
+        behov.forEach(function (punkt) {
+            L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
+                color: '#c0392b',
+                fillColor: '#c0392b',
+                fillOpacity: 0.8
+            })
+                .addTo(kart)
+                .bindPopup('<strong>Behov:</strong> ' + punkt.Tittel);
+        });
+    </script>
+}

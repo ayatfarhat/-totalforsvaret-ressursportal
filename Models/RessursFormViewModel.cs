@@ -10,6 +10,12 @@ namespace Nabohjelp.Models
         [Required(ErrorMessage = "Posisjon er påkrevd.")]
         public string Posisjon { get; set; } = string.Empty;
 
+        // Nøyaktige koordinater fra kartet på Create-siden.
+        // Valgfritt — Posisjon (adressen) over er nok til å sende inn skjemaet.
+        public decimal? Breddegrad { get; set; }
+
+        public decimal? Lengdegrad { get; set; }
+
         [DataType(DataType.DateTime)]
         public DateTime? TilgjengeligFra { get; set; }
 
@@ -84,6 +90,15 @@ namespace Nabohjelp.Models
                 return "Ikke oppgitt";
             }
             return Telefon;
+        }
+
+        public string VisKoordinater()
+        {
+            if (Breddegrad == null || Lengdegrad == null)
+            {
+                return "Ikke valgt på kart";
+            }
+            return $"{Breddegrad:0.#####}, {Lengdegrad:0.#####}";
         }
     }
 }
