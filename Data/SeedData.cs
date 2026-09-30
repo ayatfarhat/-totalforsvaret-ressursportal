@@ -26,6 +26,30 @@ public static class SeedData
             "Public123!",
             "PublicActor"
         );
+
+        // Testbrukere for Hassan sine rollenavn (innlogging, Kommandobro, kartet).
+        // Se merknaden i RoleInitializer.cs - to rollenavn-systemer lever side om
+        // side inntil gruppa er enige om ett felles.
+        await LagBruker(
+            userManager,
+            "admin@test.no",
+            "Admin123!",
+            "Admin"
+        );
+
+        await LagBruker(
+            userManager,
+            "kommune@test.no",
+            "Kommune123!",
+            "Kommune"
+        );
+
+        await LagBruker(
+            userManager,
+            "privatperson@test.no",
+            "Privat123!",
+            "Frivillig"
+        );
     }
 
     private static async Task LagBruker(
