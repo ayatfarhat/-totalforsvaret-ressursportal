@@ -1,6 +1,6 @@
 ﻿# ---- Steg 1: Bygg ----
 # Bruker .NET SDK-bildet, som har verktøyene som trengs for å bygge appen
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Kopierer prosjektfilen først og henter pakker.
@@ -15,14 +15,18 @@ RUN dotnet publish -c Release -o /app/publish
 # ---- Steg 2: Kjør ----
 # Bruker det mindre ASP.NET-bildet, som bare kan kjøre appen.
 # Byggeverktøyene fra steg 1 blir ikke med, så containeren blir mindre.
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 
 # Henter den ferdige appen fra steg 1
 COPY --from=build /app/publish .
 
+# Statiske filer (CSS, JS, Bootstrap) ligger i DesignCSS i stedet for wwwroot,
+# og blir derfor ikke med i publish. Kopierer dem inn manuelt.
+COPY --from=build /src/DesignCSS ./DesignCSS
+
 # Appen lytter på port 8080 inne i containeren
 EXPOSE 8080
 
 # Starter appen når containeren startes
-ENTRYPOINT ["dotnet", "Kriseportal.dll"]
+ENTRYPOINT ["dotnet", "Nabohjelp.dll"]

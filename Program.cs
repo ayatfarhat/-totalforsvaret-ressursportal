@@ -9,44 +9,47 @@ using Nabohjelp.Data;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-// Mappen for statiske filer (CSS, JS, bilder, biblioteker) heter "DesignCSS"
-// i stedet for standardnavnet "wwwroot" — dette må settes med det samme,
-// som en del av WebApplicationOptions, ikke etterpå med UseWebRoot().
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    WebRootPath = "DesignCSS"
-});
+var builder = WebApplication.CreateBuilder(args);
 
-// Database: SQLite lagrer alt i filen kriseportal.db (Hassans oppsett,
-// for innlogging/roller). Torbjørns egen datamodell kobles til senere.
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=kriseportal.db"));
-
-// Identity: brukere, roller, passord og 2FA
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-    {
-        // Passordkrav: minst 8 tegn og minst ett tall
-        options.Password.RequiredLength = 8;
-        options.Password.RequireDigit = true;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireLowercase = false;
-        options.Password.RequireNonAlphanumeric = false;
-
-        // Låser kontoen i 5 minutter etter 5 feil passord
-        options.Lockout.MaxFailedAccessAttempts = 5;
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders(); // trengs for 2FA
-
-// Add services to the container.
+// Legger til MVC
 builder.Services.AddControllersWithViews();
+
+// Henter connection string fra appsettings.json eller Docker
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Kobler ApplicationDbContext til MariaDB
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseMySql(
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
+    ));
+
+// Identity + roller
+builder.Services
+    .AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 var app = builder.Build();
 
-// Lager databasen, rollene og testbrukerne
-await SeedData.LagRollerOgBrukere(app);
+// Kjører migrasjoner automatisk
+// og oppretter rollene Admin, Kommune og Frivillig
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+
+    var roleManager = scope.ServiceProvider
+        .GetRequiredService<RoleManager<IdentityRole>>();
+
+    await RoleInitializer.InitializeAsync(roleManager);
+}
+
+// Lager testbrukere etter at databasen og rollene finnes
+await SeedData.LagTestbrukere(app);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -56,18 +59,16 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Enkel, standard håndtering av statiske filer (CSS/JS/bilder) fra DesignCSS-mappen.
-app.UseStaticFiles();
-
 app.UseRouting();
 
-// Først: hvem er brukeren? Så: hva har brukeren lov til?
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapStaticAssets();
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 app.Run();

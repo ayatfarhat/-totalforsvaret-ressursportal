@@ -8,6 +8,82 @@ Nabohjelp er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 
+## Gruppemedlemmer og roller
+
+| Ansvarsområde | Gruppemedlem |
+|---|---|
+| Datamodell og database | Torbjørn |
+| Innlogging, roller og sikkerhet | Hassan |
+| Behov og statusflyt | Christian |
+| Kart, tildeling og matching | Ayat |
+| Ressurser, design og layout | Marceli |
+| Infrastruktur og sanntid | Thea |
+
+## Drift og kjøring
+
+### Forutsetninger
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) må være installert og startet
+- [Git](https://git-scm.com/) for å hente koden
+
+.NET SDK trengs ikke, siden applikasjonen bygges inne i Docker.
+
+### Starte applikasjonen med Docker
+
+```bash
+git clone https://github.com/ayatfarhat/-totalforsvaret-ressursportal.git ressursportal
+cd ressursportal
+docker compose up --build
+```
+
+Åpne deretter <http://localhost:8080> i nettleseren.
+
+Første gang tar det noen minutter, fordi Docker må laste ned .NET-bildene.
+
+### Stoppe applikasjonen
+
+Trykk `Ctrl + C` i terminalen. For å fjerne containeren helt:
+
+```bash
+docker compose down
+```
+
+### Testbrukere
+
+Ved oppstart opprettes tre testbrukere:
+
+| E-post | Passord | Rolle |
+|---|---|---|
+| admin@test.no | Admin123 | Admin |
+| kommune@test.no | Kommune123 | Kommune |
+| privatperson@test.no | Privat123 | Frivillig |
+
+### Docker-oppsett
+
+Applikasjonen bygges med en Dockerfile i to steg: først bygges appen med .NET SDK, deretter kopieres det ferdige resultatet over i et mindre bilde som bare kjører appen. Containeren lytter på port 8080.
+
+Statiske filer (CSS, JavaScript og Bootstrap) ligger i mappen `DesignCSS` i stedet for standardmappen `wwwroot`. Fordi `dotnet publish` bare tar med `wwwroot` automatisk, kopieres `DesignCSS` inn i containeren i et eget steg i Dockerfilen.
+
+Databasen er en SQLite-fil som lagres inne i containeren. Den beholdes når containeren stoppes med `Ctrl + C`, men slettes med `docker compose down`.
+
+### Kjøre uten Docker
+
+Prosjektet kan også startes lokalt fra terminalen med .NET SDK:
+
+```bash
+dotnet run
+```
+
+Terminalen viser adressen applikasjonen kjører på.
+
+Eksempel:
+
+```text
+http://localhost:5144
+```
+
+Kartfunksjonen kan åpnes fra navigasjonsmenyen ved å velge **Kart**.
+
 ## Teknologi
 
 Prosjektet bruker:
@@ -192,30 +268,6 @@ Navigasjonen skal endres til en mobilmeny, og kartlenken skal fortsatt være til
 **Resultat:**  
 Bestått.
 
-## Drift og kjøring
-
-Prosjektet kan startes lokalt fra terminalen med:
-
-```bash
-dotnet run
-```
-
-Terminalen viser adressen applikasjonen kjører på.
-
-Eksempel:
-
-```text
-http://localhost:5144
-```
-
-Kartfunksjonen kan åpnes fra navigasjonsmenyen ved å velge **Kart**.
-
-### Docker
-
-Den ferdige applikasjonen skal kjøres i Docker.
-
-Docker-konfigurasjonen dokumenteres her når gruppens Docker-oppsett er ferdig og testet.
-
 ## Git og GitHub
 
 Utviklingen gjøres med Git og GitHub.
@@ -272,6 +324,20 @@ KI har blant annet blitt brukt til:
 - Git og feature branches.
 - Dokumentasjon av funksjonalitet.
 - Utforming av testscenarioer.
+- Oppsett av Dockerfile, .dockerignore og docker-compose.yml.
+- Forklaring av hva hvert steg i Dockerfilen gjør.
+- Oppsett av GitHub-repo, branches og pull requests.
+- Feilsøking når kloning feilet på grunn av kolon i et filnavn.
+- Feilsøking av tegnkoding (æ, ø og å) i filer laget med PowerShell.
+- Feilsøking av byggefeil i Docker etter at prosjektet ble omdøpt.
+- Feilsøking av manglende CSS i Docker fordi DesignCSS ikke ble med i publish.
+- Struktur og drift-del i README.
+- Oppsett av MariaDB i Docker.
+- Valg og installasjon av riktige .NET- og Entity Framework-pakker.
+- Tilkobling av databasen til ASP.NET Core-applikasjonen.
+- Forståelse av hvordan database, Entity Framework og applikasjonen henger sammen.
+- Feilsøking av feilmeldinger knyttet til database og pakker.
+- Navigering i GitHub.
 
 ### Eksempler på prompts
 
@@ -288,6 +354,11 @@ Under utviklingen ble KI blant annet spurt om:
 - "Hvordan legger jeg MapController inn i navigasjonen i _Layout.cshtml?"
 - "Hvordan bruker jeg en feature branch i Git uten å påvirke main?"
 - "Hvordan dokumenterer jeg testscenarioer og resultater i README?"
+- "Hva gjør hver linje i denne Dockerfilen?"
+- "Hvorfor feiler git clone med 'invalid path' på Windows?"
+- "Hvorfor vises æ, ø og å feil på GitHub etter at jeg lagret filen i PowerShell?"
+- "Hvorfor mangler CSS når appen kjører i Docker, men ikke med dotnet run?"
+- "Ett steg om gangen."
 
 ### Hvordan KI-forslag ble kontrollert
 
@@ -303,3 +374,5 @@ Under utviklingen ble forslagene:
 6. Justert før fungerende kode ble beholdt.
 
 Et eksempel var overføring av koordinater fra kartet. Kartet viste riktige koordinater, men resultatsiden viste først `0`. Network-verktøyet i nettleseren ble brukt for å kontrollere at koordinatene faktisk ble sendt med POST. Deretter ble problemet isolert til behandlingen av dataene i ASP.NET Core, og implementasjonen ble justert og testet på nytt.
+
+I databasearbeidet fungerte ikke alle forslag med en gang. Flere løsninger måtte gjøres om, og feilmeldinger ble feilsøkt steg for steg før databasen fungerte i Docker.
