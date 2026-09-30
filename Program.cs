@@ -1,6 +1,13 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.Data;
+
+// Tall (som koordinatene fra kartet) skal alltid leses med punktum som
+// desimaltegn, uansett hvilket språk maskinen som kjører appen bruker.
+// Uten denne kunne f.eks. "64.5" blitt feiltolket på en norsk maskin.
+CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 // Mappen for statiske filer (CSS, JS, bilder, biblioteker) heter "DesignCSS"
 // i stedet for standardnavnet "wwwroot" — dette må settes med det samme,
