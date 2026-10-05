@@ -7,76 +7,53 @@
     var ressurs = Model.MatchendeRessurser.FirstOrDefault();
 }
 
-<!-- Overskrift -->
-<h1>Tildeling fullført</h1>
-
-<div class="alert alert-success">
-    Ressursen er tildelt behovet.
-</div>
-
-<!-- Informasjon om behovet -->
-<div class="card mb-3">
-    <div class="card-body">
-
-        <h2 class="h5">
-            Behov #@Model.BehovId
-        </h2>
-
-        <p>
-            <strong>Behovstype:</strong>
-            @Model.BehovType
-        </p>
-
-        <p>
-            <strong>Status:</strong>
-            @Model.Status
-        </p>
-
-        <p>
-            <strong>Posisjon:</strong>
-            @Model.Latitude, @Model.Longitude
-        </p>
-
-    </div>
-</div>
-
-@if (ressurs != null)
-{
-    <!-- Informasjon om den tildelte ressursen -->
-    <div class="card mb-3">
-        <div class="card-body">
-
-            <h2 class="h5">
-                Tildelt ressurs
-            </h2>
-
-            <p>
-                <strong>Type:</strong>
-                @ressurs.Type
-            </p>
-
-            <p>
-                <strong>Posisjon:</strong>
-                @ressurs.Posisjon
-            </p>
-
-            <p>
-                <strong>Status:</strong>
-                @ressurs.Status
-            </p>
-
-            <p>
-                <strong>Match:</strong>
-                @ressurs.MatchBegrunnelse
-            </p>
-
+<div class="skjema-side">
+    <div class="sidetopp">
+        <div class="bekreftelse-ikon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
         </div>
+        <h1>Ressursen er tildelt</h1>
+        <p class="ingress">Behov nr. @Model.BehovId har fått en ressurs, og begge er nå merket som tildelt.</p>
     </div>
-}
 
-<!-- Tilbake til tildelingsoversikten -->
-<a asp-controller="Tildeling"
-   asp-action="Index"
-   class="btn btn-primary">
-    Tilbake til tildeling
-</a>
+    <!-- Informasjon om behovet -->
+    <div class="panel">
+        <h2>Behovet</h2>
+        <dl class="opplysninger">
+            <dt>Type</dt>
+            <dd>@Visningstekst.Type(Model.BehovType)</dd>
+
+            <dt>Status</dt>
+            <dd><span class="merke @Visningstekst.StatusFarge(Model.Status)">@Visningstekst.Status(Model.Status)</span></dd>
+
+            <dt>Koordinater</dt>
+            <dd>@Model.Latitude.ToString("0.#####"), @Model.Longitude.ToString("0.#####")</dd>
+        </dl>
+    </div>
+
+    @if (ressurs != null)
+    {
+        <!-- Informasjon om den tildelte ressursen -->
+        <div class="panel">
+            <h2>Tildelt ressurs</h2>
+            <dl class="opplysninger">
+                <dt>Type</dt>
+                <dd>@ressurs.Type</dd>
+
+                <dt>Posisjon</dt>
+                <dd>@ressurs.Posisjon</dd>
+
+                <dt>Status</dt>
+                <dd><span class="merke @Visningstekst.RessursStatusFarge(ressurs.Status)">@ressurs.Status</span></dd>
+
+                <dt>Hvorfor den passer</dt>
+                <dd>@ressurs.MatchBegrunnelse</dd>
+            </dl>
+        </div>
+    }
+
+    <div class="knapperad mt-4">
+        <a asp-controller="Tildeling" asp-action="Index" class="btn btn-primary">Tilbake til tildeling</a>
+        <a asp-controller="Kommandobro" asp-action="Index" class="btn btn-outline-secondary">Til Kommandobro</a>
+    </div>
+</div>

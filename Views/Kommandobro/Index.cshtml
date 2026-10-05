@@ -3,63 +3,48 @@
 
 @{
     ViewData["Title"] = "Kommandobro";
-    Layout = "_KommandobroLayout";
 }
 
 <!-- Leaflet-kart -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h1>🛰️ Kommandobro</h1>
-        <p class="text-secondary">Oversikt for nødetater, politi og kriseledelse.</p>
-    </div>
+<div class="sidetopp">
+    <h1>Kommandobro</h1>
+    <p class="ingress">Oversikt for nødetater, politi og kriseledelse: hvor det trengs hjelp, og hvor hjelpen finnes.</p>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Akutte behov</div>
+<div class="kommando-rutenett">
+    <div class="panel">
+        <div class="sidetopp-rad mb-3">
+            <h2 class="mb-0">Kart over behov og ressurser</h2>
+            <div class="forklaring">
+                <span><i class="prikk prikk-rod"></i> Behov</span>
+                <span><i class="prikk prikk-gronn"></i> Ressurs</span>
+            </div>
         </div>
+        <div id="oversiktsKart" class="kart kart-hoy"></div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Planlagte behov</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Tilgjengelige ressurser</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Tildelt denne økten</div>
-        </div>
-    </div>
-</div>
 
-<div class="kort-kommandobro p-4 mb-3">
-    <h5>Kart over behov og ressurser</h5>
-    <p class="text-secondary">
-        Grønne markører er registrerte ressurser, røde er registrerte behov.
-    </p>
-    <div id="oversiktsKart" style="height: 500px; width: 100%; border-radius: var(--kb-radius);"></div>
-</div>
+    <aside class="panel">
+        <h2>På kartet nå</h2>
+        <ul class="tall-liste">
+            <li><span>Behov</span> <strong>@Model.Behov.Count</strong></li>
+            <li><span>Ressurser med posisjon</span> <strong>@Model.Ressurser.Count</strong></li>
+        </ul>
 
-<div class="kort-kommandobro p-4">
-    <h5>Prioritert kø skal være her</h5>
+        <div class="snarveier">
+            <a class="btn btn-primary" asp-controller="Behov" asp-action="Ko">Åpne behovskø</a>
+            <a class="btn btn-outline-secondary" asp-controller="Tildeling" asp-action="Index">Tildel ressurser</a>
+            <a class="btn btn-outline-secondary" asp-controller="Ressurs" asp-action="Index">Alle ressurser</a>
+        </div>
+    </aside>
 </div>
 
 @section Scripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Kartet, sentrert over Norge
-        const kart = L.map('oversiktsKart').setView([64.5, 11.0], 5);
+        // Kartet viser hele Norge til å begynne med
+        const kart = L.map('oversiktsKart').fitBounds([[57.8, 4.5], [71.2, 31.2]]);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -70,26 +55,51 @@
         const ressurser = @Html.Raw(JsonSerializer.Serialize(Model.Ressurser));
         const behov = @Html.Raw(JsonSerializer.Serialize(Model.Behov));
 
+        // Samme farger som i site.css (--nh-gronn og --nh-rod)
+        const gronn = '#17663a';
+        const rod = '#b42318';
+
+        // Lager teksten i boblen som vises når man klikker på et punkt.
+        // Bruker textContent, slik at tekst som brukeren har skrevet inn
+        // aldri blir tolket som HTML (det beskytter mot skadelig kode).
+        function lagBoble(tekst) {
+            const boble = document.createElement('div');
+            boble.textContent = tekst;
+            return boble;
+        }
+
+        // Her samles posisjonen til alle punktene, så kartet kan zoome inn på dem
+        const allePunkter = [];
+
         // Ressurser vises som grønne punkter
-        ressurser.forEach(function (punkt) {
+        for (const punkt of ressurser) {
             L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
-                color: '#2e7d46',
-                fillColor: '#2e7d46',
+                color: gronn,
+                fillColor: gronn,
                 fillOpacity: 0.8
             })
                 .addTo(kart)
-                .bindPopup('<strong>Ressurs:</strong> ' + punkt.Tittel);
-        });
+                .bindPopup(lagBoble('Ressurs: ' + punkt.Tittel));
+
+            allePunkter.push([punkt.Breddegrad, punkt.Lengdegrad]);
+        }
 
         // Behov vises som røde punkter
-        behov.forEach(function (punkt) {
+        for (const punkt of behov) {
             L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
-                color: '#c0392b',
-                fillColor: '#c0392b',
+                color: rod,
+                fillColor: rod,
                 fillOpacity: 0.8
             })
                 .addTo(kart)
-                .bindPopup('<strong>Behov:</strong> ' + punkt.Tittel);
-        });
+                .bindPopup(lagBoble('Behov: ' + punkt.Tittel));
+
+            allePunkter.push([punkt.Breddegrad, punkt.Lengdegrad]);
+        }
+
+        // Finnes det punkter, zoomer kartet inn slik at alle synes
+        if (allePunkter.length > 0) {
+            kart.fitBounds(allePunkter, { padding: [40, 40], maxZoom: 13 });
+        }
     </script>
 }

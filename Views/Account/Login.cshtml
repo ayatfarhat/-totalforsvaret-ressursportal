@@ -3,30 +3,31 @@
     ViewData["Title"] = "Logg inn";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
+<div class="smal-side">
+    <div class="sidetopp">
         <h1>Logg inn</h1>
-
-        <form asp-action="Login" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="mb-3">
-                <label asp-for="Epost" class="form-label">E-post</label>
-                <input asp-for="Epost" class="form-control" />
-                <span asp-validation-for="Epost" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Passord" class="form-label"></label>
-                <input asp-for="Passord" class="form-control" />
-                <span asp-validation-for="Passord" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100">Logg inn</button>
-        </form>
-
-        <p class="mt-3">Ingen konto? <a asp-action="Register">Registrer deg</a></p>
+        <p class="ingress">Logg inn for å melde inn behov, eller for å se kart og behovskø hvis du jobber i kommunen.</p>
     </div>
+
+    <form asp-action="Login" method="post" class="panel">
+        <div asp-validation-summary="ModelOnly"></div>
+
+        <div class="mb-3">
+            <label asp-for="Epost" class="form-label">E-post</label>
+            <input asp-for="Epost" class="form-control" autocomplete="email" />
+            <span asp-validation-for="Epost"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="Passord" class="form-label"></label>
+            <input asp-for="Passord" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Passord"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100">Logg inn</button>
+    </form>
+
+    <p class="mt-3 text-center">Har du ikke konto? <a asp-action="Register">Registrer deg</a></p>
 </div>
 
 @section Scripts {

@@ -52,7 +52,7 @@ namespace Nabohjelp.Controllers
             {
                 modell.Behov.Add(new KartPunkt
                 {
-                    Tittel = behov.Type.ToString(),
+                    Tittel = Visningstekst.Type(behov.Type),
                     Breddegrad = behov.Latitude,
                     Lengdegrad = behov.Longitude
                 });

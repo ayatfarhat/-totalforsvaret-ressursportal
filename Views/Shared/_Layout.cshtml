@@ -10,39 +10,53 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-    <!-- Prosjektets CSS -->
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-
-    <!-- Skrifttyper brukt i Nabohjelp -->
+    <!-- Skrifttyper: Archivo til overskrifter, Schibsted Grotesk til tekst
+         (norsk skrift, lett å lese, og 0 ligner ikke på Ø) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,600..800&family=Schibsted+Grotesk:wght@400;500;700&display=swap"
           rel="stylesheet">
+
+    <!-- Prosjektets CSS - all stil for hele siden ligger her -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
+
+@{
+    // Hvilken side (controller) man er på, f.eks. "Home" eller "Ressurs".
+    // Brukes for å markere riktig lenke i menyen.
+    string aktivSide = "";
+    if (ViewContext.RouteData.Values["controller"] is string controller)
+    {
+        aktivSide = controller;
+    }
+    bool erKoordinator = User.IsInRole("Admin") || User.IsInRole("Kommune");
+}
 
 <body>
 
-    <!-- Navigasjon -->
     <header>
 
-        <!-- Sikkerhetsinformasjon -->
-        <div class="safety-banner">
-            Akutt fare for liv og helse? Ring 112/113/110.
+        <!-- Nødnumre. Lenkene ringer direkte når man trykker på mobil. -->
+        <div class="nodstripe">
+            <div class="container">
+                <strong>Akutt fare for liv og helse?</strong>
+                <span class="nodstripe-nummer">
+                    <a href="tel:110">110 <span>brann</span></a>
+                    <a href="tel:112">112 <span>politi</span></a>
+                    <a href="tel:113">113 <span>ambulanse</span></a>
+                </span>
+            </div>
         </div>
 
-        <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+        <!-- Toppmeny -->
+        <nav class="navbar navbar-expand-lg toppmeny">
+            <div class="container">
 
                 <!-- Logo og lenke til forsiden -->
-                <a class="navbar-brand"
-                   asp-area=""
-                   asp-controller="Home"
-                   asp-action="Index">
-
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <span class="logo-icon logo-icon-small">
                         <partial name="_Logo" />
                     </span>
-
                     Nabohjelp
                 </a>
 
@@ -50,56 +64,55 @@
                 <button class="navbar-toggler"
                         type="button"
                         data-bs-toggle="collapse"
-                        data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent"
+                        data-bs-target="#hovedmeny"
+                        aria-controls="hovedmeny"
                         aria-expanded="false"
-                        aria-label="Toggle navigation">
-
+                        aria-label="Vis meny">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <!-- Navigasjonslenker -->
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="collapse navbar-collapse" id="hovedmeny">
 
-                    <ul class="navbar-nav flex-grow-1">
-
-                        <!-- Forside -->
+                    <!-- Lenker for alle -->
+                    <ul class="navbar-nav me-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Home"
-                               asp-action="Index">
+                            <a class="@Visningstekst.MenyKlasse(aktivSide, "Home")"
+                               asp-area="" asp-controller="Home" asp-action="Index">
                                 Forside
                             </a>
                         </li>
-
-                        <!-- Ressurser / Nabohjelp -->
                         <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Ressurs"
-                               asp-action="Index">
-                                Nabohjelp
+                            <a class="@Visningstekst.MenyKlasse(aktivSide, "Ressurs")"
+                               asp-area="" asp-controller="Ressurs" asp-action="Index">
+                                Ressurser
                             </a>
                         </li>
-
                     </ul>
 
-                    <!-- Vises bare for Admin/Kommune. Kartet over behov/ressurser
-                         ligger nå direkte inne på Kommandobro-siden, ikke som egen lenke. -->
-                    <ul class="navbar-nav">
-                        @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
-                        {
+                    <!-- Vises bare for Admin/Kommune -->
+                    @if (erKoordinator)
+                    {
+                        <ul class="navbar-nav meny-koordinering">
                             <li class="nav-item">
-                                <a class="nav-link text-muted small"
-                                   asp-area=""
-                                   asp-controller="Kommandobro"
-                                   asp-action="Index">
-                                    For nødetater/politi &rarr;
+                                <a class="@Visningstekst.MenyKlasse(aktivSide, "Kommandobro")"
+                                   asp-area="" asp-controller="Kommandobro" asp-action="Index">
+                                    Kommandobro
                                 </a>
                             </li>
-                        }
-                    </ul>
+                            <li class="nav-item">
+                                <a class="@Visningstekst.MenyKlasse(aktivSide, "Behov")"
+                                   asp-area="" asp-controller="Behov" asp-action="Ko">
+                                    Behovskø
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="@Visningstekst.MenyKlasse(aktivSide, "Tildeling")"
+                                   asp-area="" asp-controller="Tildeling" asp-action="Index">
+                                    Tildeling
+                                </a>
+                            </li>
+                        </ul>
+                    }
 
                     <!-- Innlogging / registrering -->
                     <partial name="_LoginPartial" />
@@ -110,26 +123,25 @@
     </header>
 
     <!-- Hovedinnhold -->
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main role="main" class="container">
 
-            <!-- Viser meldinger sendt fra controller -->
-            @if (TempData["Melding"] != null)
-            {
-                <div class="alert alert-success">
-                    @TempData["Melding"]
-                </div>
-            }
+        <!-- Viser meldinger sendt fra controller -->
+        @if (TempData["Melding"] != null)
+        {
+            <div class="melding melding-ok toppmelding" role="status">
+                @TempData["Melding"]
+            </div>
+        }
 
-            @RenderBody()
+        @RenderBody()
 
-        </main>
-    </div>
+    </main>
 
     <!-- Bunntekst -->
-    <footer class="border-top footer text-muted">
+    <footer class="bunntekst">
         <div class="container">
-            &copy; 2026 - Nabohjelp - Gruppe 15
+            <span>Nabohjelp &ndash; naboer som hjelper hverandre i en krise.</span>
+            <span>&copy; 2026 Gruppe 15</span>
         </div>
     </footer>
 

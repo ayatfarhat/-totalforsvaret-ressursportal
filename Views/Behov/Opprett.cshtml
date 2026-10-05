@@ -1,57 +1,142 @@
 @model Nabohjelp.ViewModels.BehovViewModel
-@{ ViewData["Title"] = "Registrer behov"; }
+@{
+    ViewData["Title"] = "Meld inn behov";
+}
 
-<h1>Registrer behov</h1>
-<form asp-action="Opprett" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<!-- Leaflet-kart, brukes for å velge posisjon -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-    <div class="mb-3">
-        <label asp-for="Type"></label>
-        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<Nabohjelp.Models.BehovType>()">
-            <option value="">-- Velg type --</option>
-        </select>
-        <span asp-validation-for="Type" class="text-danger"></span>
+<div class="skjema-side">
+    <div class="sidetopp">
+        <h1>Meld inn behov</h1>
+        <p class="ingress">Fortell hva du trenger og hvor du er. Kommunen ser meldingen med en gang og prioriterer de mest akutte først.</p>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="Beskrivelse"></label>
-        <textarea asp-for="Beskrivelse" class="form-control"></textarea>
-        <span asp-validation-for="Beskrivelse" class="text-danger"></span>
-    </div>
+    <form asp-action="Opprett" method="post" class="panel">
+        <div asp-validation-summary="ModelOnly"></div>
 
-    <div class="row">
-        <div class="col mb-3">
-            <label asp-for="Latitude"></label>
-            <input asp-for="Latitude" class="form-control" />
-            <span asp-validation-for="Latitude" class="text-danger"></span>
+        <fieldset class="skjemadel">
+            <legend>Hva trenger du?</legend>
+
+            <div class="mb-3">
+                <label asp-for="Type" class="form-label">Type behov</label>
+                <select asp-for="Type" class="form-select">
+                    <option value="">Velg type</option>
+                    @* Går gjennom alle verdiene i BehovType (Transport, Drone ...)
+                       og viser dem med norsk tekst fra Visningstekst *@
+                    @foreach (var type in Enum.GetValues<BehovType>())
+                    {
+                        <option value="@type">@Visningstekst.Type(type)</option>
+                    }
+                </select>
+                <span asp-validation-for="Type"></span>
+            </div>
+
+            <div class="mb-3">
+                <span class="form-label d-block">Hvor haster det?</span>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Prioritet" value="@BehovPrioritet.Urgent" id="prioritetAkutt" />
+                    <label class="form-check-label" for="prioritetAkutt"><strong>Akutt</strong> &ndash; trenger hjelp så fort som mulig</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" asp-for="Prioritet" value="@BehovPrioritet.Planned" id="prioritetPlanlagt" />
+                    <label class="form-check-label" for="prioritetPlanlagt"><strong>Planlagt</strong> &ndash; kan vente noen timer eller dager</label>
+                </div>
+                <span asp-validation-for="Prioritet"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="3"
+                          placeholder="F.eks. eldre person uten strøm, trenger aggregat til medisinsk utstyr"></textarea>
+                <span asp-validation-for="Beskrivelse"></span>
+            </div>
+        </fieldset>
+
+        <fieldset class="skjemadel">
+            <legend>Hvor er du?</legend>
+            <p class="legend-hjelp">Klikk på kartet der hjelpen trengs. Koordinatene fylles ut automatisk.</p>
+
+            <div id="behovKart" class="kart mb-3" aria-label="Kart. Klikk for å velge posisjon."></div>
+
+            <div class="row">
+                <div class="col-sm-6 mb-3">
+                    <label asp-for="Latitude" class="form-label">Breddegrad</label>
+                    <input asp-for="Latitude" class="form-control" id="breddegradInput" />
+                    <span asp-validation-for="Latitude"></span>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <label asp-for="Longitude" class="form-label">Lengdegrad</label>
+                    <input asp-for="Longitude" class="form-control" id="lengdegradInput" />
+                    <span asp-validation-for="Longitude"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="skjemadel">
+            <legend>Hvordan kan vi nå deg?</legend>
+            <p class="legend-hjelp">Fyll ut telefon, e-post eller begge.</p>
+
+            <div class="row">
+                <div class="col-sm-6 mb-3">
+                    <label asp-for="KontaktTelefon" class="form-label">Telefon</label>
+                    <input asp-for="KontaktTelefon" class="form-control" autocomplete="tel" />
+                    <span asp-validation-for="KontaktTelefon"></span>
+                </div>
+                <div class="col-sm-6 mb-3">
+                    <label asp-for="KontaktEpost" class="form-label">E-post</label>
+                    <input asp-for="KontaktEpost" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="KontaktEpost"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="knapperad mt-2">
+            <button type="submit" class="btn btn-danger btn-lg">Send inn behov</button>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg">Avbryt</a>
         </div>
-        <div class="col mb-3">
-            <label asp-for="Longitude"></label>
-            <input asp-for="Longitude" class="form-control" />
-            <span asp-validation-for="Longitude" class="text-danger"></span>
-        </div>
-    </div>
+    </form>
+</div>
 
-    <div class="mb-3">
-        <label asp-for="Prioritet"></label>
-        <select asp-for="Prioritet" class="form-select" asp-items="Html.GetEnumSelectList<Nabohjelp.Models.BehovPrioritet>()">
-            <option value="">-- Velg prioritet --</option>
-        </select>
-        <span asp-validation-for="Prioritet" class="text-danger"></span>
-    </div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <div class="mb-3">
-        <label asp-for="KontaktTelefon"></label>
-        <input asp-for="KontaktTelefon" class="form-control" />
-        <span asp-validation-for="KontaktTelefon" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="KontaktEpost"></label>
-        <input asp-for="KontaktEpost" class="form-control" />
-        <span asp-validation-for="KontaktEpost" class="text-danger"></span>
-    </div>
+    <script>
+        // Kartet viser hele Norge når siden åpnes
+        const kart = L.map('behovKart').fitBounds([[57.8, 4.5], [71.2, 31.2]]);
 
-    <button type="submit" class="btn btn-primary">Send inn</button>
-</form>
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(kart);
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+        const breddeFelt = document.getElementById('breddegradInput');
+        const lengdeFelt = document.getElementById('lengdegradInput');
+        let markor = null;
+
+        // Flytter markøren til et punkt (eller lager en ny)
+        function settMarkor(breddegrad, lengdegrad) {
+            if (markor === null) {
+                markor = L.marker([breddegrad, lengdegrad]).addTo(kart);
+            } else {
+                markor.setLatLng([breddegrad, lengdegrad]);
+            }
+        }
+
+        // Klikk på kartet fyller ut feltene under
+        kart.on('click', function (e) {
+            settMarkor(e.latlng.lat, e.latlng.lng);
+            breddeFelt.value = e.latlng.lat.toFixed(5);
+            lengdeFelt.value = e.latlng.lng.toFixed(5);
+        });
+
+        // Hvis feltene allerede har verdier (f.eks. etter en feil), vises punktet
+        const bredde = parseFloat(breddeFelt.value);
+        const lengde = parseFloat(lengdeFelt.value);
+        if (!isNaN(bredde) && !isNaN(lengde)) {
+            settMarkor(bredde, lengde);
+            kart.setView([bredde, lengde], 13);
+        }
+    </script>
+}

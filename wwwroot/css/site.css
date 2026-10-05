@@ -1,133 +1,262 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
 /* -----------------------------------------------------------------
-   Nabohjelp-temaet. Flyttet hit fra <style> i _Layout.cshtml fordi
-   Rider ikke klarer å løse opp CSS-variabler (--nh-radius osv.) når
-   de står i en <style>-blokk inni en .cshtml-fil - det er en kjent
-   begrensning i Rider, ikke en ekte feil. Her, i en ren .css-fil,
-   forsvinner de falske feilmeldingene, og alt fungerer likt.
+   Nabohjelp - felles stil for HELE nettsiden.
 
-   Fargene og avstandene er definert som CSS-variabler øverst (i :root),
-   slik at man bare trenger å endre dem ÉN gang her, i stedet for å
-   lete gjennom hele filen etter hver farge.
+   Alle sider (også Kommandobro og kontosidene) bruker denne filen,
+   slik at farger, skrift og knapper ser like ut overalt.
+
+   Fargene er definert som CSS-variabler øverst (i :root), slik at
+   man bare trenger å endre dem ÉN gang her.
+
+   Fargebruk (viktig - fargene betyr noe):
+   - Rød   = trenger hjelp / akutt
+   - Grønn = kan hjelpe / tilgjengelig
+   - Blå   = navigasjon, lenker og vanlige knapper
+   - Gul   = under arbeid / venter
    ----------------------------------------------------------------- */
 :root {
-    --nh-bg: #fdf6ec;          /* varm, lys bakgrunn */
-    --nh-nav-bg: #f3e2c7;      /* varm beige navbar */
-    --nh-line: #e4d5bc;        /* lys, varm kantlinje */
-    --nh-danger: #c0392b;      /* "trenger hjelp"-rødt */
-    --nh-danger-dark: #a5311f;
-    --nh-success: #2e7d46;     /* "kan hjelpe"-grønt */
-    --nh-success-dark: #235f36;
-    --nh-text: #2b2420;
-    --nh-radius: 12px;
-    --nh-shadow: 0 2px 10px rgba(43, 36, 32, 0.08);
-    --nh-shadow-hover: 0 8px 20px rgba(43, 36, 32, 0.12);
-    --font-display: 'Baloo 2', 'Segoe UI', sans-serif;
+    /* Bakgrunn og flater */
+    --nh-papir: #f3f5f4;        /* sidebakgrunn, kjølig lys grå */
+    --nh-flate: #ffffff;        /* paneler, skjema, tabeller */
+    --nh-linje: #d5dcda;        /* kantlinjer */
+    --nh-linje-lys: #e6ebe9;
+
+    /* Tekst */
+    --nh-blekk: #17222d;        /* vanlig tekst og overskrifter */
+    --nh-demp: #55626c;         /* hjelpetekst */
+
+    /* Blå: navigasjon, lenker, vanlige knapper */
+    --nh-fjord: #1d4e6e;
+    --nh-fjord-mork: #153a53;
+    --nh-fjord-lys: #e4eef4;
+
+    /* Rød: trenger hjelp / akutt */
+    --nh-rod: #b42318;
+    --nh-rod-mork: #8f1b12;
+    --nh-rod-lys: #fbeae8;
+
+    /* Grønn: kan hjelpe / tilgjengelig */
+    --nh-gronn: #17663a;
+    --nh-gronn-mork: #10502d;
+    --nh-gronn-lys: #e3f1e8;
+
+    /* Gul: under arbeid */
+    --nh-gul: #7a5200;
+    --nh-gul-lys: #fbf0d6;
+
+    /* Former og avstander */
+    --nh-radius-stor: 16px;     /* de store valgknappene på forsiden */
+    --nh-radius: 10px;          /* paneler og kart */
+    --nh-radius-liten: 8px;     /* knapper og skjemafelt */
+
+    /* Skrift */
+    --nh-font-tittel: 'Archivo', 'Segoe UI', sans-serif;
+    --nh-font-tekst: 'Schibsted Grotesk', 'Segoe UI', Arial, sans-serif;
+}
+
+/* ---------- Grunnleggende ---------- */
+
+html {
+    font-size: 16px;
 }
 
 body {
-    background-color: var(--nh-bg);
-    color: var(--nh-text);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--nh-papir);
+    color: var(--nh-blekk);
+    font-family: var(--nh-font-tekst);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-h1, h2, h3 {
-    font-family: var(--font-display);
+main {
+    flex: 1;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--nh-font-tittel);
+    font-stretch: 112%;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--nh-blekk);
+}
+
+h1, .h1 {
+    font-size: 2.75rem;
+    font-weight: 800;
+}
+
+@media (max-width: 767px) {
+    h1, .h1 {
+        font-size: 2rem;
+    }
+}
+
+h2, .h2 {
+    font-size: 1.6rem;
+}
+
+h3, .h3 {
+    font-size: 1.25rem;
+}
+
+a {
+    color: var(--nh-fjord);
+}
+
+a:hover {
+    color: var(--nh-fjord-mork);
+}
+
+.text-muted,
+.text-secondary {
+    color: var(--nh-demp) !important;
+}
+
+/* Tydelig blå ramme rundt det man står på når man bruker tastaturet (Tab) */
+a:focus-visible,
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+    outline: 3px solid var(--nh-fjord);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--nh-fjord);
+    background-color: var(--nh-flate);
+    outline-offset: 0;
+}
+
+/* ---------- Nødnummer-stripe øverst ---------- */
+
+.nodstripe {
+    background-color: var(--nh-rod-mork);
+    color: #ffffff;
+    font-size: 0.95rem;
+    padding: 6px 0;
+}
+
+.nodstripe .container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 14px;
+}
+
+.nodstripe strong {
     font-weight: 700;
 }
 
-.navbar {
-    background-color: var(--nh-nav-bg) !important;
+.nodstripe-nummer {
+    display: flex;
+    gap: 8px;
 }
 
-.navbar-brand {
+/* Nummerene er lenker, så man kan trykke for å ringe på mobil */
+.nodstripe a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    padding: 1px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 999px;
+}
+
+.nodstripe a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nodstripe a span {
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+/* ---------- Toppmeny ---------- */
+
+.toppmeny {
+    background-color: var(--nh-flate);
+    border-bottom: 1px solid var(--nh-linje);
+}
+
+.toppmeny .navbar-brand {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-family: var(--nh-font-tittel);
+    font-stretch: 112%;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--nh-blekk);
+}
+
+.toppmeny .nav-link {
+    color: var(--nh-blekk);
     font-weight: 700;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: var(--nh-radius-liten);
 }
 
-.safety-banner {
-    background-color: var(--nh-danger);
-    color: #ffffff;
-    text-align: center;
-    font-weight: 600;
-    padding: 10px;
+.toppmeny .nav-link:hover {
+    background-color: var(--nh-papir);
+    color: var(--nh-blekk);
 }
 
-/* Kort (cards) får myk skygge og avrundede hjørner, og løfter seg
-   litt når man holder musepekeren over. */
-.card {
-    border-radius: var(--nh-radius);
-    box-shadow: var(--nh-shadow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+/* Siden man er på får en blå strek under */
+.toppmeny .nav-link.aktiv {
+    color: var(--nh-fjord);
+    border-bottom: 3px solid var(--nh-fjord);
+    border-radius: 0;
 }
 
-.card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--nh-shadow-hover);
+/* Lenkene som bare kommune/admin ser */
+.meny-koordinering {
+    border-left: 1px solid var(--nh-linje);
+    padding-left: 8px;
+    margin-left: 8px;
 }
 
-.btn {
-    border-radius: 999px;
-    font-weight: 600;
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+.meny-koordinering .nav-link {
+    color: var(--nh-fjord);
 }
 
-.btn-success {
-    background-color: var(--nh-success);
-    border-color: var(--nh-success);
+.meny-bruker .nav-link {
+    font-weight: 400;
 }
 
-.btn-success:hover {
-    background-color: var(--nh-success-dark);
-    border-color: var(--nh-success-dark);
+.meny-bruker form {
+    margin: 0;
 }
 
-.btn-danger {
-    background-color: var(--nh-danger);
-    border-color: var(--nh-danger);
+@media (max-width: 991px) {
+    /* I mobilmenyen markeres siden man er på med en strek til venstre */
+    .toppmeny .nav-link.aktiv {
+        border-bottom: none;
+        border-left: 3px solid var(--nh-fjord);
+    }
+
+    .meny-koordinering {
+        border-left: none;
+        border-top: 1px solid var(--nh-linje);
+        padding: 8px 0 0;
+        margin: 8px 0 0;
+    }
+
+    .meny-bruker {
+        border-top: 1px solid var(--nh-linje);
+        padding-top: 8px;
+        margin-top: 8px;
+    }
 }
 
-.btn-danger:hover {
-    background-color: var(--nh-danger-dark);
-    border-color: var(--nh-danger-dark);
-}
+/* ---------- Logo ---------- */
 
-/* Størrelser for den gjenbrukbare logoen (Views/Shared/_Logo.cshtml).
-   SVG-en selv har ingen fast størrelse - den skaleres av disse klassene. */
 .logo-icon {
     display: inline-block;
 }
@@ -139,8 +268,8 @@ h1, h2, h3 {
 }
 
 .logo-icon-small {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
 }
 
 .logo-icon-large {
@@ -148,60 +277,775 @@ h1, h2, h3 {
     height: 96px;
 }
 
-/* Illustrasjonen på forsiden (nettverk av naboer rundt logoen) */
-.neighbor-network {
-    max-width: 480px;
-    width: 100%;
-    height: auto;
+/* ---------- Bunntekst ---------- */
+
+.bunntekst {
+    border-top: 1px solid var(--nh-linje);
+    background-color: var(--nh-flate);
+    color: var(--nh-demp);
+    font-size: 0.95rem;
+    padding: 24px 0;
+    margin-top: 64px;
 }
 
-/* "Slik bruker du Nabohjelp"-stegene: en tynn linje som binder dem
-   sammen, siden de faktisk er en rekkefølge (steg 1, 2, 3). */
-.step-row {
+.bunntekst .container {
     display: flex;
-    gap: 24px;
-    position: relative;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
 }
 
-.step-row::before {
-    content: "";
-    position: absolute;
-    top: 22px;
-    left: 16.6%;
-    right: 16.6%;
-    height: 2px;
-    background: var(--nh-line);
+/* ---------- Sideoverskrift (brukes øverst på alle sider) ---------- */
+
+.sidetopp {
+    padding: 40px 0 24px;
 }
 
-.step-item {
-    flex: 1;
-    position: relative;
+.sidetopp h1 {
+    margin-bottom: 8px;
 }
 
-.step-num {
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    background: var(--nh-bg);
-    border: 2px solid var(--nh-success);
-    color: var(--nh-success);
-    font-family: var(--font-display);
+.sidetopp .ingress {
+    font-size: 1.15rem;
+    color: var(--nh-demp);
+    max-width: 60ch;
+    margin-bottom: 0;
+}
+
+/* Overskrift med knapp til høyre, f.eks. "Registrerte ressurser   [+ Registrer]" */
+.sidetopp-rad {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.tilbakelenke {
+    display: inline-block;
+    margin-bottom: 12px;
     font-weight: 700;
+    text-decoration: none;
+}
+
+.tilbakelenke:hover {
+    text-decoration: underline;
+}
+
+/* ---------- Knapper ---------- */
+
+.btn {
+    border-radius: var(--nh-radius-liten);
+    font-weight: 700;
+    padding: 0.55rem 1.1rem;
+}
+
+.btn-lg {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.9rem;
+}
+
+/* Blå knapp: vanlige handlinger (logg inn, åpne, osv.) */
+.btn-primary {
+    background-color: var(--nh-fjord);
+    border-color: var(--nh-fjord);
+}
+
+/* !important fordi Bootstrap har sin egen farge mens man trykker på knappen */
+.btn-primary:hover,
+.btn-primary:active {
+    background-color: var(--nh-fjord-mork) !important;
+    border-color: var(--nh-fjord-mork) !important;
+}
+
+/* Grønn knapp: "kan hjelpe" */
+.btn-success {
+    background-color: var(--nh-gronn);
+    border-color: var(--nh-gronn);
+}
+
+/* !important fordi Bootstrap har sin egen farge mens man trykker på knappen */
+.btn-success:hover,
+.btn-success:active {
+    background-color: var(--nh-gronn-mork) !important;
+    border-color: var(--nh-gronn-mork) !important;
+}
+
+/* Rød knapp: "trenger hjelp" */
+.btn-danger {
+    background-color: var(--nh-rod);
+    border-color: var(--nh-rod);
+}
+
+/* !important fordi Bootstrap har sin egen farge mens man trykker på knappen */
+.btn-danger:hover,
+.btn-danger:active {
+    background-color: var(--nh-rod-mork) !important;
+    border-color: var(--nh-rod-mork) !important;
+}
+
+/* Hvit knapp med kant: "Avbryt", "Tilbake" osv. */
+.btn-outline-secondary {
+    color: var(--nh-blekk);
+    background-color: var(--nh-flate);
+    border-color: var(--nh-linje);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:active {
+    color: var(--nh-blekk) !important;
+    background-color: var(--nh-papir) !important;
+    border-color: var(--nh-demp) !important;
+}
+
+.knapperad {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ---------- Paneler (hvite flater med innhold) ---------- */
+
+.panel {
+    background-color: var(--nh-flate);
+    border: 1px solid var(--nh-linje);
+    border-radius: var(--nh-radius);
+    padding: 24px;
+}
+
+/* Når to paneler står rett etter hverandre, får de litt luft imellom */
+.panel + .panel {
+    margin-top: 16px;
+}
+
+.panel h2 {
+    font-size: 1.25rem;
+    margin-bottom: 16px;
+}
+
+@media (max-width: 575px) {
+    .panel {
+        padding: 18px;
+    }
+}
+
+/* Smal, sentrert kolonne for innlogging, registrering o.l. */
+.smal-side {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* Kolonne for skjema og kvitteringer */
+.skjema-side {
+    max-width: 720px;
+}
+
+/* ---------- Skjema ---------- */
+
+.form-label {
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    border-color: var(--nh-linje);
+    border-width: 1.5px;
+    border-radius: var(--nh-radius-liten);
+    padding: 0.6rem 0.8rem;
+    font-size: 1.0625rem;
+}
+
+/* Feltene er hvite, også når siden rundt er grå */
+.form-control,
+.form-select,
+.form-check-input {
+    background-color: var(--nh-flate);
+}
+
+.form-check-input {
+    border: 1.5px solid var(--nh-demp);
+}
+
+.form-check-input:checked {
+    background-color: var(--nh-fjord);
+    border-color: var(--nh-fjord);
+}
+
+.form-check {
+    margin-bottom: 6px;
+}
+
+.form-control::placeholder {
+    color: #8a959c;
+}
+
+.form-text {
+    color: var(--nh-demp);
+    margin-top: 4px;
+}
+
+/* Valgfrie felt merkes i etiketten */
+.valgfritt {
+    font-weight: 400;
+    color: var(--nh-demp);
+}
+
+/* Feilmeldinger fra validering */
+.field-validation-error,
+.text-danger {
+    color: var(--nh-rod) !important;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.input-validation-error {
+    border-color: var(--nh-rod) !important;
+}
+
+.validation-summary-errors {
+    background-color: var(--nh-rod-lys);
+    border-left: 4px solid var(--nh-rod);
+    border-radius: var(--nh-radius-liten);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.validation-summary-errors ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+/* Et skjema er delt i deler (fieldset), hver med sin overskrift */
+.skjemadel {
+    border: none;
+    padding: 0;
+    margin: 0 0 8px;
+}
+
+/* Fra og med andre del av skjemaet: strek og luft over */
+.skjemadel + .skjemadel {
+    border-top: 1px solid var(--nh-linje-lys);
+    padding-top: 24px;
+    margin-top: 8px;
+}
+
+.skjemadel legend {
+    font-family: var(--nh-font-tittel);
+    font-stretch: 112%;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.skjemadel .legend-hjelp {
+    color: var(--nh-demp);
+    margin-bottom: 16px;
+}
+
+/* ---------- Kart (Leaflet) ---------- */
+
+.kart {
+    width: 100%;
+    height: 340px;
+    border: 1px solid var(--nh-linje);
+    border-radius: var(--nh-radius);
+    z-index: 0;
+}
+
+.kart-hoy {
+    height: 520px;
+}
+
+.kart-lav {
+    height: 260px;
+}
+
+.kart-status {
+    margin: 8px 0 0;
+    font-size: 0.95rem;
+    color: var(--nh-demp);
+}
+
+/* Fargeforklaring under/over kart */
+.forklaring {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-size: 0.95rem;
+    color: var(--nh-demp);
+}
+
+.forklaring span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.prikk {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    display: inline-block;
+}
+
+.prikk-rod { background-color: var(--nh-rod); }
+.prikk-gronn { background-color: var(--nh-gronn); }
+
+/* ---------- Tabeller ---------- */
+
+.tabell-ramme {
+    background-color: var(--nh-flate);
+    border: 1px solid var(--nh-linje);
+    border-radius: var(--nh-radius);
+    overflow-x: auto;
+}
+
+.tabell {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+}
+
+.tabell th {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--nh-demp);
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--nh-linje);
+    background-color: var(--nh-papir);
+    white-space: nowrap;
+}
+
+.tabell td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--nh-linje-lys);
+    vertical-align: middle;
+}
+
+.tabell tr:last-child td {
+    border-bottom: none;
+}
+
+/* Akutte rader får en rød strek i venstre kant */
+.tabell tr.rad-akutt td:first-child {
+    border-left: 4px solid var(--nh-rod);
+}
+
+.tabell .hoyre {
+    text-align: right;
+}
+
+/* Lange tekster (beskrivelser) får nok plass til å være lesbare */
+.tabell .lang-tekst {
+    min-width: 16rem;
+}
+
+.tabell .sterk {
+    font-weight: 700;
+}
+
+/* ---------- Merkelapper (status, prioritet) ---------- */
+
+.merke {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    background-color: var(--nh-linje-lys);
+    color: var(--nh-blekk);
+}
+
+.merke-rod { background-color: var(--nh-rod-lys); color: var(--nh-rod-mork); }
+.merke-gronn { background-color: var(--nh-gronn-lys); color: var(--nh-gronn-mork); }
+.merke-bla { background-color: var(--nh-fjord-lys); color: var(--nh-fjord-mork); }
+.merke-gul { background-color: var(--nh-gul-lys); color: var(--nh-gul); }
+
+/* ---------- Meldinger ---------- */
+
+.melding {
+    border-radius: var(--nh-radius-liten);
+    border-left: 4px solid var(--nh-fjord);
+    background-color: var(--nh-fjord-lys);
+    padding: 12px 16px;
+    margin: 0 0 20px;
+}
+
+.melding-ok {
+    border-left-color: var(--nh-gronn);
+    background-color: var(--nh-gronn-lys);
+}
+
+.melding-feil {
+    border-left-color: var(--nh-rod);
+    background-color: var(--nh-rod-lys);
+}
+
+.melding-advarsel {
+    border-left-color: var(--nh-gul);
+    background-color: var(--nh-gul-lys);
+}
+
+/* Toppmelding fra controlleren (TempData["Melding"]) */
+.toppmelding {
+    margin-top: 24px;
+    margin-bottom: 0;
+}
+
+/* Når en liste er tom */
+.tom-liste {
+    background-color: var(--nh-flate);
+    border: 1.5px dashed var(--nh-linje);
+    border-radius: var(--nh-radius);
+    padding: 32px 24px;
+    text-align: center;
+}
+
+.tom-liste p {
+    color: var(--nh-demp);
+    margin-bottom: 16px;
+}
+
+.tom-liste p:last-child {
+    margin-bottom: 0;
+}
+
+/* ---------- Opplysninger (navn: verdi), f.eks. på kvitteringer ---------- */
+
+.opplysninger {
+    display: grid;
+    grid-template-columns: 180px 1fr;   /* venstre kolonne 180px, resten til høyre */
+    margin: 0;
+}
+
+.opplysninger dt,
+.opplysninger dd {
+    padding: 10px 0;
+    margin: 0;
+    border-bottom: 1px solid var(--nh-linje-lys);
+}
+
+.opplysninger dt {
+    color: var(--nh-demp);
+    font-weight: 400;
+    padding-right: 16px;
+}
+
+.opplysninger dd {
+    font-weight: 700;
+}
+
+.opplysninger dt:last-of-type,
+.opplysninger dd:last-of-type {
+    border-bottom: none;
+}
+
+@media (max-width: 575px) {
+    .opplysninger {
+        grid-template-columns: 1fr;
+    }
+
+    .opplysninger dt {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+}
+
+/* ---------- Bekreftelse (kvittering, tildeling fullført) ---------- */
+
+.bekreftelse-ikon {
+    width: 56px;
+    height: 56px;
+    border-radius: 999px;
+    background-color: var(--nh-gronn);
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.bekreftelse-ikon svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* ---------- Forsiden ---------- */
+
+.forside-topp {
+    padding: 56px 0 32px;
+}
+
+.forside-topp h1 {
+    font-size: 3.5rem;
+    max-width: 18ch;
+    margin-bottom: 16px;
+}
+
+.forside-topp .ingress {
+    font-size: 1.2rem;
+    color: var(--nh-demp);
+    max-width: 56ch;
+    margin-bottom: 0;
+}
+
+/* De to store valgene: "Jeg trenger hjelp" og "Jeg kan hjelpe".
+   Dette er det viktigste på siden, så de er store og fargede. */
+.valg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
 }
 
 @media (max-width: 767px) {
-    .step-row {
-        flex-direction: column;
-        gap: 32px;
+    .valg {
+        grid-template-columns: 1fr;
     }
 
-    .step-row::before {
-        display: none;
+    /* På mobil skal begge valgene synes raskt, så toppen er mindre */
+    .forside-topp {
+        padding: 24px 0 20px;
     }
+
+    .forside-topp h1 {
+        font-size: 1.9rem;
+    }
+
+    .forside-topp .ingress {
+        font-size: 1.05rem;
+    }
+
+    .valg-knapp {
+        min-height: 0;
+        padding: 22px 20px 20px;
+    }
+
+    .valg-tittel {
+        font-size: 1.8rem;
+    }
+}
+
+.valg-knapp {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 28px 28px 24px;
+    min-height: 220px;
+    border-radius: var(--nh-radius-stor);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.valg-knapp:hover,
+.valg-knapp:focus-visible {
+    color: #ffffff;
+}
+
+.valg-knapp:focus-visible {
+    outline: 4px solid var(--nh-blekk);
+    outline-offset: 3px;
+}
+
+.valg-hjelp {
+    background-color: var(--nh-rod);
+}
+
+.valg-hjelp:hover {
+    background-color: var(--nh-rod-mork);
+}
+
+.valg-bidra {
+    background-color: var(--nh-gronn);
+}
+
+.valg-bidra:hover {
+    background-color: var(--nh-gronn-mork);
+}
+
+.valg-tittel {
+    font-family: var(--nh-font-tittel);
+    font-stretch: 125%;
+    font-weight: 800;
+    font-size: 2.3rem;
+    line-height: 1.05;
+}
+
+.valg-tekst {
+    font-size: 1.1rem;
+    max-width: 34ch;
+    opacity: 0.95;
+}
+
+/* Nederste linje i hvert valg: "knappen" og ev. en kort merknad ved siden av */
+.valg-bunn {
+    margin-top: auto;
+    padding-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+}
+
+.valg-handling {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    background-color: #ffffff;
+    border-radius: var(--nh-radius-liten);
+    padding: 0.55rem 1.1rem;
+}
+
+.valg-hjelp .valg-handling { color: var(--nh-rod-mork); }
+.valg-bidra .valg-handling { color: var(--nh-gronn-mork); }
+
+.valg-merknad {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+/* "Slik fungerer det" - tre steg i rekkefølge */
+.steg-seksjon {
+    padding: 48px 0 8px;
+}
+
+.steg-seksjon h2 {
+    margin-bottom: 24px;
+}
+
+.steg-liste {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.steg-liste li {
+    border-top: 3px solid var(--nh-blekk);
+    padding-top: 16px;
+}
+
+.steg-nummer {
+    font-family: var(--nh-font-tittel);
+    font-stretch: 112%;
+    font-weight: 800;
+    font-size: 1.6rem;
+    line-height: 1;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.steg-liste h3 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+}
+
+.steg-liste p {
+    color: var(--nh-demp);
+    margin: 0;
+}
+
+@media (max-width: 767px) {
+    .steg-liste {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Lenke for nødetater nederst på forsiden */
+.etat-lenke {
+    margin-top: 48px;
+    padding: 20px 24px;
+    background-color: var(--nh-fjord-lys);
+    border-radius: var(--nh-radius);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.etat-lenke p {
+    margin: 0;
+}
+
+/* ---------- 2FA ---------- */
+
+.qrkode {
+    display: inline-block;
+    padding: 12px;
+    background-color: #ffffff;
+    border: 1px solid var(--nh-linje);
+    border-radius: var(--nh-radius-liten);
+}
+
+.nokkel {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    background-color: var(--nh-papir);
+    padding: 2px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+    color: var(--nh-blekk);
+}
+
+.kodefelt {
+    font-size: 1.5rem;
+    letter-spacing: 0.3em;
+    text-align: center;
+    max-width: 220px;
+}
+
+/* ---------- Kommandobro ---------- */
+
+.kommando-rutenett {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 991px) {
+    .kommando-rutenett {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tall-liste {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+}
+
+.tall-liste li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--nh-linje-lys);
+}
+
+.tall-liste li:last-child {
+    border-bottom: none;
+}
+
+.tall-liste strong {
+    font-family: var(--nh-font-tittel);
+    font-size: 1.3rem;
+}
+
+.snarveier {
+    display: grid;
+    gap: 8px;
 }

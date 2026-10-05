@@ -1,44 +1,63 @@
 @model List<Nabohjelp.ViewModels.BehovKoItem>
-@{ ViewData["Title"] = "Kø"; }
+@{
+    ViewData["Title"] = "Behovskø";
+}
 
-<h1>Prioritert kø</h1>
+<div class="sidetopp sidetopp-rad">
+    <div>
+        <h1>Behovskø</h1>
+        <p class="ingress">Alle behov som ikke er løst. Akutte behov står øverst, deretter de eldste.</p>
+    </div>
+    <a class="btn btn-danger" asp-action="Opprett">Meld inn behov</a>
+</div>
 
 @if (TempData["Feil"] is string feil)
 {
-    <div class="alert alert-danger">@feil</div>
+    <div class="melding melding-feil" role="alert">@feil</div>
 }
 
 @if (!Model.Any())
 {
-    <p>Ingen aktive behov.</p>
+    <div class="tom-liste">
+        <p>Ingen aktive behov akkurat nå.</p>
+    </div>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr><th>Type</th><th>Prioritet</th><th>Status</th><th>Beskrivelse</th><th>Registrert</th><th></th></tr>
-        </thead>
-        <tbody>
-        @foreach (var b in Model)
-        {
-            <tr class="@(b.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "table-danger" : "")">
-                <td>@b.Type</td>
-                <td>@b.Prioritet</td>
-                <td>@b.Status</td>
-                <td>@b.Beskrivelse</td>
-                <td>@b.OpprettetTid.ToLocalTime().ToString("g")</td>
-                <td>
-                    @foreach (var neste in b.MuligeNesteStatuser)
-                    {
-                        <form asp-action="EndreStatus" method="post" class="d-inline">
-                            <input type="hidden" name="id" value="@b.Id" />
-                            <input type="hidden" name="nyStatus" value="@neste" />
-                            <button class="btn btn-sm btn-outline-secondary">→ @neste</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="tabell-ramme">
+        <table class="tabell">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Prioritet</th>
+                    <th>Status</th>
+                    <th>Beskrivelse</th>
+                    <th>Registrert</th>
+                    <th class="hoyre">Endre status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr class="@Visningstekst.RadKlasse(b.Prioritet)">
+                        <td class="sterk">@Visningstekst.Type(b.Type)</td>
+                        <td><span class="merke @Visningstekst.PrioritetFarge(b.Prioritet)">@Visningstekst.Prioritet(b.Prioritet)</span></td>
+                        <td><span class="merke @Visningstekst.StatusFarge(b.Status)">@Visningstekst.Status(b.Status)</span></td>
+                        <td class="lang-tekst">@b.Beskrivelse</td>
+                        <td>@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td class="hoyre">
+                            @foreach (var neste in b.MuligeNesteStatuser)
+                            {
+                                <form asp-action="EndreStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@b.Id" />
+                                    <input type="hidden" name="nyStatus" value="@neste" />
+                                    <button class="btn btn-sm btn-outline-secondary">Sett til «@Visningstekst.Status(neste)»</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }

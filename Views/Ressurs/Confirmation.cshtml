@@ -11,58 +11,53 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 }
 
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-12 col-md-8 text-center">
-            <h1 class="text-success">Takk for din registrering!</h1>
-            <p class="lead">Ressursen din er nå registrert og synlig for koordinatorer.</p>
+<div class="skjema-side">
+    <div class="sidetopp">
+        <div class="bekreftelse-ikon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
         </div>
+        <h1>Takk, ressursen er registrert</h1>
+        <p class="ingress">Ressursen står nå på listen, og kriseledelsen kan tildele den der den trengs.</p>
     </div>
 
-    <div class="row justify-content-center mt-3">
-        <div class="col-12 col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Sammendrag</h5>
-                    <dl class="row mb-0">
-                        <dt class="col-sm-4">Type</dt>
-                        <dd class="col-sm-8">@Model.Type</dd>
+    <div class="panel">
+        <h2>Kvittering</h2>
+        <dl class="opplysninger">
+            <dt>Type</dt>
+            <dd>@Model.Type</dd>
 
-                        <dt class="col-sm-4">Posisjon</dt>
-                        <dd class="col-sm-8">@Model.Posisjon</dd>
+            <dt>Posisjon</dt>
+            <dd>@Model.Posisjon</dd>
 
-                        <dt class="col-sm-4">Koordinater</dt>
-                        <dd class="col-sm-8">@Model.VisKoordinater()</dd>
+            <dt>Koordinater</dt>
+            <dd>@Model.VisKoordinater()</dd>
 
-                        <dt class="col-sm-4">Tilgjengelig fra</dt>
-                        <dd class="col-sm-8">@Model.VisTilgjengeligFra()</dd>
+            <dt>Tilgjengelig fra</dt>
+            <dd>@Model.VisTilgjengeligFra()</dd>
 
-                        <dt class="col-sm-4">Beskrivelse</dt>
-                        <dd class="col-sm-8">@Model.VisBeskrivelse()</dd>
+            <dt>Beskrivelse</dt>
+            <dd>@Model.VisBeskrivelse()</dd>
 
-                        <dt class="col-sm-4">Navn</dt>
-                        <dd class="col-sm-8">@Model.VisNavn()</dd>
+            <dt>Navn</dt>
+            <dd>@Model.VisNavn()</dd>
 
-                        <dt class="col-sm-4">Telefon</dt>
-                        <dd class="col-sm-8">@Model.VisTelefon()</dd>
+            <dt>Telefon</dt>
+            <dd>@Model.VisTelefon()</dd>
 
-                        <dt class="col-sm-4">Status</dt>
-                        <dd class="col-sm-8">@Model.Status</dd>
-                    </dl>
-                </div>
-            </div>
+            <dt>Status</dt>
+            <dd><span class="merke @Visningstekst.RessursStatusFarge(Model.Status)">@Model.Status</span></dd>
+        </dl>
 
-            @if (harPosisjon)
-            {
-                <!-- Lite kart som viser hvor posisjonen ble valgt -->
-                <div id="kvitteringKart" class="mt-3" style="height: 250px; width: 100%; border-radius: var(--nh-radius);"></div>
-            }
+        @if (harPosisjon)
+        {
+            <!-- Lite kart som viser hvor posisjonen ble valgt -->
+            <div id="kvitteringKart" class="kart kart-lav mt-3"></div>
+        }
+    </div>
 
-            <div class="text-center mt-4">
-                <a asp-action="Create" class="btn btn-success">Send en ny melding</a>
-                <a asp-action="Index" class="btn btn-outline-secondary">Til forsiden</a>
-            </div>
-        </div>
+    <div class="knapperad mt-4">
+        <a asp-action="Create" class="btn btn-success">Registrer en ressurs til</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Til forsiden</a>
     </div>
 </div>
 
@@ -72,8 +67,8 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             // Viser et lite kart med en markør der brukeren valgte posisjon
-            const breddegrad = @Model.Breddegrad.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            const lengdegrad = @Model.Lengdegrad.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const breddegrad = @Model.Breddegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            const lengdegrad = @Model.Lengdegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             const kart = L.map('kvitteringKart').setView([breddegrad, lengdegrad], 13);
 

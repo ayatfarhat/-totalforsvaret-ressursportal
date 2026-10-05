@@ -3,17 +3,38 @@
     ViewData["Title"] = "Min konto";
 }
 
-<h1>Min konto</h1>
+<div class="skjema-side">
+    <div class="sidetopp">
+        <h1>Min konto</h1>
+    </div>
 
-<p><strong>E-post:</strong> @Model.Epost</p>
-<p><strong>Rolle:</strong> @Model.Rolle</p>
+    <div class="panel">
+        <dl class="opplysninger">
+            <dt>E-post</dt>
+            <dd>@Model.Epost</dd>
 
-@if (Model.TofaErPa)
-{
-    <p><strong>2FA:</strong> På</p>
-}
-else
-{
-    <p><strong>2FA:</strong> Av</p>
-    <a asp-action="AktiverTofa" class="btn btn-primary">Slå på 2FA</a>
-}
+            <dt>Rolle</dt>
+            <dd>@Model.Rolle</dd>
+
+            <dt>Totrinnsbekreftelse (2FA)</dt>
+            <dd>
+                @if (Model.TofaErPa)
+                {
+                    <span class="merke merke-gronn">På</span>
+                }
+                else
+                {
+                    <span class="merke merke-gul">Av</span>
+                }
+            </dd>
+        </dl>
+    </div>
+
+    @if (!Model.TofaErPa)
+    {
+        <div class="melding melding-advarsel mt-3">
+            <p class="mb-2"><strong>Slå på 2FA for å beskytte kontoen.</strong> Da trenger man både passord og en kode fra mobilen for å logge inn.</p>
+            <a asp-action="AktiverTofa" class="btn btn-primary">Slå på 2FA</a>
+        </div>
+    }
+</div>
