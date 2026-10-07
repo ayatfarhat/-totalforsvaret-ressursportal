@@ -2,22 +2,33 @@
 @model List<Nabohjelp.ViewModels.BehovKoItem>
 @{
     ViewData["Title"] = "Behovskø";
+}
 
-    string StatusTekst(BehovStatus s) => s switch
+@functions {
+    // Gjør statusen om til norsk tekst.
+    string StatusTekst(BehovStatus status)
     {
-        BehovStatus.New => "Ny",
-        BehovStatus.UnderReview => "Under vurdering",
-        BehovStatus.Assigned => "Tildelt",
-        BehovStatus.Resolved => "Løst",
-        _ => s.ToString()
-    };
+        if (status == BehovStatus.New) return "Ny";
+        if (status == BehovStatus.UnderReview) return "Under vurdering";
+        if (status == BehovStatus.Assigned) return "Tildelt";
+        return "Løst";
+    }
 
-    string HandlingTekst(BehovStatus s) => s switch
+    // Fargen på statusmerket.
+    string StatusFarge(BehovStatus status)
     {
-        BehovStatus.UnderReview => "Start vurdering",
-        BehovStatus.Resolved => "Marker som løst",
-        _ => "Sett til " + StatusTekst(s).ToLower()
-    };
+        if (status == BehovStatus.Assigned) return "merke-gi";
+        if (status == BehovStatus.UnderReview) return "merke-lys";
+        return "";
+    }
+
+    // Teksten på knappen som flytter behovet til neste status.
+    string KnappTekst(BehovStatus nesteStatus)
+    {
+        if (nesteStatus == BehovStatus.UnderReview) return "Start vurdering";
+        if (nesteStatus == BehovStatus.Resolved) return "Marker som løst";
+        return "Neste status";
+    }
 }
 
 <div class="side-topp">
@@ -71,7 +82,7 @@ else
                                 <span class="merke">Planlagt</span>
                             }
                         </td>
-                        <td data-label="Status"><span class="merke @(b.Status == BehovStatus.Assigned ? "merke-gi" : b.Status == BehovStatus.UnderReview ? "merke-lys" : "")">@StatusTekst(b.Status)</span></td>
+                        <td data-label="Status"><span class="merke @StatusFarge(b.Status)">@StatusTekst(b.Status)</span></td>
                         <td data-label="Beskrivelse">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</td>
                         <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("g")</td>
                         <td data-label="" class="ko-handling">
@@ -80,7 +91,7 @@ else
                                 <form asp-action="EndreStatus" method="post">
                                     <input type="hidden" name="id" value="@b.Id" />
                                     <input type="hidden" name="nyStatus" value="@neste" />
-                                    <button class="btn btn-sm btn-outline-secondary">@HandlingTekst(neste)</button>
+                                    <button class="btn btn-sm btn-outline-secondary">@KnappTekst(neste)</button>
                                 </form>
                             }
                         </td>

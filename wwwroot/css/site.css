@@ -87,7 +87,6 @@ html {
     position: relative;
     min-height: 100%;
     scroll-behavior: smooth;
-    scroll-padding-top: 1rem;
 }
 
 body {
@@ -97,8 +96,6 @@ body {
     font-family: var(--font-tekst);
     font-size: 1.0625rem;       /* 17 px, god leseskrift */
     line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -115,7 +112,6 @@ h1, h2, h3, h4, .visning {
     letter-spacing: -.015em;
     line-height: 1.12;
     color: var(--natt);
-    text-wrap: balance;
 }
 
 h1 { font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.35rem); letter-spacing: -.025em; }
@@ -380,7 +376,6 @@ textarea.form-control { min-height: 7rem; }
 .topp .navbar-nav { gap: .15rem; align-items: center; }
 .topp form { margin: 0; }
 .topp .brukernavn { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: var(--dempet); }
-.topp .btn-link { text-decoration: none; }
 .topp .btn-rad { min-height: 44px; --bs-btn-padding-y: .45rem; }
 
 .navbar-toggler {
@@ -764,7 +759,7 @@ body.kb {
 .kb a { color: var(--kb-tekst); }
 .kb a:hover { color: var(--lys); }
 .kb :focus-visible { box-shadow: 0 0 0 2px var(--kb-bg), 0 0 0 5px var(--lys); }
-.kb .dempet, .kb .text-secondary { color: var(--kb-dempet) !important; }
+.kb .dempet { color: var(--kb-dempet) !important; }
 
 .kb .tilgangsvarsel {
     background: var(--lys);
@@ -822,6 +817,3 @@ body.kb {
 @media (max-width: 575.98px) { #oversiktsKart { height: 380px; } }
 .kb-kartstatus { margin: .75rem 0 0; color: var(--kb-dempet); font-size: .95rem; }
 .kb .leaflet-popup-content { color: var(--natt); font-family: var(--font-tekst); }
-.kb .kort-kommandobro.p-4 h2 { font-size: 1.25rem; margin: 0; }
-
-/* Behovskø og andre tabeller i lyst tema fungerer uendret. */

@@ -45,6 +45,6 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        new QRCode(document.getElementById("qrkode"), { text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(qrTekst)), width: 180, height: 180 });
+        new QRCode(document.getElementById("qrkode"), { text: @Json.Serialize(qrTekst), width: 180, height: 180 });
     </script>
 }

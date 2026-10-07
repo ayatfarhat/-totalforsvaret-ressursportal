@@ -1,7 +1,6 @@
 @{
-    var kontroller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    string Aktiv(string navn) => string.Equals(navn, kontroller, StringComparison.OrdinalIgnoreCase) ? " active" : "";
-    string? Gjeldende(string navn) => string.Equals(navn, kontroller, StringComparison.OrdinalIgnoreCase) ? "page" : null;
+    // Hvilken side vi er på. Brukes til å markere riktig lenke i menyen.
+    var side = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 <!DOCTYPE html>
 <html lang="nb">
@@ -54,7 +53,7 @@
                 <div class="collapse navbar-collapse justify-content-between" id="kbmeny">
                     <ul class="navbar-nav ms-md-3">
                         <li class="nav-item">
-                            <a class="nav-link@(Aktiv("Kommandobro"))" aria-current="@Gjeldende("Kommandobro")"
+                            <a class="nav-link @(side == "Kommandobro" ? "active" : "")"
                                asp-controller="Kommandobro" asp-action="Index">Oversikt</a>
                         </li>
                         <li class="nav-item">

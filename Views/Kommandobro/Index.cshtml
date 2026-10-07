@@ -52,7 +52,7 @@
     <script src="~/js/kart.js" asp-append-version="true"></script>
     <script>
         // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her.
-        NabohjelpKart.oversikt(
+        visOversikt(
             'oversiktsKart',
             @Html.Raw(JsonSerializer.Serialize(Model.Ressurser)),
             @Html.Raw(JsonSerializer.Serialize(Model.Behov))

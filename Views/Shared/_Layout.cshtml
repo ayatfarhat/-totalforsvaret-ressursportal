@@ -1,10 +1,6 @@
 @{
-    // Hvilken side vi er på, brukes til å markere aktiv menylenke.
-    var kontroller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-    bool Er(params string[] navn) => navn.Any(n => string.Equals(n, kontroller, StringComparison.OrdinalIgnoreCase));
-    string Aktiv(params string[] navn) => Er(navn) ? " active" : "";
-    string? Gjeldende(params string[] navn) => Er(navn) ? "page" : null;
-    bool erKrisestab = User.IsInRole("Admin") || User.IsInRole("Kommune");
+    // Hvilken side vi er på. Brukes til å markere riktig lenke i menyen.
+    var side = ViewContext.RouteData.Values["controller"]?.ToString();
 }
 <!DOCTYPE html>
 <html lang="nb">
@@ -64,17 +60,17 @@
                     <div class="collapse navbar-collapse justify-content-between" id="hovedmeny">
                         <ul class="navbar-nav ms-md-3">
                             <li class="nav-item">
-                                <a class="nav-link@(Aktiv("Home"))" aria-current="@Gjeldende("Home")"
+                                <a class="nav-link @(side == "Home" ? "active" : "")"
                                    asp-area="" asp-controller="Home" asp-action="Index">Forside</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link@(Aktiv("Ressurs", "Behov"))" aria-current="@Gjeldende("Ressurs", "Behov")"
+                                <a class="nav-link @(side == "Ressurs" || side == "Behov" ? "active" : "")"
                                    asp-area="" asp-controller="Ressurs" asp-action="Index">Nabohjelp</a>
                             </li>
-                            @if (erKrisestab)
+                            @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link@(Aktiv("Kommandobro", "Tildeling"))" aria-current="@Gjeldende("Kommandobro", "Tildeling")"
+                                    <a class="nav-link @(side == "Kommandobro" || side == "Tildeling" ? "active" : "")"
                                        asp-area="" asp-controller="Kommandobro" asp-action="Index">Kommandobro</a>
                                 </li>
                             }
