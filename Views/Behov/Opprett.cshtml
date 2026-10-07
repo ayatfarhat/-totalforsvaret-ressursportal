@@ -1,57 +1,125 @@
 @model Nabohjelp.ViewModels.BehovViewModel
-@{ ViewData["Title"] = "Registrer behov"; }
+@{
+    ViewData["Title"] = "Meld behov";
+}
 
-<h1>Registrer behov</h1>
-<form asp-action="Opprett" method="post">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+@section Head {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
 
-    <div class="mb-3">
-        <label asp-for="Type"></label>
-        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<Nabohjelp.Models.BehovType>()">
-            <option value="">-- Velg type --</option>
-        </select>
-        <span asp-validation-for="Type" class="text-danger"></span>
-    </div>
+<div class="side-topp">
+    <h1>Meld behov</h1>
+    <p class="ingress">Fortell hva du trenger og hvor du er. Kriseledelsen ser meldingen med en gang.</p>
+</div>
 
-    <div class="mb-3">
-        <label asp-for="Beskrivelse"></label>
-        <textarea asp-for="Beskrivelse" class="form-control"></textarea>
-        <span asp-validation-for="Beskrivelse" class="text-danger"></span>
-    </div>
+<div class="skjema-rutenett">
+    <form asp-action="Opprett" method="post" class="skjema" novalidate>
+        <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
-    <div class="row">
-        <div class="col mb-3">
-            <label asp-for="Latitude"></label>
-            <input asp-for="Latitude" class="form-control" />
-            <span asp-validation-for="Latitude" class="text-danger"></span>
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">1</span> Hva trenger du?</legend>
+            <div class="type-valg type-valg-hjelp">
+                @foreach (var type in Enum.GetValues<Nabohjelp.Models.BehovType>())
+                {
+                    <div class="type-valg-element">
+                        <input type="radio" asp-for="Type" value="@type" id="type-@type" />
+                        <label for="type-@type">@type</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="Type"></span>
+        </fieldset>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">2</span> Hvor haster det?</legend>
+            <div class="type-valg type-valg-hjelp type-valg-bred">
+                <div class="type-valg-element">
+                    <input type="radio" asp-for="Prioritet" value="@Nabohjelp.Models.BehovPrioritet.Urgent" id="prioritet-akutt" />
+                    <label for="prioritet-akutt"><span><strong>Akutt</strong><small>Trenger hjelp nå</small></span></label>
+                </div>
+                <div class="type-valg-element">
+                    <input type="radio" asp-for="Prioritet" value="@Nabohjelp.Models.BehovPrioritet.Planned" id="prioritet-planlagt" />
+                    <label for="prioritet-planlagt"><span><strong>Planlagt</strong><small>Kan vente</small></span></label>
+                </div>
+            </div>
+            <span asp-validation-for="Prioritet"></span>
+        </fieldset>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">3</span> Hvor er du?</legend>
+
+            <div id="behovKart" class="kart-boks kart-lav"
+                 data-kartvelger
+                 data-bredde="#Latitude"
+                 data-lengde="#Longitude"
+                 data-status="#valgtPosisjon"
+                 data-knapp="#minPosisjon"
+                 data-nal="hjelp"
+                 role="group"
+                 aria-label="Kart. Trykk for å velge posisjon."></div>
+            <div class="kart-rad">
+                <button type="button" id="minPosisjon" class="btn btn-outline-secondary btn-sm">Bruk min posisjon</button>
+                <p id="valgtPosisjon" class="valgt" aria-live="polite">Ingen posisjon valgt ennå.</p>
+            </div>
+            <p class="kart-tips">Trykk på kartet, bruk posisjonen din, eller skriv inn koordinatene under.</p>
+
+            <div class="felt-par mt-3">
+                <div class="felt">
+                    <label asp-for="Latitude" class="form-label">Breddegrad</label>
+                    <input asp-for="Latitude" class="form-control" inputmode="decimal" placeholder="58.14656" />
+                    <span asp-validation-for="Latitude"></span>
+                </div>
+                <div class="felt">
+                    <label asp-for="Longitude" class="form-label">Lengdegrad</label>
+                    <input asp-for="Longitude" class="form-control" inputmode="decimal" placeholder="7.99560" />
+                    <span asp-validation-for="Longitude"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">4</span> Fortell mer og hvordan vi når deg</legend>
+
+            <div class="felt">
+                <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="3" placeholder="For eksempel hvor mange personer det gjelder, eller hva som har skjedd"></textarea>
+                <span asp-validation-for="Beskrivelse"></span>
+            </div>
+
+            <p class="felt-hjelp">Oppgi telefon eller e-post, minst én av dem.</p>
+            <div class="felt-par">
+                <div class="felt">
+                    <label asp-for="KontaktTelefon" class="form-label">Telefon</label>
+                    <input asp-for="KontaktTelefon" class="form-control" type="tel" autocomplete="tel" />
+                    <span asp-validation-for="KontaktTelefon"></span>
+                </div>
+                <div class="felt">
+                    <label asp-for="KontaktEpost" class="form-label">E-post</label>
+                    <input asp-for="KontaktEpost" class="form-control" type="email" autocomplete="email" />
+                    <span asp-validation-for="KontaktEpost"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="skjema-bunn">
+            <button type="submit" class="btn btn-danger btn-lg">Send inn</button>
+            <a asp-controller="Ressurs" asp-action="Index" class="btn btn-outline-secondary btn-lg">Avbryt</a>
         </div>
-        <div class="col mb-3">
-            <label asp-for="Longitude"></label>
-            <input asp-for="Longitude" class="form-control" />
-            <span asp-validation-for="Longitude" class="text-danger"></span>
-        </div>
-    </div>
+    </form>
 
-    <div class="mb-3">
-        <label asp-for="Prioritet"></label>
-        <select asp-for="Prioritet" class="form-select" asp-items="Html.GetEnumSelectList<Nabohjelp.Models.BehovPrioritet>()">
-            <option value="">-- Velg prioritet --</option>
-        </select>
-        <span asp-validation-for="Prioritet" class="text-danger"></span>
-    </div>
+    <aside class="sidepanel sidepanel-nod" aria-labelledby="panel-tittel">
+        <h2 id="panel-tittel">Er det fare for liv?</h2>
+        <p class="nod-tall">
+            <a href="tel:110">110 Brann</a>
+            <a href="tel:112">112 Politi</a>
+            <a href="tel:113">113 Ambulanse</a>
+        </p>
+        <p>Ring først. Nabohjelp er ikke en nødtjeneste, og du får ikke svar umiddelbart.</p>
+    </aside>
+</div>
 
-    <div class="mb-3">
-        <label asp-for="KontaktTelefon"></label>
-        <input asp-for="KontaktTelefon" class="form-control" />
-        <span asp-validation-for="KontaktTelefon" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="KontaktEpost"></label>
-        <input asp-for="KontaktEpost" class="form-control" />
-        <span asp-validation-for="KontaktEpost" class="text-danger"></span>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Send inn</button>
-</form>
-
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/kart.js" asp-append-version="true"></script>
+}

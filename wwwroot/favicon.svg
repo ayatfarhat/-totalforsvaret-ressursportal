@@ -1,9 +1,4 @@
-@* Nabohjelp-logoen: et hus om kvelden, med lys i ett vindu.
-   Lyset betyr at noen er hjemme og kan hjelpe.
-   Størrelsen styres av CSS der logoen brukes (.logo-icon-small / .logo-icon-large),
-   derfor har <svg> ingen width/height selv. Logoen står alltid ved siden av
-   teksten «Nabohjelp», så den er skjult for skjermlesere. *@
-<svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="16" fill="#12212D"/>
   <path d="M13 32 32 15l19 17v19a2 2 0 0 1-2 2H15a2 2 0 0 1-2-2Z" fill="#1B3345" stroke="#F3F5F4" stroke-width="2.6" stroke-linejoin="round"/>
   <circle cx="32" cy="38" r="15" fill="#F4B740" opacity=".2"/>

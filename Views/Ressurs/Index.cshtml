@@ -1,70 +1,84 @@
 @model List<Nabohjelp.Models.RessursFormViewModel>
 
 @{
-    ViewData["Title"] = "Ressurser";
+    ViewData["Title"] = "Nabohjelp";
+    bool erInnlogget = User.Identity?.IsAuthenticated == true;
 }
 
-<div class="container py-4">
-    <div class="row mb-4">
-        <div class="col-12 text-center">
-            <h1>Nabohjelp</h1>
-            <p class="lead">Trenger du hjelp, eller kan du bidra med en ressurs?</p>
-        </div>
-    </div>
+<div class="side-topp">
+    <h1>Nabohjelp</h1>
+    <p class="ingress">Trenger du hjelp, eller kan du bidra? Velg riktig spor.</p>
+</div>
 
-    <div class="row justify-content-center g-3 mb-5">
-        <div class="col-12 col-md-5">
-            <div class="card border-danger h-100">
-                <div class="card-body text-center">
-                    <h3 class="card-title text-danger">Jeg trenger hjelp</h3>
-                    <p class="card-text">Meld inn et behov i ditt område.</p>
-                    <a class="btn btn-danger" href="#">Meld behov</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-md-5">
-            <div class="card border-success h-100">
-                <div class="card-body text-center">
-                    <h3 class="card-title text-success">Jeg kan hjelpe</h3>
-                    <p class="card-text">Registrer en ressurs du kan stille til rådighet.</p>
-                    <a class="btn btn-success" asp-action="Create">Registrer en ressurs</a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="spor">
+    <section class="spor-kort spor-hjelp" aria-labelledby="spor-hjelp-tittel">
+        <h2 id="spor-hjelp-tittel">Jeg trenger hjelp</h2>
+        <p>Meld et behov i ditt område, for eksempel transport, strøm eller evakuering.</p>
+        <a class="btn btn-danger" asp-controller="Behov" asp-action="Opprett">Meld behov</a>
+        @if (!erInnlogget)
+        {
+            <small class="dempet">Du må logge inn først.</small>
+        }
+    </section>
 
-    <h2>Registrerte ressurser</h2>
+    <section class="spor-kort spor-gi" aria-labelledby="spor-gi-tittel">
+        <h2 id="spor-gi-tittel">Jeg kan hjelpe</h2>
+        <p>Registrer utstyr, kjøretøy, lokaler eller innsats du kan stille til rådighet.</p>
+        <a class="btn btn-success" asp-action="Create">Registrer en ressurs</a>
+    </section>
+</div>
+
+<section aria-labelledby="liste-tittel">
+    <div class="liste-topp">
+        <h2 id="liste-tittel">Registrerte ressurser</h2>
+        @if (Model.Any())
+        {
+            <span class="antall">@Model.Count</span>
+        }
+    </div>
 
     @if (!Model.Any())
     {
-        <p>Ingen ressurser er registrert ennå.</p>
+        <div class="tom-tilstand">
+            <h3>Ingen ressurser er registrert ennå</h3>
+            <p>Den første ressursen du legger inn, vises her og på kartet til kriseledelsen.</p>
+            <a class="btn btn-success" asp-action="Create">Registrer en ressurs</a>
+        </div>
     }
     else
     {
         <div class="table-responsive">
-            <table class="table table-striped">
+            <table class="table stablet align-middle">
                 <thead>
                     <tr>
-                        <th>Type</th>
-                        <th>Posisjon</th>
-                        <th>Tilgjengelig fra</th>
-                        <th>Status</th>
-                        <th>Kontakt</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Posisjon</th>
+                        <th scope="col">Tilgjengelig fra</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Kontakt</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var ressurs in Model)
                     {
                         <tr>
-                            <td>@ressurs.Type</td>
-                            <td>@ressurs.Posisjon</td>
-                            <td>@ressurs.VisTilgjengeligFra()</td>
-                            <td>@ressurs.Status</td>
-                            <td>@ressurs.Navn @ressurs.Telefon</td>
+                            <td data-label="Type"><strong>@ressurs.Type</strong></td>
+                            <td data-label="Posisjon">@ressurs.Posisjon</td>
+                            <td data-label="Tilgjengelig fra">@ressurs.VisTilgjengeligFra()</td>
+                            <td data-label="Status">
+                                <span class="merke @(ressurs.Status == "Tilgjengelig" ? "merke-gi" : "")">@ressurs.Status</span>
+                            </td>
+                            <td data-label="Kontakt">
+                                @ressurs.Navn
+                                @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
+                                {
+                                    <a href="tel:@ressurs.Telefon">@ressurs.Telefon</a>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
     }
-</div>
+</section>

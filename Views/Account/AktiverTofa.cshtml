@@ -3,32 +3,48 @@
     ViewData["Title"] = "Slå på 2FA";
 
     // Teksten som gjøres om til QR-kode. Autentiseringsappen forstår dette formatet.
-    var qrTekst = "otpauth://totp/Kriseportal:" + User.Identity?.Name + "?secret=" + Model.Nokkel + "&issuer=Kriseportal";
+    var qrTekst = "otpauth://totp/Nabohjelp:" + Uri.EscapeDataString(User.Identity?.Name ?? "")
+                  + "?secret=" + Uri.EscapeDataString(Model.Nokkel) + "&issuer=Nabohjelp";
 }
 
-<h1>Slå på 2FA</h1>
+<div class="auth auth-bred">
+    <h1>Slå på 2FA</h1>
+    <p class="auth-ingress">Du trenger en autentiseringsapp, for eksempel Microsoft Authenticator eller Google Authenticator.</p>
 
-<p>1. Skann QR-koden med Microsoft Authenticator eller Google Authenticator:</p>
-<div id="qrkode" class="mb-2"></div>
-<p class="text-muted">Eller skriv inn nøkkelen i appen: <code>@Model.Nokkel</code></p>
+    <div class="auth-flate">
+        <ol class="tofa-steg">
+            <li>
+                <div>
+                    <p><strong>Skann QR-koden i appen.</strong></p>
+                    <div id="qrkode"></div>
+                    <p class="dempet mt-2 mb-0">Kan du ikke skanne? Skriv inn nøkkelen i stedet: <code>@Model.Nokkel</code></p>
+                </div>
+            </li>
+            <li>
+                <div>
+                    <p><strong>Skriv inn koden som vises i appen.</strong></p>
+                    <form asp-action="AktiverTofa" method="post" novalidate>
+                        @* Nøkkelen sendes med, så den kan vises igjen hvis koden er feil *@
+                        <input type="hidden" asp-for="Nokkel" />
 
-<p>2. Skriv inn koden som vises i appen:</p>
-<form asp-action="AktiverTofa" method="post" style="max-width: 300px">
-    @* Nøkkelen sendes med, så den kan vises igjen hvis koden er feil *@
-    <input type="hidden" asp-for="Nokkel" />
+                        <div class="felt">
+                            <label asp-for="Kode" class="form-label">Kode fra appen</label>
+                            <input asp-for="Kode" class="form-control kode-felt" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
+                            <span asp-validation-for="Kode"></span>
+                        </div>
 
-    <div class="mb-3">
-        <input asp-for="Kode" class="form-control" placeholder="123456" />
-        <span asp-validation-for="Kode" class="text-danger"></span>
+                        <button type="submit" class="btn btn-primary">Slå på 2FA</button>
+                    </form>
+                </div>
+            </li>
+        </ol>
     </div>
-
-    <button type="submit" class="btn btn-primary">Slå på 2FA</button>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        new QRCode(document.getElementById("qrkode"), { text: "@Html.Raw(qrTekst)", width: 180, height: 180 });
+        new QRCode(document.getElementById("qrkode"), { text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(qrTekst)), width: 180, height: 180 });
     </script>
 }

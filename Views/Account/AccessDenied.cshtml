@@ -2,6 +2,14 @@
     ViewData["Title"] = "Ingen tilgang";
 }
 
-<h1>Ingen tilgang</h1>
-<p>Du er logget inn, men har ikke tilgang til denne siden.</p>
-<a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
+<div class="melding-side">
+    <svg class="symbol" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+        <circle cx="36" cy="36" r="34" fill="#FFF4D9" stroke="#C98A00" stroke-width="3" />
+        <rect x="22" y="33" width="28" height="20" rx="4" fill="#12212D" />
+        <path d="M27 33v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#12212D" stroke-width="4" stroke-linecap="round" />
+        <circle cx="36" cy="43" r="3" fill="#F4B740" />
+    </svg>
+    <h1>Ingen tilgang</h1>
+    <p>Du er logget inn, men kontoen din har ikke tilgang til denne siden.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
+</div>

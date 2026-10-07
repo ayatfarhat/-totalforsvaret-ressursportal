@@ -1,78 +1,92 @@
+@{
+    var kontroller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string Aktiv(string navn) => string.Equals(navn, kontroller, StringComparison.OrdinalIgnoreCase) ? " active" : "";
+    string? Gjeldende(string navn) => string.Equals(navn, kontroller, StringComparison.OrdinalIgnoreCase) ? "page" : null;
+}
 <!DOCTYPE html>
-<html lang="no">
+<html lang="nb">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0E1A24" />
+
     <title>@ViewData["Title"] - Kommandobro</title>
+
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" />
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preload" href="~/fonts/familjen-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+
+    @* Kommandobro bruker samme CSS-fil som resten av siden. Den mørke stilen
+       gjelder bare når <body> har klassen «kb» (se del 8 i site.css). *@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Egen, mørk stil for Kommandobro. Helt separat fra _Layout.cshtml,
-         siden Kommandobro og Nabohjelp bevisst skal se forskjellige ut
-         (to ulike brukergrupper). Samme prinsipp som i _Layout.cshtml:
-         farger definert én gang øverst i :root. -->
-    <style>
-        :root {
-            --kb-bg: #0d1117;      /* nær-svart "ops-rom"-bakgrunn */
-            --kb-panel: #161b22;
-            --kb-border: #21262d;
-            --kb-accent: #0f766e;  /* petrol/grønnlig aksentfarge */
-            --kb-text: #e6edf3;
-            --kb-radius: 10px;
-        }
-
-        body {
-            background-color: var(--kb-bg);
-            color: var(--kb-text);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
-
-        .navbar-kommandobro {
-            background-color: var(--kb-panel) !important;
-            border-bottom: 1px solid var(--kb-border);
-        }
-
-        .navbar-kommandobro .navbar-brand,
-        .navbar-kommandobro .nav-link {
-            color: var(--kb-text) !important;
-        }
-
-        .tilgangsvarsel {
-            background-color: var(--kb-accent);
-            color: #ffffff;
-            text-align: center;
-            padding: 8px;
-            font-size: 0.9rem;
-        }
-
-        .kort-kommandobro {
-            background-color: var(--kb-panel);
-            border: 1px solid var(--kb-border);
-            border-radius: var(--kb-radius);
-        }
-    </style>
+    @await RenderSectionAsync("Head", required: false)
 </head>
-<body>
+<body class="kb">
+
+    <a class="hopp-lenke" href="#innhold">Hopp til innhold</a>
+
     <header>
         <div class="tilgangsvarsel">
-            For nødetater, politi og kriseledelse — ikke for privatpersoner.
+            <p>Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner.</p>
         </div>
-        <nav class="navbar navbar-expand-sm navbar-kommandobro mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-controller="Kommandobro" asp-action="Index">🛰️ Kommandobro</a>
-                <a class="nav-link" asp-controller="Home" asp-action="Index">&larr; Tilbake til Nabohjelp</a>
+
+        <nav class="navbar navbar-expand-md navbar-kommandobro" aria-label="Kommandobro-meny">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Kommandobro" asp-action="Index">
+                    <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
+                    <span>Kommandobro <small>Nabohjelp</small></span>
+                </a>
+
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#kbmeny"
+                        aria-controls="kbmeny"
+                        aria-expanded="false"
+                        aria-label="Åpne og lukk meny">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse justify-content-between" id="kbmeny">
+                    <ul class="navbar-nav ms-md-3">
+                        <li class="nav-item">
+                            <a class="nav-link@(Aktiv("Kommandobro"))" aria-current="@Gjeldende("Kommandobro")"
+                               asp-controller="Kommandobro" asp-action="Index">Oversikt</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Behov" asp-action="Ko">Behovskø</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Tildeling" asp-action="Index">Tildeling</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Til Nabohjelp</a>
+                        </li>
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="btn btn-outline-secondary btn-omriss btn-rad">Logg ut</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                </div>
             </div>
         </nav>
     </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main id="innhold" tabindex="-1">
+        <div class="container">
             @RenderBody()
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

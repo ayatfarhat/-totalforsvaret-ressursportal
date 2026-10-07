@@ -1,44 +1,92 @@
+@using Nabohjelp.Models
 @model List<Nabohjelp.ViewModels.BehovKoItem>
-@{ ViewData["Title"] = "Kø"; }
+@{
+    ViewData["Title"] = "Behovskø";
 
-<h1>Prioritert kø</h1>
+    string StatusTekst(BehovStatus s) => s switch
+    {
+        BehovStatus.New => "Ny",
+        BehovStatus.UnderReview => "Under vurdering",
+        BehovStatus.Assigned => "Tildelt",
+        BehovStatus.Resolved => "Løst",
+        _ => s.ToString()
+    };
+
+    string HandlingTekst(BehovStatus s) => s switch
+    {
+        BehovStatus.UnderReview => "Start vurdering",
+        BehovStatus.Resolved => "Marker som løst",
+        _ => "Sett til " + StatusTekst(s).ToLower()
+    };
+}
+
+<div class="side-topp">
+    <h1>Behovskø</h1>
+    <p class="ingress">Aktive behov, med de akutte først.</p>
+</div>
 
 @if (TempData["Feil"] is string feil)
 {
-    <div class="alert alert-danger">@feil</div>
+    <div class="alert alert-danger" role="alert">@feil</div>
 }
 
 @if (!Model.Any())
 {
-    <p>Ingen aktive behov.</p>
+    <div class="tom-tilstand">
+        <h3>Ingen aktive behov</h3>
+        <p>Nye behov som meldes inn, dukker opp her.</p>
+    </div>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr><th>Type</th><th>Prioritet</th><th>Status</th><th>Beskrivelse</th><th>Registrert</th><th></th></tr>
-        </thead>
-        <tbody>
-        @foreach (var b in Model)
-        {
-            <tr class="@(b.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "table-danger" : "")">
-                <td>@b.Type</td>
-                <td>@b.Prioritet</td>
-                <td>@b.Status</td>
-                <td>@b.Beskrivelse</td>
-                <td>@b.OpprettetTid.ToLocalTime().ToString("g")</td>
-                <td>
-                    @foreach (var neste in b.MuligeNesteStatuser)
-                    {
-                        <form asp-action="EndreStatus" method="post" class="d-inline">
-                            <input type="hidden" name="id" value="@b.Id" />
-                            <input type="hidden" name="nyStatus" value="@neste" />
-                            <button class="btn btn-sm btn-outline-secondary">→ @neste</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="liste-topp">
+        <h2>Aktive behov</h2>
+        <span class="antall">@Model.Count</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table stablet align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">Type</th>
+                    <th scope="col">Prioritet</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Beskrivelse</th>
+                    <th scope="col">Registrert</th>
+                    <th scope="col"><span class="visually-hidden">Handling</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr class="@(b.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
+                        <td data-label="Type"><strong>@b.Type</strong></td>
+                        <td data-label="Prioritet">
+                            @if (b.Prioritet == BehovPrioritet.Urgent)
+                            {
+                                <span class="merke merke-hjelp">Akutt</span>
+                            }
+                            else
+                            {
+                                <span class="merke">Planlagt</span>
+                            }
+                        </td>
+                        <td data-label="Status"><span class="merke @(b.Status == BehovStatus.Assigned ? "merke-gi" : b.Status == BehovStatus.UnderReview ? "merke-lys" : "")">@StatusTekst(b.Status)</span></td>
+                        <td data-label="Beskrivelse">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</td>
+                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("g")</td>
+                        <td data-label="" class="ko-handling">
+                            @foreach (var neste in b.MuligeNesteStatuser)
+                            {
+                                <form asp-action="EndreStatus" method="post">
+                                    <input type="hidden" name="id" value="@b.Id" />
+                                    <input type="hidden" name="nyStatus" value="@neste" />
+                                    <button class="btn btn-sm btn-outline-secondary">@HandlingTekst(neste)</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }

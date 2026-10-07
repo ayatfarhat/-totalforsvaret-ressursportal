@@ -2,94 +2,60 @@
 @model Nabohjelp.Models.MapViewModel
 
 @{
-    ViewData["Title"] = "Kommandobro";
+    ViewData["Title"] = "Oversikt";
     Layout = "_KommandobroLayout";
 }
 
-<!-- Leaflet-kart -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@section Head {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
 
-<div class="row mb-4">
-    <div class="col-12">
-        <h1>🛰️ Kommandobro</h1>
-        <p class="text-secondary">Oversikt for nødetater, politi og kriseledelse.</p>
+<div class="kb-topp">
+    <div>
+        <h1>Oversikt</h1>
+        <p>Behov og ressurser akkurat nå.</p>
+    </div>
+    <div class="kb-handlinger">
+        <a class="btn btn-lys" asp-controller="Behov" asp-action="Ko">Åpne behovskø</a>
+        <a class="btn btn-omriss" asp-controller="Tildeling" asp-action="Index">Tildel ressurser</a>
     </div>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Akutte behov</div>
-        </div>
+<div class="kb-tall">
+    <div class="kort-kommandobro tall-behov">
+        <strong>@Model.Behov.Count</strong>
+        <span>Registrerte behov</span>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Planlagte behov</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Tilgjengelige ressurser</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="kort-kommandobro p-3 text-center">
-            <div class="fs-3 fw-bold">0</div>
-            <div class="text-secondary small">Tildelt denne økten</div>
-        </div>
+    <div class="kort-kommandobro tall-ressurs">
+        <strong>@Model.Ressurser.Count</strong>
+        <span>Ressurser på kartet</span>
     </div>
 </div>
 
-<div class="kort-kommandobro p-4 mb-3">
-    <h5>Kart over behov og ressurser</h5>
-    <p class="text-secondary">
-        Grønne markører er registrerte ressurser, røde er registrerte behov.
-    </p>
-    <div id="oversiktsKart" style="height: 500px; width: 100%; border-radius: var(--kb-radius);"></div>
-</div>
-
-<div class="kort-kommandobro p-4">
-    <h5>Prioritert kø skal være her</h5>
-</div>
+<section class="kort-kommandobro kb-kartkort" aria-labelledby="kart-tittel">
+    <div class="kb-kartkort-topp">
+        <h2 id="kart-tittel">Kart</h2>
+        <ul class="kb-tegnforklaring">
+            <li><i style="background:#E5522C"></i>Behov</li>
+            <li><i style="background:#1B6B4B"></i>Ressurs</li>
+        </ul>
+    </div>
+    <div id="oversiktsKart" role="group" aria-label="Kart over behov og ressurser"></div>
+    @if (!Model.Behov.Any() && !Model.Ressurser.Any())
+    {
+        <p class="kb-kartstatus">Ingen behov eller ressurser med posisjon er registrert ennå.</p>
+    }
+</section>
 
 @section Scripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/kart.js" asp-append-version="true"></script>
     <script>
-        // Kartet, sentrert over Norge
-        const kart = L.map('oversiktsKart').setView([64.5, 11.0], 5);
-
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(kart);
-
-        // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her
-        const ressurser = @Html.Raw(JsonSerializer.Serialize(Model.Ressurser));
-        const behov = @Html.Raw(JsonSerializer.Serialize(Model.Behov));
-
-        // Ressurser vises som grønne punkter
-        ressurser.forEach(function (punkt) {
-            L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
-                color: '#2e7d46',
-                fillColor: '#2e7d46',
-                fillOpacity: 0.8
-            })
-                .addTo(kart)
-                .bindPopup('<strong>Ressurs:</strong> ' + punkt.Tittel);
-        });
-
-        // Behov vises som røde punkter
-        behov.forEach(function (punkt) {
-            L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
-                color: '#c0392b',
-                fillColor: '#c0392b',
-                fillOpacity: 0.8
-            })
-                .addTo(kart)
-                .bindPopup('<strong>Behov:</strong> ' + punkt.Tittel);
-        });
+        // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her.
+        NabohjelpKart.oversikt(
+            'oversiktsKart',
+            @Html.Raw(JsonSerializer.Serialize(Model.Ressurser)),
+            @Html.Raw(JsonSerializer.Serialize(Model.Behov))
+        );
     </script>
 }

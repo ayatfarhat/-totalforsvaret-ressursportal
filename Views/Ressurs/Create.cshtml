@@ -4,111 +4,113 @@
     ViewData["Title"] = "Registrer en ressurs";
 }
 
-<!-- Leaflet-kart, samme bibliotek som Ayat brukte i kart-funksjonen -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@section Head {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
 
-<div class="row justify-content-center">
-    <div class="col-12 col-md-8">
-        <h1>Registrer en ressurs</h1>
-        <p class="text-muted">Fyll ut skjemaet under. Type og posisjon er påkrevd — navn og telefon er valgfritt.</p>
+<div class="side-topp">
+    <h1>Registrer en ressurs</h1>
+    <p class="ingress">Fortell hva du kan stille med og hvor det finnes. Type og posisjon må fylles ut, resten er valgfritt.</p>
+</div>
 
-        <form asp-action="Create" method="post" class="mt-3">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="skjema-rutenett">
+    <form asp-action="Create" method="post" class="skjema" novalidate>
+        <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
-            <div class="mb-3">
-                <label asp-for="Type" class="form-label">Type ressurs</label>
-                <select asp-for="Type" class="form-select">
-                    <option value="">-- Velg type --</option>
-                    @foreach (var type in Nabohjelp.Models.RessursFormViewModel.Typer)
-                    {
-                        <option value="@type">@type</option>
-                    }
-                </select>
-                <span asp-validation-for="Type" class="text-danger"></span>
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">1</span> Hva kan du stille med?</legend>
+            <div class="type-valg" role="presentation">
+                @{ var typer = Nabohjelp.Models.RessursFormViewModel.Typer; }
+                @for (var i = 0; i < typer.Count; i++)
+                {
+                    <div class="type-valg-element">
+                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" />
+                        <label for="type-@i">@typer[i]</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="Type"></span>
+        </fieldset>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">2</span> Hvor finner vi det?</legend>
+
+            <div class="felt">
+                <label asp-for="Posisjon" class="form-label">Adresse eller stedsnavn</label>
+                <input asp-for="Posisjon" class="form-control" placeholder="For eksempel Storgata 5, Kristiansand" autocomplete="street-address" />
+                <span asp-validation-for="Posisjon"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Posisjon" class="form-label">Posisjon</label>
-                <input asp-for="Posisjon" class="form-control" placeholder="Skriv inn adresse" />
-                <span asp-validation-for="Posisjon" class="text-danger"></span>
-            </div>
-
-            <!-- Kart: valgfritt tillegg til adressen over, for nøyaktig posisjon -->
-            <div class="mb-3">
-                <label class="form-label">Velg posisjon på kart (valgfritt)</label>
-                <p class="text-muted small mb-2">Klikk på kartet for å legge til nøyaktige koordinater sammen med adressen.</p>
-
-                <div id="ressursKart" style="height: 350px; width: 100%; border-radius: var(--nh-radius);"></div>
-                <p id="valgtPosisjon" class="mt-2 mb-0 small text-muted">Ingen posisjon valgt.</p>
+            <div class="felt">
+                <span class="form-label d-block">Pek ut stedet på kartet <span class="valgfritt">(valgfritt, men hjelper kriseledelsen)</span></span>
+                <div id="ressursKart" class="kart-boks"
+                     data-kartvelger
+                     data-bredde="#breddegradInput"
+                     data-lengde="#lengdegradInput"
+                     data-status="#valgtPosisjon"
+                     data-posisjon="#Posisjon"
+                     data-knapp="#minPosisjon"
+                     data-nal="gi"
+                     role="group" aria-label="Kart. Trykk for å velge posisjon."></div>
+                <div class="kart-rad">
+                    <button type="button" id="minPosisjon" class="btn btn-outline-secondary btn-sm">Bruk min posisjon</button>
+                    <p id="valgtPosisjon" class="valgt" aria-live="polite">Ingen posisjon valgt ennå.</p>
+                </div>
+                <p class="kart-tips">Trykk på kartet for å sette en nål. Du kan dra nålen for å justere.</p>
 
                 <input asp-for="Breddegrad" type="hidden" id="breddegradInput" />
                 <input asp-for="Lengdegrad" type="hidden" id="lengdegradInput" />
             </div>
+        </fieldset>
 
-            <div class="mb-3">
-                <label asp-for="TilgjengeligFra" class="form-label">Tilgjengelig fra (valgfritt)</label>
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">3</span> Når og hvordan kan vi nå deg?</legend>
+
+            <div class="felt">
+                <label asp-for="TilgjengeligFra" class="form-label">Tilgjengelig fra <span class="valgfritt">(valgfritt)</span></label>
                 <input asp-for="TilgjengeligFra" class="form-control" type="datetime-local" />
-                <span asp-validation-for="TilgjengeligFra" class="text-danger"></span>
+                <span asp-validation-for="TilgjengeligFra"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Beskrivelse" class="form-label">Beskrivelse (valgfritt)</label>
-                <textarea asp-for="Beskrivelse" class="form-control" rows="3"></textarea>
+            <div class="felt">
+                <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="3" placeholder="For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"></textarea>
+                <span asp-validation-for="Beskrivelse"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Navn" class="form-label">Navn (valgfritt)</label>
-                <input asp-for="Navn" class="form-control" />
+            <div class="felt-par">
+                <div class="felt">
+                    <label asp-for="Navn" class="form-label">Navn <span class="valgfritt">(valgfritt)</span></label>
+                    <input asp-for="Navn" class="form-control" autocomplete="name" />
+                    <span asp-validation-for="Navn"></span>
+                </div>
+                <div class="felt">
+                    <label asp-for="Telefon" class="form-label">Telefon <span class="valgfritt">(valgfritt)</span></label>
+                    <input asp-for="Telefon" class="form-control" type="tel" autocomplete="tel" />
+                    <span asp-validation-for="Telefon"></span>
+                </div>
             </div>
+        </fieldset>
 
-            <div class="mb-3">
-                <label asp-for="Telefon" class="form-label">Telefon (valgfritt)</label>
-                <input asp-for="Telefon" class="form-control" />
-                <span asp-validation-for="Telefon" class="text-danger"></span>
-            </div>
+        <div class="skjema-bunn">
+            <button type="submit" class="btn btn-success btn-lg">Send inn</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Avbryt</a>
+        </div>
+    </form>
 
-            <button type="submit" class="btn btn-success">Send inn</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Avbryt</a>
-        </form>
-    </div>
+    <aside class="sidepanel" aria-labelledby="panel-tittel">
+        <h2 id="panel-tittel">Hva skjer videre?</h2>
+        <ol>
+            <li>Ressursen får status «Tilgjengelig».</li>
+            <li>Den vises på kartet til kriseledelsen.</li>
+            <li>Kriseledelsen kan koble den til et behov i nærheten.</li>
+        </ol>
+        <p>Trenger du selv hjelp? <a asp-controller="Behov" asp-action="Opprett">Meld et behov</a>.</p>
+    </aside>
 </div>
 
 @section Scripts {
-    <!-- Leaflet JavaScript -->
+    <partial name="_ValidationScriptsPartial" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <script>
-        // Oppretter kartet, sentrert over Norge
-        const kart = L.map('ressursKart').setView([64.5, 11.0], 5);
-
-        // Legger til kartlaget (selve kartbildet)
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(kart);
-
-        // Markøren som vises når man har valgt en posisjon
-        let markor = null;
-
-        // Kjøres hver gang brukeren klikker på kartet
-        kart.on('click', function (e) {
-            const breddegrad = e.latlng.lat;
-            const lengdegrad = e.latlng.lng;
-
-            // Flytter markøren, eller lager en ny hvis det ikke finnes en
-            if (markor === null) {
-                markor = L.marker([breddegrad, lengdegrad]).addTo(kart);
-            } else {
-                markor.setLatLng([breddegrad, lengdegrad]);
-            }
-
-            // Viser koordinatene i teksten under kartet
-            document.getElementById('valgtPosisjon').innerText =
-                'Valgt posisjon: ' + breddegrad.toFixed(5) + ', ' + lengdegrad.toFixed(5);
-
-            // Lagrer koordinatene i skjemaet, slik at de sendes inn sammen med resten
-            document.getElementById('breddegradInput').value = breddegrad;
-            document.getElementById('lengdegradInput').value = lengdegrad;
-        });
-    </script>
+    <script src="~/js/kart.js" asp-append-version="true"></script>
 }

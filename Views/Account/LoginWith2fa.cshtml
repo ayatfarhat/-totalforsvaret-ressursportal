@@ -3,16 +3,17 @@
     ViewData["Title"] = "Skriv inn kode";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <h1>Skriv inn kode</h1>
-        <p>Åpne autentiseringsappen og skriv inn den 6-sifrede koden.</p>
+<div class="auth">
+    <span class="logo-icon logo-icon-large"><partial name="_Logo" /></span>
+    <h1>Skriv inn kode</h1>
+    <p class="auth-ingress">Åpne autentiseringsappen og skriv inn den 6-sifrede koden.</p>
 
-        <form asp-action="LoginWith2fa" method="post">
-            <div class="mb-3">
+    <div class="auth-flate">
+        <form asp-action="LoginWith2fa" method="post" novalidate>
+            <div class="felt">
                 <label asp-for="Kode" class="form-label"></label>
-                <input asp-for="Kode" class="form-control" />
-                <span asp-validation-for="Kode" class="text-danger"></span>
+                <input asp-for="Kode" class="form-control kode-felt" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" />
+                <span asp-validation-for="Kode"></span>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Logg inn</button>

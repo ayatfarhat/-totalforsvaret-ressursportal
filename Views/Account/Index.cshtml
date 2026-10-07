@@ -3,17 +3,41 @@
     ViewData["Title"] = "Min konto";
 }
 
-<h1>Min konto</h1>
+<div class="auth auth-bred">
+    <h1>Min konto</h1>
+    <p class="auth-ingress">Her ser du hvordan du er logget inn.</p>
 
-<p><strong>E-post:</strong> @Model.Epost</p>
-<p><strong>Rolle:</strong> @Model.Rolle</p>
+    <div class="auth-flate">
+        <dl class="konto-rutenett">
+            <div>
+                <dt>E-post</dt>
+                <dd>@Model.Epost</dd>
+            </div>
+            <div>
+                <dt>Rolle</dt>
+                <dd>@Model.Rolle</dd>
+            </div>
+            <div>
+                <dt>2FA</dt>
+                <dd>
+                    @if (Model.TofaErPa)
+                    {
+                        <span class="merke merke-gi">På</span>
+                    }
+                    else
+                    {
+                        <span class="merke merke-lys">Av</span>
+                    }
+                </dd>
+            </div>
+        </dl>
 
-@if (Model.TofaErPa)
-{
-    <p><strong>2FA:</strong> På</p>
-}
-else
-{
-    <p><strong>2FA:</strong> Av</p>
-    <a asp-action="AktiverTofa" class="btn btn-primary">Slå på 2FA</a>
-}
+        @if (!Model.TofaErPa)
+        {
+            <div class="mt-4">
+                <p class="dempet mb-3">Tofaktor-innlogging gir ekstra beskyttelse hvis noen får tak i passordet ditt.</p>
+                <a asp-action="AktiverTofa" class="btn btn-primary">Slå på 2FA</a>
+            </div>
+        }
+    </div>
+</div>

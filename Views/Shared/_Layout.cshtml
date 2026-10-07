@@ -1,139 +1,131 @@
+@{
+    // Hvilken side vi er på, brukes til å markere aktiv menylenke.
+    var kontroller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    bool Er(params string[] navn) => navn.Any(n => string.Equals(n, kontroller, StringComparison.OrdinalIgnoreCase));
+    string Aktiv(params string[] navn) => Er(navn) ? " active" : "";
+    string? Gjeldende(params string[] navn) => Er(navn) ? "page" : null;
+    bool erKrisestab = User.IsInRole("Admin") || User.IsInRole("Kommune");
+}
 <!DOCTYPE html>
-<html lang="no">
+<html lang="nb">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#12212D" />
 
-    <!-- Sidetittel -->
     <title>@ViewData["Title"] - Nabohjelp</title>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="~/favicon.ico" sizes="any" />
 
-    <!-- Prosjektets CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="preload" href="~/fonts/familjen-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
-    <!-- Skrifttyper brukt i Nabohjelp -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700&display=swap"
-          rel="stylesheet">
+    @await RenderSectionAsync("Head", required: false)
 </head>
-
 <body>
 
-    <!-- Navigasjon -->
-    <header>
+    <a class="hopp-lenke" href="#innhold">Hopp til innhold</a>
 
-        <!-- Sikkerhetsinformasjon -->
-        <div class="safety-banner">
-            Akutt fare for liv og helse? Ring 112/113/110.
+    <header>
+        @* Nødnumrene ligger alltid øverst. På mobil kan de trykkes for å ringe. *@
+        <div class="nodstripe">
+            <div class="container">
+                <p><strong>Akutt fare for liv og helse?</strong> Ring først:</p>
+                <ul>
+                    <li><a href="tel:110">110 Brann</a></li>
+                    <li><a href="tel:112">112 Politi</a></li>
+                    <li><a href="tel:113">113 Ambulanse</a></li>
+                </ul>
+            </div>
         </div>
 
-        <nav class="navbar navbar-expand-sm navbar-light border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+        <div class="topp">
+            <nav class="navbar navbar-expand-md" aria-label="Hovedmeny">
+                <div class="container">
 
-                <!-- Logo og lenke til forsiden -->
-                <a class="navbar-brand"
-                   asp-area=""
-                   asp-controller="Home"
-                   asp-action="Index">
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                        <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
+                        Nabohjelp
+                    </a>
 
-                    <span class="logo-icon logo-icon-small">
-                        <partial name="_Logo" />
-                    </span>
+                    <button class="navbar-toggler"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#hovedmeny"
+                            aria-controls="hovedmeny"
+                            aria-expanded="false"
+                            aria-label="Åpne og lukk meny">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                    Nabohjelp
-                </a>
-
-                <!-- Mobilmeny -->
-                <button class="navbar-toggler"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation">
-
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <!-- Navigasjonslenker -->
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-
-                    <ul class="navbar-nav flex-grow-1">
-
-                        <!-- Forside -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Home"
-                               asp-action="Index">
-                                Forside
-                            </a>
-                        </li>
-
-                        <!-- Ressurser / Nabohjelp -->
-                        <li class="nav-item">
-                            <a class="nav-link text-dark"
-                               asp-area=""
-                               asp-controller="Ressurs"
-                               asp-action="Index">
-                                Nabohjelp
-                            </a>
-                        </li>
-
-                    </ul>
-
-                    <!-- Vises bare for Admin/Kommune. Kartet over behov/ressurser
-                         ligger nå direkte inne på Kommandobro-siden, ikke som egen lenke. -->
-                    <ul class="navbar-nav">
-                        @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
-                        {
+                    <div class="collapse navbar-collapse justify-content-between" id="hovedmeny">
+                        <ul class="navbar-nav ms-md-3">
                             <li class="nav-item">
-                                <a class="nav-link text-muted small"
-                                   asp-area=""
-                                   asp-controller="Kommandobro"
-                                   asp-action="Index">
-                                    For nødetater/politi &rarr;
-                                </a>
+                                <a class="nav-link@(Aktiv("Home"))" aria-current="@Gjeldende("Home")"
+                                   asp-area="" asp-controller="Home" asp-action="Index">Forside</a>
                             </li>
-                        }
-                    </ul>
+                            <li class="nav-item">
+                                <a class="nav-link@(Aktiv("Ressurs", "Behov"))" aria-current="@Gjeldende("Ressurs", "Behov")"
+                                   asp-area="" asp-controller="Ressurs" asp-action="Index">Nabohjelp</a>
+                            </li>
+                            @if (erKrisestab)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link@(Aktiv("Kommandobro", "Tildeling"))" aria-current="@Gjeldende("Kommandobro", "Tildeling")"
+                                       asp-area="" asp-controller="Kommandobro" asp-action="Index">Kommandobro</a>
+                                </li>
+                            }
+                        </ul>
 
-                    <!-- Innlogging / registrering -->
-                    <partial name="_LoginPartial" />
-
+                        <partial name="_LoginPartial" />
+                    </div>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        </div>
     </header>
 
-    <!-- Hovedinnhold -->
-    <div class="container">
-        <main role="main" class="pb-3">
+    <main id="innhold" tabindex="-1">
+        <div class="container">
 
-            <!-- Viser meldinger sendt fra controller -->
+            @* Meldinger fra controller, for eksempel «Ressursen er tildelt». *@
             @if (TempData["Melding"] != null)
             {
-                <div class="alert alert-success">
+                <div class="alert alert-success mt-4" role="status">
                     @TempData["Melding"]
                 </div>
             }
 
             @RenderBody()
+        </div>
+    </main>
 
-        </main>
-    </div>
-
-    <!-- Bunntekst -->
-    <footer class="border-top footer text-muted">
+    <footer class="sidefot">
         <div class="container">
-            &copy; 2026 - Nabohjelp - Gruppe 15
+            <div class="fot-rutenett">
+                <div>
+                    <div class="fot-merke">
+                        <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
+                        Nabohjelp
+                    </div>
+                    <p>En plattform som kobler folk som trenger hjelp under kriser med naboer og frivillige som kan stille opp.</p>
+                </div>
+                <div>
+                    <h2>Sider</h2>
+                    <ul>
+                        <li><a asp-controller="Ressurs" asp-action="Index">Nabohjelp</a></li>
+                        <li><a asp-controller="Behov" asp-action="Opprett">Meld behov</a></li>
+                        <li><a asp-controller="Ressurs" asp-action="Create">Registrer en ressurs</a></li>
+                        <li><a asp-controller="Kommandobro" asp-action="Index">For nødetater og kriseledelse</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="fot-bunn">&copy; 2026 Nabohjelp. Studentprosjekt i IS-200, gruppe 15. Nabohjelp erstatter ikke nødnumrene.</p>
         </div>
     </footer>
 
-    <!-- JavaScript -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
