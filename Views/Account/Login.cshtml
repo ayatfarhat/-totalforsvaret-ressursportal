@@ -3,31 +3,32 @@
     ViewData["Title"] = "Logg inn";
 }
 
-<div class="smal-side">
-    <div class="sidetopp">
-        <h1>Logg inn</h1>
-        <p class="ingress">Logg inn for å melde inn behov, eller for å se kart og behovskø hvis du jobber i kommunen.</p>
+<div class="auth">
+    <span class="logo-icon logo-icon-large"><partial name="_Logo" /></span>
+    <h1>Logg inn</h1>
+    <p class="auth-ingress">Logg inn for å melde behov eller registrere ressurser.</p>
+
+    <div class="auth-flate">
+        <form asp-action="Login" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+
+            <div class="felt">
+                <label asp-for="Epost" class="form-label">E-post</label>
+                <input asp-for="Epost" class="form-control" autocomplete="username" inputmode="email" />
+                <span asp-validation-for="Epost"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="Passord" class="form-label"></label>
+                <input asp-for="Passord" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Passord"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Logg inn</button>
+        </form>
     </div>
 
-    <form asp-action="Login" method="post" class="panel">
-        <div asp-validation-summary="ModelOnly"></div>
-
-        <div class="mb-3">
-            <label asp-for="Epost" class="form-label">E-post</label>
-            <input asp-for="Epost" class="form-control" autocomplete="email" />
-            <span asp-validation-for="Epost"></span>
-        </div>
-
-        <div class="mb-4">
-            <label asp-for="Passord" class="form-label"></label>
-            <input asp-for="Passord" class="form-control" autocomplete="current-password" />
-            <span asp-validation-for="Passord"></span>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg w-100">Logg inn</button>
-    </form>
-
-    <p class="mt-3 text-center">Har du ikke konto? <a asp-action="Register">Registrer deg</a></p>
+    <p class="auth-bunn">Har du ikke konto? <a asp-action="Register">Registrer deg</a></p>
 </div>
 
 @section Scripts {

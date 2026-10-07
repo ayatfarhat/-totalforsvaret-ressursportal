@@ -5,59 +5,51 @@
     bool harPosisjon = Model.Breddegrad != null && Model.Lengdegrad != null;
 }
 
-@if (harPosisjon)
-{
-    <!-- Leaflet-kart, bare lastet inn hvis en posisjon faktisk ble valgt -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@section Head {
+    @if (harPosisjon)
+    {
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    }
 }
 
-<div class="skjema-side">
-    <div class="sidetopp">
-        <div class="bekreftelse-ikon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-        </div>
+<div class="kvittering">
+    <div class="kvittering-topp">
+        <svg class="hake" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+            <circle cx="36" cy="36" r="34" fill="#E4F1EA" stroke="#1B6B4B" stroke-width="3" />
+            <path d="M21 37l10 10 20-22" fill="none" stroke="#1B6B4B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
         <h1>Takk, ressursen er registrert</h1>
-        <p class="ingress">Ressursen står nå på listen, og kriseledelsen kan tildele den der den trengs.</p>
+        <p>Den er nå synlig for kriseledelsen og kan kobles til et behov.</p>
     </div>
 
-    <div class="panel">
-        <h2>Kvittering</h2>
-        <dl class="opplysninger">
-            <dt>Type</dt>
-            <dd>@Model.Type</dd>
-
-            <dt>Posisjon</dt>
-            <dd>@Model.Posisjon</dd>
-
-            <dt>Koordinater</dt>
-            <dd>@Model.VisKoordinater()</dd>
-
-            <dt>Tilgjengelig fra</dt>
-            <dd>@Model.VisTilgjengeligFra()</dd>
-
-            <dt>Beskrivelse</dt>
-            <dd>@Model.VisBeskrivelse()</dd>
-
-            <dt>Navn</dt>
-            <dd>@Model.VisNavn()</dd>
-
-            <dt>Telefon</dt>
-            <dd>@Model.VisTelefon()</dd>
-
-            <dt>Status</dt>
-            <dd><span class="merke @Visningstekst.RessursStatusFarge(Model.Status)">@Model.Status</span></dd>
+    <section class="sammendrag-boks" aria-labelledby="sammendrag-tittel">
+        <h2 id="sammendrag-tittel">Sammendrag</h2>
+        <dl class="sammendrag">
+            <div><dt>Type</dt><dd>@Model.Type</dd></div>
+            <div><dt>Posisjon</dt><dd>@Model.Posisjon</dd></div>
+            <div><dt>Koordinater</dt><dd>@Model.VisKoordinater()</dd></div>
+            <div><dt>Tilgjengelig fra</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
+            <div><dt>Beskrivelse</dt><dd>@Model.VisBeskrivelse()</dd></div>
+            <div><dt>Navn</dt><dd>@Model.VisNavn()</dd></div>
+            <div><dt>Telefon</dt><dd>@Model.VisTelefon()</dd></div>
+            <div><dt>Status</dt><dd><span class="merke merke-gi">@Model.Status</span></dd></div>
         </dl>
+    </section>
 
-        @if (harPosisjon)
-        {
-            <!-- Lite kart som viser hvor posisjonen ble valgt -->
-            <div id="kvitteringKart" class="kart kart-lav mt-3"></div>
-        }
-    </div>
+    @if (harPosisjon)
+    {
+        <div id="kvitteringKart" class="kart-boks"
+             data-kartvisning
+             data-bredde="@Model.Breddegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             data-lengde="@Model.Lengdegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+             data-nal="gi"
+             role="img"
+             aria-label="Kart som viser posisjonen du valgte"></div>
+    }
 
-    <div class="knapperad mt-4">
-        <a asp-action="Create" class="btn btn-success">Registrer en ressurs til</a>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Til forsiden</a>
+    <div class="kvittering-handling">
+        <a asp-action="Create" class="btn btn-success">Registrer en til</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Se alle ressurser</a>
     </div>
 </div>
 
@@ -65,19 +57,6 @@
     @if (harPosisjon)
     {
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <script>
-            // Viser et lite kart med en markør der brukeren valgte posisjon
-            const breddegrad = @Model.Breddegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            const lengdegrad = @Model.Lengdegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-            const kart = L.map('kvitteringKart').setView([breddegrad, lengdegrad], 13);
-
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(kart);
-
-            L.marker([breddegrad, lengdegrad]).addTo(kart);
-        </script>
+        <script src="~/js/kart.js" asp-append-version="true"></script>
     }
 }

@@ -1,51 +1,84 @@
 @model List<Nabohjelp.Models.RessursFormViewModel>
 
 @{
-    ViewData["Title"] = "Ressurser";
+    ViewData["Title"] = "Nabohjelp";
+    bool erInnlogget = User.Identity?.IsAuthenticated == true;
 }
 
-<div class="sidetopp sidetopp-rad">
-    <div>
-        <h1>Registrerte ressurser</h1>
-        <p class="ingress">Utstyr, kjøretøy, lokaler og frivillige som naboer har meldt inn.</p>
-    </div>
-    <a class="btn btn-success" asp-action="Create">Registrer en ressurs</a>
+<div class="side-topp">
+    <h1>Nabohjelp</h1>
+    <p class="ingress">Trenger du hjelp, eller kan du bidra? Velg riktig spor.</p>
 </div>
 
-@if (!Model.Any())
-{
-    <div class="tom-liste">
-        <p>Ingen ressurser er registrert ennå.</p>
-        <p><a class="btn btn-success" asp-action="Create">Registrer den første</a></p>
+<div class="spor">
+    <section class="spor-kort spor-hjelp" aria-labelledby="spor-hjelp-tittel">
+        <h2 id="spor-hjelp-tittel">Jeg trenger hjelp</h2>
+        <p>Meld et behov i ditt område, for eksempel transport, strøm eller evakuering.</p>
+        <a class="btn btn-danger" asp-controller="Behov" asp-action="Opprett">Meld behov</a>
+        @if (!erInnlogget)
+        {
+            <small class="dempet">Du må logge inn først.</small>
+        }
+    </section>
+
+    <section class="spor-kort spor-gi" aria-labelledby="spor-gi-tittel">
+        <h2 id="spor-gi-tittel">Jeg kan hjelpe</h2>
+        <p>Registrer utstyr, kjøretøy, lokaler eller innsats du kan stille til rådighet.</p>
+        <a class="btn btn-success" asp-action="Create">Registrer en ressurs</a>
+    </section>
+</div>
+
+<section aria-labelledby="liste-tittel">
+    <div class="liste-topp">
+        <h2 id="liste-tittel">Registrerte ressurser</h2>
+        @if (Model.Any())
+        {
+            <span class="antall">@Model.Count</span>
+        }
     </div>
-}
-else
-{
-    <div class="tabell-ramme">
-        <table class="tabell">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Posisjon</th>
-                    <th>Tilgjengelig fra</th>
-                    <th>Status</th>
-                    <th>Kontakt</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var ressurs in Model)
-                {
+
+    @if (!Model.Any())
+    {
+        <div class="tom-tilstand">
+            <h3>Ingen ressurser er registrert ennå</h3>
+            <p>Den første ressursen du legger inn, vises her og på kartet til kriseledelsen.</p>
+            <a class="btn btn-success" asp-action="Create">Registrer en ressurs</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table stablet align-middle">
+                <thead>
                     <tr>
-                        <td class="sterk">@ressurs.Type</td>
-                        <td>@ressurs.Posisjon</td>
-                        <td>@ressurs.VisTilgjengeligFra()</td>
-                        <td>
-                            <span class="merke @Visningstekst.RessursStatusFarge(ressurs.Status)">@ressurs.Status</span>
-                        </td>
-                        <td>@ressurs.Navn @ressurs.Telefon</td>
+                        <th scope="col">Type</th>
+                        <th scope="col">Posisjon</th>
+                        <th scope="col">Tilgjengelig fra</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Kontakt</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-}
+                </thead>
+                <tbody>
+                    @foreach (var ressurs in Model)
+                    {
+                        <tr>
+                            <td data-label="Type"><strong>@ressurs.Type</strong></td>
+                            <td data-label="Posisjon">@ressurs.Posisjon</td>
+                            <td data-label="Tilgjengelig fra">@ressurs.VisTilgjengeligFra()</td>
+                            <td data-label="Status">
+                                <span class="merke @(ressurs.Status == "Tilgjengelig" ? "merke-gi" : "")">@ressurs.Status</span>
+                            </td>
+                            <td data-label="Kontakt">
+                                @ressurs.Navn
+                                @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
+                                {
+                                    <a href="tel:@ressurs.Telefon">@ressurs.Telefon</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

@@ -1,25 +1,25 @@
-@* Høyre side av menyen. Viser "Logg inn" eller hvem som er logget inn. *@
+@* Høyre side av menyen. Viser «Logg inn» eller hvem som er logget inn. *@
 
-<ul class="navbar-nav meny-bruker">
+<ul class="navbar-nav brukerdel">
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Account" asp-action="Index">@User.Identity.Name</a>
+            <a class="nav-link brukernavn" asp-controller="Account" asp-action="Index" title="Min konto">@User.Identity.Name</a>
         </li>
         <li class="nav-item">
             @* Utlogging er et skjema (POST), ikke en vanlig lenke *@
             <form asp-controller="Account" asp-action="Logout" method="post">
-                <button type="submit" class="nav-link btn btn-link">Logg ut</button>
+                <button type="submit" class="btn btn-outline-secondary btn-rad">Logg ut</button>
             </form>
         </li>
     }
     else
     {
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Account" asp-action="Register">Registrer deg</a>
+            <a class="nav-link" asp-controller="Account" asp-action="Login">Logg inn</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" asp-controller="Account" asp-action="Login">Logg inn</a>
+            <a class="btn btn-primary btn-rad" asp-controller="Account" asp-action="Register">Registrer deg</a>
         </li>
     }
 </ul>

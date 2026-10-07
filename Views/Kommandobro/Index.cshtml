@@ -2,104 +2,60 @@
 @model Nabohjelp.Models.MapViewModel
 
 @{
-    ViewData["Title"] = "Kommandobro";
+    ViewData["Title"] = "Oversikt";
+    Layout = "_KommandobroLayout";
 }
 
-<!-- Leaflet-kart -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@section Head {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
 
-<div class="sidetopp">
-    <h1>Kommandobro</h1>
-    <p class="ingress">Oversikt for nødetater, politi og kriseledelse: hvor det trengs hjelp, og hvor hjelpen finnes.</p>
-</div>
-
-<div class="kommando-rutenett">
-    <div class="panel">
-        <div class="sidetopp-rad mb-3">
-            <h2 class="mb-0">Kart over behov og ressurser</h2>
-            <div class="forklaring">
-                <span><i class="prikk prikk-rod"></i> Behov</span>
-                <span><i class="prikk prikk-gronn"></i> Ressurs</span>
-            </div>
-        </div>
-        <div id="oversiktsKart" class="kart kart-hoy"></div>
+<div class="kb-topp">
+    <div>
+        <h1>Oversikt</h1>
+        <p>Behov og ressurser akkurat nå.</p>
     </div>
-
-    <aside class="panel">
-        <h2>På kartet nå</h2>
-        <ul class="tall-liste">
-            <li><span>Behov</span> <strong>@Model.Behov.Count</strong></li>
-            <li><span>Ressurser med posisjon</span> <strong>@Model.Ressurser.Count</strong></li>
-        </ul>
-
-        <div class="snarveier">
-            <a class="btn btn-primary" asp-controller="Behov" asp-action="Ko">Åpne behovskø</a>
-            <a class="btn btn-outline-secondary" asp-controller="Tildeling" asp-action="Index">Tildel ressurser</a>
-            <a class="btn btn-outline-secondary" asp-controller="Ressurs" asp-action="Index">Alle ressurser</a>
-        </div>
-    </aside>
+    <div class="kb-handlinger">
+        <a class="btn btn-lys" asp-controller="Behov" asp-action="Ko">Åpne behovskø</a>
+        <a class="btn btn-omriss" asp-controller="Tildeling" asp-action="Index">Tildel ressurser</a>
+    </div>
 </div>
+
+<div class="kb-tall">
+    <div class="kort-kommandobro tall-behov">
+        <strong>@Model.Behov.Count</strong>
+        <span>Registrerte behov</span>
+    </div>
+    <div class="kort-kommandobro tall-ressurs">
+        <strong>@Model.Ressurser.Count</strong>
+        <span>Ressurser på kartet</span>
+    </div>
+</div>
+
+<section class="kort-kommandobro kb-kartkort" aria-labelledby="kart-tittel">
+    <div class="kb-kartkort-topp">
+        <h2 id="kart-tittel">Kart</h2>
+        <ul class="kb-tegnforklaring">
+            <li><i style="background:#E5522C"></i>Behov</li>
+            <li><i style="background:#1B6B4B"></i>Ressurs</li>
+        </ul>
+    </div>
+    <div id="oversiktsKart" role="group" aria-label="Kart over behov og ressurser"></div>
+    @if (!Model.Behov.Any() && !Model.Ressurser.Any())
+    {
+        <p class="kb-kartstatus">Ingen behov eller ressurser med posisjon er registrert ennå.</p>
+    }
+</section>
 
 @section Scripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/kart.js" asp-append-version="true"></script>
     <script>
-        // Kartet viser hele Norge til å begynne med
-        const kart = L.map('oversiktsKart').fitBounds([[57.8, 4.5], [71.2, 31.2]]);
-
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(kart);
-
-        // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her
-        const ressurser = @Html.Raw(JsonSerializer.Serialize(Model.Ressurser));
-        const behov = @Html.Raw(JsonSerializer.Serialize(Model.Behov));
-
-        // Samme farger som i site.css (--nh-gronn og --nh-rod)
-        const gronn = '#17663a';
-        const rod = '#b42318';
-
-        // Lager teksten i boblen som vises når man klikker på et punkt.
-        // Bruker textContent, slik at tekst som brukeren har skrevet inn
-        // aldri blir tolket som HTML (det beskytter mot skadelig kode).
-        function lagBoble(tekst) {
-            const boble = document.createElement('div');
-            boble.textContent = tekst;
-            return boble;
-        }
-
-        // Her samles posisjonen til alle punktene, så kartet kan zoome inn på dem
-        const allePunkter = [];
-
-        // Ressurser vises som grønne punkter
-        for (const punkt of ressurser) {
-            L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
-                color: gronn,
-                fillColor: gronn,
-                fillOpacity: 0.8
-            })
-                .addTo(kart)
-                .bindPopup(lagBoble('Ressurs: ' + punkt.Tittel));
-
-            allePunkter.push([punkt.Breddegrad, punkt.Lengdegrad]);
-        }
-
-        // Behov vises som røde punkter
-        for (const punkt of behov) {
-            L.circleMarker([punkt.Breddegrad, punkt.Lengdegrad], {
-                color: rod,
-                fillColor: rod,
-                fillOpacity: 0.8
-            })
-                .addTo(kart)
-                .bindPopup(lagBoble('Behov: ' + punkt.Tittel));
-
-            allePunkter.push([punkt.Breddegrad, punkt.Lengdegrad]);
-        }
-
-        // Finnes det punkter, zoomer kartet inn slik at alle synes
-        if (allePunkter.length > 0) {
-            kart.fitBounds(allePunkter, { padding: [40, 40], maxZoom: 13 });
-        }
+        // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her.
+        visOversikt(
+            'oversiktsKart',
+            @Html.Raw(JsonSerializer.Serialize(Model.Ressurser)),
+            @Html.Raw(JsonSerializer.Serialize(Model.Behov))
+        );
     </script>
 }

@@ -3,22 +3,18 @@
     ViewData["Title"] = "Noe gikk galt";
 }
 
-<div class="smal-side">
-    <div class="sidetopp">
-        <h1>Noe gikk galt</h1>
-        <p class="ingress">Siden kunne ikke vises. Prøv igjen om litt, eller gå tilbake til forsiden.</p>
-    </div>
+<div class="melding-side">
+    <svg class="symbol" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+        <circle cx="36" cy="36" r="34" fill="#FCE9E3" stroke="#C93A17" stroke-width="3" />
+        <path d="M36 20v20" stroke="#A52E10" stroke-width="6" stroke-linecap="round" />
+        <circle cx="36" cy="51" r="3.6" fill="#A52E10" />
+    </svg>
+    <h1>Noe gikk galt</h1>
+    <p>Beklager, siden kunne ikke vises. Prøv igjen om litt, eller gå tilbake til forsiden.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
 
-    <div class="melding melding-feil">
-        <strong>Akutt fare for liv og helse?</strong> Ikke vent på denne siden. Ring 110, 112 eller 113.
-    </div>
-
-    @if (Model.ShowRequestId)
+    @if (Model != null && Model.ShowRequestId)
     {
-        <p class="text-muted">Feilkode: <code>@Model.RequestId</code></p>
+        <small>Feilreferanse: <code>@Model.RequestId</code></small>
     }
-
-    <div class="knapperad">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
-    </div>
 </div>
