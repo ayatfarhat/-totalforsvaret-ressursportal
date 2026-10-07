@@ -44,9 +44,17 @@ public class BehovController : Controller
         };
 
         _db.Behovsliste.Add(behov);
-        await _db.SaveChangesAsync();            
+        await _db.SaveChangesAsync();
 
-        return RedirectToAction(nameof(Ko));
+        // Bare Admin/Kommune har tilgang til køen. Frivillige sendes til
+        // forsiden med en bekreftelse i stedet for "Ingen tilgang".
+        if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+        {
+            return RedirectToAction(nameof(Ko));
+        }
+
+        TempData["Melding"] = "Takk, behovet ditt er registrert. Kommunen kan se det nå.";
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
@@ -82,7 +90,7 @@ public class BehovController : Controller
 
         if (!TillatteManuelleOvergangar(behov.Status).Contains(nyStatus))
         {
-            TempData["Feil"] = $"Ugyldig statusendring: {behov.Status} → {nyStatus}.";
+            TempData["Feil"] = $"Kan ikke endre status fra «{Visningstekst.Status(behov.Status)}» til «{Visningstekst.Status(nyStatus)}».";
             return RedirectToAction(nameof(Ko));
         }
 

@@ -232,6 +232,6 @@ public class TildelingController : Controller
         BehovType behovType,
         string ressursType)
     {
-        return $"Ressurstypen «{ressursType}» passer til behovstypen «{behovType}».";
+        return $"Ressurstypen «{ressursType}» passer til behovstypen «{Visningstekst.Type(behovType)}».";
     }
 }
