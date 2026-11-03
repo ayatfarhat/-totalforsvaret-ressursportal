@@ -10,6 +10,7 @@
 <div class="side-topp">
     <h1>Meld behov</h1>
     <p class="ingress">Fortell hva du trenger og hvor du er. Kriseledelsen ser meldingen med en gang.</p>
+    <p class="felt-hjelp">Felter merket med * er obligatoriske.</p>
 </div>
 
 <div class="skjema-rutenett">
@@ -17,7 +18,7 @@
         <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
         <fieldset class="felt-gruppe">
-            <legend><span class="trinn" aria-hidden="true">1</span> Hva trenger du?</legend>
+            <legend><span class="trinn" aria-hidden="true">1</span> Hva trenger du? *</legend>
             <div class="type-valg type-valg-hjelp">
                 @foreach (var type in Enum.GetValues<Nabohjelp.Models.BehovType>())
                 {
@@ -28,10 +29,16 @@
                 }
             </div>
             <span asp-validation-for="Type"></span>
+
+            <div class="felt mt-3" id="annet-felt" hidden>
+                <label asp-for="AnnetType" class="form-label">Hva slags behov? *</label>
+                <input asp-for="AnnetType" class="form-control" placeholder="Hva slags behov? Eksempel: vannlekkasje, steinras, snømåking" />
+                <span asp-validation-for="AnnetType"></span>
+            </div>
         </fieldset>
 
         <fieldset class="felt-gruppe">
-            <legend><span class="trinn" aria-hidden="true">2</span> Hvor haster det?</legend>
+            <legend><span class="trinn" aria-hidden="true">2</span> Hvor haster det? *</legend>
             <div class="type-valg type-valg-hjelp type-valg-bred">
                 <div class="type-valg-element">
                     <input type="radio" asp-for="Prioritet" value="@Nabohjelp.Models.BehovPrioritet.Urgent" id="prioritet-akutt" />
@@ -65,12 +72,12 @@
 
             <div class="felt-par mt-3">
                 <div class="felt">
-                    <label asp-for="Latitude" class="form-label">Breddegrad</label>
+                    <label asp-for="Latitude" class="form-label">Breddegrad *</label>
                     <input asp-for="Latitude" class="form-control" inputmode="decimal" placeholder="58.14656" />
                     <span asp-validation-for="Latitude"></span>
                 </div>
                 <div class="felt">
-                    <label asp-for="Longitude" class="form-label">Lengdegrad</label>
+                    <label asp-for="Longitude" class="form-label">Lengdegrad *</label>
                     <input asp-for="Longitude" class="form-control" inputmode="decimal" placeholder="7.99560" />
                     <span asp-validation-for="Longitude"></span>
                 </div>
@@ -81,7 +88,7 @@
             <legend><span class="trinn" aria-hidden="true">4</span> Fortell mer og hvordan vi når deg</legend>
 
             <div class="felt">
-                <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
+                <label asp-for="Beskrivelse" class="form-label">Beskrivelse</label>
                 <textarea asp-for="Beskrivelse" class="form-control" rows="3" placeholder="For eksempel hvor mange personer det gjelder, eller hva som har skjedd"></textarea>
                 <span asp-validation-for="Beskrivelse"></span>
             </div>
@@ -122,4 +129,20 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
+
+    @* Viser feltet for fritekst bare når behovstypen «Annet» er valgt. *@
+    <script>
+        (function () {
+            const felt = document.getElementById("annet-felt");
+            const radioer = document.querySelectorAll('input[name="Type"]');
+    
+            function oppdater() {
+                const valgt = document.querySelector('input[name="Type"]:checked');
+                felt.hidden = !valgt || valgt.value !== "Annet";
+            }
+
+            radioer.forEach(radio => radio.addEventListener('change', oppdater));
+            oppdater();
+         })();
+    </script>
 }

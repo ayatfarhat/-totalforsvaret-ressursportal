@@ -33,6 +33,7 @@ public class BehovController : Controller
         {
             Type = vm.Type!.Value,
             Beskrivelse = vm.Beskrivelse,
+            AnnetType = vm.AnnetType,
             Latitude = vm.Latitude!.Value,
             Longitude = vm.Longitude!.Value,
             Prioritet = vm.Prioritet!.Value,
