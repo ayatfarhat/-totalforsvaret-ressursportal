@@ -139,35 +139,145 @@ function startKartvisning(element) {
 // ressurser og behov er lister med punkter: { Tittel, Breddegrad, Lengdegrad }
 function visOversikt(elementId, ressurser, behov) {
     var element = document.getElementById(elementId);
-    if (typeof L === 'undefined') {
-        element.hidden = true;
+
+    if (!element || typeof L === 'undefined') {
+        if (element) element.hidden = true;
         return;
     }
 
     var kart = lagKart(element, NORGE, 5);
+    var filter = document.getElementById('avstandFilter');
+    var status = document.getElementById('filterStatus');
+
+    var alleMarkorer = [];
     var alleSteder = [];
+    var valgtPosisjon = null;
+    var startMarkor = null;
+    var radiusSirkel = null;
 
     function leggTilNaler(liste, farge, prefiks) {
         liste.forEach(function (punkt) {
-            var nal = L.marker([punkt.Breddegrad, punkt.Lengdegrad], { icon: lagNal(farge) }).addTo(kart);
+            var breddegrad = Number(punkt.Breddegrad);
+            var lengdegrad = Number(punkt.Lengdegrad);
 
-            // Vi bruker textContent (ikke HTML-tekst), slik at teksten
-            // aldri kan tolkes som HTML.
+            if (!Number.isFinite(breddegrad) ||
+                !Number.isFinite(lengdegrad) ||
+                breddegrad < -90 || breddegrad > 90 ||
+                lengdegrad < -180 || lengdegrad > 180) {
+                return;
+            }
+
+            var posisjon = L.latLng(breddegrad, lengdegrad);
+
+            var nal = L.marker(posisjon, {
+                icon: lagNal(farge)
+            }).addTo(kart);
+
             var boks = document.createElement('div');
             boks.textContent = prefiks + ' ' + punkt.Tittel;
             nal.bindPopup(boks);
 
-            alleSteder.push([punkt.Breddegrad, punkt.Lengdegrad]);
+            alleMarkorer.push({
+                markor: nal,
+                posisjon: posisjon
+            });
+
+            alleSteder.push(posisjon);
         });
     }
 
     leggTilNaler(ressurser, 'gi', 'Ressurs:');
     leggTilNaler(behov, 'hjelp', 'Behov:');
 
-    // Zoomer kartet slik at alle nålene er med.
     if (alleSteder.length > 0) {
-        kart.fitBounds(alleSteder, { padding: [48, 48], maxZoom: 12 });
+        kart.fitBounds(alleSteder, {
+            padding: [48, 48],
+            maxZoom: 12
+        });
     }
+
+    function oppdaterFilter() {
+        var valgtAvstand = filter ? filter.value : 'alle';
+        var radius = valgtAvstand === 'alle'
+            ? null
+            : Number(valgtAvstand) * 1000;
+
+        var antallSynlige = 0;
+
+        alleMarkorer.forEach(function (punkt) {
+            var skalVises = radius === null ||
+                (valgtPosisjon !== null &&
+                 valgtPosisjon.distanceTo(punkt.posisjon) <= radius);
+
+            if (skalVises) {
+                if (!kart.hasLayer(punkt.markor)) {
+                    punkt.markor.addTo(kart);
+                }
+                antallSynlige++;
+            } else {
+                kart.removeLayer(punkt.markor);
+            }
+        });
+
+        if (radiusSirkel !== null) {
+            kart.removeLayer(radiusSirkel);
+            radiusSirkel = null;
+        }
+
+        if (radius !== null && valgtPosisjon !== null) {
+            radiusSirkel = L.circle(valgtPosisjon, {
+                radius: radius,
+                color: '#1B6B4B',
+                fillOpacity: 0.08
+            }).addTo(kart);
+
+            kart.fitBounds(radiusSirkel.getBounds(), {
+                padding: [30, 30]
+            });
+        }
+
+        if (status) {
+            if (radius !== null && valgtPosisjon === null) {
+                status.textContent =
+                    'Klikk på kartet for å velge utgangspunkt.';
+            } else if (radius === null) {
+                status.textContent =
+                    'Viser alle ' + antallSynlige + ' punkter.';
+            } else {
+                status.textContent =
+                    'Viser ' + antallSynlige +
+                    ' punkter innenfor ' +
+                    (radius / 1000) + ' km.';
+            }
+        }
+    }
+
+    kart.on('click', function (hendelse) {
+        valgtPosisjon = hendelse.latlng;
+
+        if (startMarkor === null) {
+            startMarkor = L.marker(valgtPosisjon, {
+                draggable: true
+            }).addTo(kart);
+
+            startMarkor.bindPopup('Valgt utgangspunkt');
+
+            startMarkor.on('dragend', function () {
+                valgtPosisjon = startMarkor.getLatLng();
+                oppdaterFilter();
+            });
+        } else {
+            startMarkor.setLatLng(valgtPosisjon);
+        }
+
+        oppdaterFilter();
+    });
+
+    if (filter) {
+        filter.addEventListener('change', oppdaterFilter);
+    }
+
+    oppdaterFilter();
 }
 
 
