@@ -270,6 +270,87 @@ namespace Nabohjelp.Migrations
                     b.ToTable("Behovsliste");
                 });
 
+            modelBuilder.Entity("Nabohjelp.Models.Ressurs", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Beskrivelse")
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal?>("Breddegrad")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal?>("Lengdegrad")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Navn")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("OpprettetAvBrukerId")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("OpprettetTid")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Posisjon")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Telefon")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("TilgjengeligFra")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Ressurser");
+                });
+
+            modelBuilder.Entity("Nabohjelp.Models.Tildeling", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BehovId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RessursId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TildeltAvBrukerId")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("TildeltTid")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BehovId");
+
+                    b.HasIndex("RessursId");
+
+                    b.HasIndex("TildeltAvBrukerId");
+
+                    b.ToTable("Tildelinger");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -319,6 +400,33 @@ namespace Nabohjelp.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Nabohjelp.Models.Tildeling", b =>
+                {
+                    b.HasOne("Nabohjelp.Models.Behov", "Behov")
+                        .WithMany()
+                        .HasForeignKey("BehovId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Nabohjelp.Models.Ressurs", "Ressurs")
+                        .WithMany()
+                        .HasForeignKey("RessursId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "TildeltAvBruker")
+                        .WithMany()
+                        .HasForeignKey("TildeltAvBrukerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Behov");
+
+                    b.Navigation("Ressurs");
+
+                    b.Navigation("TildeltAvBruker");
                 });
 #pragma warning restore 612, 618
         }

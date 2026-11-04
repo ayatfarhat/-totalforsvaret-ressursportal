@@ -29,9 +29,12 @@ namespace Nabohjelp.Controllers
             // punktene her i stedet for på en egen kart-side.
             var modell = new MapViewModel();
 
-            // Ressurser: hentes fra Marcelis midlertidige liste i minnet.
             // Bare de som faktisk har en posisjon valgt på kartet, vises.
-            foreach (var ressurs in RessursController.HentRessurser())
+            var ressurser = await _db.Ressurser
+                .AsNoTracking()
+                .ToListAsync();
+                
+            foreach (var ressurs in ressurser)
             {
                 if (ressurs.Breddegrad == null || ressurs.Lengdegrad == null)
                 {

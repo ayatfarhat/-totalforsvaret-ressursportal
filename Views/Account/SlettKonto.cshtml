@@ -1,0 +1,40 @@
+@model Nabohjelp.Models.SlettKontoViewModel
+
+@{
+    ViewData["Title"] = "Slett konto";
+}
+
+<h1>Slett konto</h1>
+
+<div class="alert alert-danger" role="alert">
+    <h2>Advarsel: Permanent sletting</h2>
+
+    <p>
+        Hvis du sletter kontoen din, vil alle behov og ressurser
+        du har registrert, også bli slettet permanent.
+    </p>
+
+    <p><strong>Handlingen kan ikke angres!</strong></p>
+</div>
+
+<form asp-controller="Account" asp-action="SlettKonto" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Passord" class="form-label"></label>
+        <input asp-for="Passord" class="form-control" />
+        <span asp-validation-for="Passord" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-danger">
+        Ja, slett kontoen min permanent
+    </button>
+
+    <a asp-controller="Account"
+       asp-action="Index"
+       class="btn btn-secondary">
+        Avbryt
+    </a>
+</form>
