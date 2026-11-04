@@ -9,6 +9,7 @@ public class Behov
     public int Id { get; set; }                       
     public BehovType Type { get; set; }
     public string? Beskrivelse { get; set; }
+    public string? AnnetType { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public BehovPrioritet Prioritet { get; set; }

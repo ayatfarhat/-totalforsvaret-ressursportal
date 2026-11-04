@@ -226,6 +226,9 @@ namespace Nabohjelp.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AnnetType")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Beskrivelse")
                         .HasColumnType("longtext");
 

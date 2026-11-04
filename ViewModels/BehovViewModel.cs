@@ -12,6 +12,10 @@ public class BehovViewModel : IValidatableObject
     [Display(Name = "Beskrivelse")]
     public string? Beskrivelse { get; set; }
 
+    [MaxLength(100)]
+    [Display(Name = "Hva slags behov?")]
+    public string? AnnetType { get; set; }
+
     [Required(ErrorMessage = "Breddegrad er påkrevd.")]
     [Range(-90, 90, ErrorMessage = "Breddegrad må være mellom -90 og 90.")]
     public double? Latitude { get; set; }
@@ -34,8 +38,14 @@ public class BehovViewModel : IValidatableObject
     [EmailAddress(ErrorMessage = "Ugyldig e-postadresse.")]
     public string? KontaktEpost { get; set; }
 
+
     public IEnumerable<ValidationResult> Validate(ValidationContext context)
     {
+        if (Type == BehovType.Annet && string.IsNullOrWhiteSpace(AnnetType))
+            yield return new ValidationResult(
+                "Oppgi hva slags behov det er.",
+                new[] { nameof(AnnetType) });
+
         if (string.IsNullOrWhiteSpace(KontaktTelefon) && string.IsNullOrWhiteSpace(KontaktEpost))
             yield return new ValidationResult(
                 "Oppgi telefonnummer eller e-post.",
