@@ -1,6 +1,7 @@
 using Nabohjelp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Nabohjelp.Controllers
 {
@@ -12,7 +13,7 @@ namespace Nabohjelp.Controllers
         private static readonly object _laas = new();
         private static int _nesteId = 0;
 
-        // Gjør ressursene tilgjengelige for matching.
+        // Henter alle ressurser for intern bruk i systemet.
         public static IReadOnlyList<RessursFormViewModel> HentRessurser()
         {
             lock (_laas)
@@ -41,9 +42,31 @@ namespace Nabohjelp.Controllers
         }
 
         // GET: /Ressurs
+        // Frivillige ser bare egne ressurser.
+        // Admin og Kommune ser alle ressurser.
+        [Authorize(Roles = "Admin,Kommune,Frivillig")]
+        [HttpGet]
         public IActionResult Index()
         {
-            return View(HentRessurser());
+           var ressurser = HentRessurser().ToList();
+
+            if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+{
+    return View(ressurser.ToList());
+}
+
+            var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(brukerId))
+            {
+                return Challenge();
+            }
+
+            var egneRessurser = ressurser
+                .Where(r => r.OpprettetAvBrukerId == brukerId)
+                .ToList();
+
+            return View(egneRessurser);
         }
 
         // GET: /Ressurs/Create
@@ -76,15 +99,14 @@ namespace Nabohjelp.Controllers
 
             // Knytter ressursen til innlogget bruker.
             model.OpprettetAvBrukerId =
-                User.FindFirst(
-                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(model.OpprettetAvBrukerId))
             {
                 return Challenge();
             }
 
-            // Gir ressursen en unik ID.
+            // Gir ressursen en unik ID og lagrer den.
             int nyId;
 
             lock (_laas)
@@ -94,72 +116,34 @@ namespace Nabohjelp.Controllers
                 _midlertidigListe.Add(model);
             }
 
-            HuskInnsendtId(nyId);
-
             return RedirectToAction("Confirmation", new { id = nyId });
         }
 
         // GET: /Ressurs/Confirmation
+        // Bare eieren, Admin og Kommune kan se bekreftelsen.
+        [Authorize(Roles = "Admin,Kommune,Frivillig")]
+        [HttpGet]
         public IActionResult Confirmation(int id)
         {
             var ressurs = HentRessurs(id);
 
             if (ressurs == null)
             {
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
             bool erAdminEllerKommune =
                 User.IsInRole("Admin") || User.IsInRole("Kommune");
 
+            var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             if (!erAdminEllerKommune &&
-                !ErSendtInnAvDenneNettleseren(id))
+                ressurs.OpprettetAvBrukerId != brukerId)
             {
-                return RedirectToAction("Index");
+                return Forbid();
             }
 
             return View(ressurs);
-        }
-
-        // Kontrollerer om denne nettleseren har sendt inn ressursen.
-        private bool ErSendtInnAvDenneNettleseren(int id)
-        {
-            string? lagret =
-                TempData.Peek("InnsendteRessursIder") as string;
-
-            if (string.IsNullOrEmpty(lagret))
-            {
-                return false;
-            }
-
-            string[] ider = lagret.Split(',');
-
-            foreach (string lagretId in ider)
-            {
-                if (lagretId == id.ToString())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        // Husker ressurs-ID for bekreftelsessiden.
-        private void HuskInnsendtId(int id)
-        {
-            string? lagret =
-                TempData.Peek("InnsendteRessursIder") as string;
-
-            if (string.IsNullOrEmpty(lagret))
-            {
-                TempData["InnsendteRessursIder"] = id.ToString();
-            }
-            else
-            {
-                TempData["InnsendteRessursIder"] =
-                    lagret + "," + id;
-            }
         }
     }
 }
