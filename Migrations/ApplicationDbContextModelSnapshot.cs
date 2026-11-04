@@ -270,6 +270,38 @@ namespace Nabohjelp.Migrations
                     b.ToTable("Behovsliste");
                 });
 
+            modelBuilder.Entity("Nabohjelp.Models.OnsketRessurs", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Antall")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Beskrivelse")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<DateTime>("Opprettet")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Sted")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OnskedeRessurser");
+                });
+
             modelBuilder.Entity("Nabohjelp.Models.Ressurs", b =>
                 {
                     b.Property<int>("Id")
@@ -283,6 +315,10 @@ namespace Nabohjelp.Migrations
 
                     b.Property<decimal?>("Breddegrad")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Kommunenummer")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)");
 
                     b.Property<decimal?>("Lengdegrad")
                         .HasColumnType("decimal(65,30)");

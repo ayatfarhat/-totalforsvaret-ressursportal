@@ -37,7 +37,7 @@
             <div class="container">
                 <a class="navbar-brand" asp-controller="Kommandobro" asp-action="Index">
                     <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
-                    <span>Kommandobro <small>Nabohjelp</small></span>
+                    <span>Kommandobro <small>BeredskapsPortalen</small></span>
                 </a>
 
                 <button class="navbar-toggler"
@@ -65,7 +65,7 @@
                     </ul>
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Til Nabohjelp</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">Til BeredskapsPortalen</a>
                         </li>
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {

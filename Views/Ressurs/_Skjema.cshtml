@@ -1,0 +1,163 @@
+@model Nabohjelp.Models.RessursFormViewModel
+@using Nabohjelp.Models
+
+@* Felles skjema for «Registrer en ressurs» (Create) og «Endre ressurs» (Edit).
+   Id = 0 betyr en ny ressurs. *@
+@{
+    bool erNy = Model.Id == 0;
+}
+
+<div class="skjema-rutenett">
+    <form asp-action="@(erNy ? "Create" : "Edit")" asp-route-id="@(erNy ? "" : Model.Id.ToString())" method="post" class="skjema" enctype="multipart/form-data" novalidate>
+        <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">1</span> Hva kan du stille med?</legend>
+            <div class="type-valg" role="presentation">
+                @{ var typer = Nabohjelp.Models.RessursFormViewModel.Typer; }
+                @for (var i = 0; i < typer.Count; i++)
+                {
+                    <div class="type-valg-element">
+                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" data-forslag="@Nabohjelp.Models.RessursFormViewModel.HentForslag(typer[i])" />
+                        @* Usynlig mellomrom etter «/» lar lange navn brytes pent på mobil *@
+                        <label for="type-@i">@typer[i].Replace("/", "/\u200B")</label>
+                    </div>
+                }
+            </div>
+            <span asp-validation-for="Type"></span>
+        </fieldset>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">2</span> Hvor finner vi det?</legend>
+
+            <div class="felt">
+                <label asp-for="Kommunenummer" class="form-label">Kommune</label>
+                <select asp-for="Kommunenummer" class="form-select" aria-describedby="kommuneHjelp">
+                    <option value="">Velg kommune</option>
+                    @foreach (var fylke in Kommuner.Fylker)
+                    {
+                        <optgroup label="@fylke">
+                            @foreach (var kommune in Kommuner.Alle.Where(k => k.Fylke == fylke))
+                            {
+                                <option value="@kommune.Nummer">@kommune.Navn</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+                <p id="kommuneHjelp" class="kart-tips">Kriseledelsen bruker kommunen til å skrive ut ressurslister per område.</p>
+                <span asp-validation-for="Kommunenummer"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="Posisjon" class="form-label">Adresse eller stedsnavn</label>
+                <input asp-for="Posisjon" class="form-control" placeholder="For eksempel Storgata 5, Kristiansand" autocomplete="street-address" />
+                <span asp-validation-for="Posisjon"></span>
+            </div>
+
+            <div class="felt">
+                <span class="form-label d-block">Pek ut stedet på kartet <span class="valgfritt">(valgfritt, men hjelper kriseledelsen)</span></span>
+                <div id="ressursKart" class="kart-boks"
+                     data-kartvelger
+                     data-bredde="#breddegradInput"
+                     data-lengde="#lengdegradInput"
+                     data-status="#valgtPosisjon"
+                     data-posisjon="#Posisjon"
+                     data-knapp="#minPosisjon"
+                     data-nal="gi"
+                     role="group" aria-label="Kart. Trykk for å velge posisjon."></div>
+                <div class="kart-rad">
+                    <button type="button" id="minPosisjon" class="btn btn-outline-secondary btn-sm">Bruk min posisjon</button>
+                    <p id="valgtPosisjon" class="valgt" aria-live="polite">Ingen posisjon valgt ennå.</p>
+                </div>
+                <p class="kart-tips">Trykk på kartet for å sette en nål. Du kan dra nålen for å justere.</p>
+
+                <input asp-for="Breddegrad" type="hidden" id="breddegradInput" />
+                <input asp-for="Lengdegrad" type="hidden" id="lengdegradInput" />
+            </div>
+        </fieldset>
+
+        <fieldset class="felt-gruppe">
+            <legend><span class="trinn" aria-hidden="true">3</span> Når og hvordan kan vi nå deg?</legend>
+
+            <div class="felt">
+                <label asp-for="TilgjengeligFra" class="form-label">Tilgjengelig fra <span class="valgfritt">(valgfritt)</span></label>
+                <input asp-for="TilgjengeligFra" class="form-control" type="datetime-local" />
+                <span asp-validation-for="TilgjengeligFra"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="4" placeholder="For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"></textarea>
+                <p class="kart-tips">Når du velger type, fyller vi inn et forslag du kan endre.</p>
+                <span asp-validation-for="Beskrivelse"></span>
+            </div>
+
+            <div class="felt">
+                @if (!erNy && !string.IsNullOrEmpty(Model.BildeSti))
+                {
+                    <span class="form-label d-block">Nåværende bilde</span>
+                    <img src="@Model.BildeSti" class="ressurs-bilde" alt="Nåværende bilde av ressursen: @Model.Type" />
+                    <div class="form-check mt-2 mb-3">
+                        <input asp-for="FjernBilde" class="form-check-input" type="checkbox" />
+                        <label asp-for="FjernBilde" class="form-check-label">Fjern bildet</label>
+                    </div>
+                }
+                <label for="bildefil" class="form-label">@(erNy || string.IsNullOrEmpty(Model.BildeSti) ? "Bilde av ressursen" : "Bytt bilde") <span class="valgfritt">(valgfritt)</span></label>
+                <input type="file" name="bildefil" id="bildefil" class="form-control" accept="image/jpeg,image/png,image/webp" aria-describedby="bildeHjelp" />
+                <p id="bildeHjelp" class="kart-tips">JPG, PNG eller WebP, maks 5 MB. Hvis skjemaet vises på nytt med feil, må du velge bildet igjen.</p>
+                @Html.ValidationMessage("Bilde")
+                <p id="bildeFeil" class="field-validation-error" role="alert" hidden></p>
+                <img id="bildeForhandsvisning" class="ressurs-bilde" alt="Forhåndsvisning av valgt bilde" hidden />
+            </div>
+
+            <div class="felt-par">
+                <div class="felt">
+                    <label asp-for="Navn" class="form-label">Navn <span class="valgfritt">(valgfritt)</span></label>
+                    <input asp-for="Navn" class="form-control" autocomplete="name" />
+                    <span asp-validation-for="Navn"></span>
+                </div>
+                <div class="felt">
+                    <label asp-for="Telefon" class="form-label">Telefon <span class="valgfritt">(valgfritt)</span></label>
+                    <div class="telefon-rad">
+                        <select asp-for="Landskode" class="form-select" aria-label="Landskode">
+                            @foreach (var land in Nabohjelp.Models.RessursFormViewModel.Landskoder)
+                            {
+                                <option value="@land.Kode">@land.Kode @land.Land</option>
+                            }
+                        </select>
+                        <input asp-for="Telefon" class="form-control" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="12345678" />
+                    </div>
+                    <span asp-validation-for="Landskode"></span>
+                    <span asp-validation-for="Telefon"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="skjema-bunn">
+            <button type="submit" class="btn btn-success btn-lg">@(erNy ? "Send inn" : "Lagre endringer")</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Avbryt</a>
+        </div>
+    </form>
+
+    <aside class="sidepanel" aria-labelledby="panel-tittel">
+        @if (erNy)
+        {
+            <h2 id="panel-tittel">Hva skjer videre?</h2>
+            <ol>
+                <li>Ressursen får status «Tilgjengelig».</li>
+                <li>Den vises på kartet til kriseledelsen.</li>
+                <li>Kriseledelsen kan koble den til et behov i nærheten.</li>
+            </ol>
+            <p>Trenger du selv hjelp? <a asp-controller="Behov" asp-action="Opprett">Meld et behov</a>.</p>
+        }
+        else
+        {
+            <h2 id="panel-tittel">Om endringene</h2>
+            <ul>
+                <li>Endringene vises med en gang for kriseledelsen.</li>
+                <li>Statusen («@Model.Status») endres ikke her. Den styres av tildelingen.</li>
+            </ul>
+            <p>Har du ikke ressursen lenger? <a asp-action="Delete" asp-route-id="@Model.Id">Slett ressursen</a>.</p>
+        }
+    </aside>
+</div>

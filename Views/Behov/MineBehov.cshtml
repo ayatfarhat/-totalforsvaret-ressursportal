@@ -1,4 +1,5 @@
 @model List<Nabohjelp.Models.Behov>
+@using System.Security.Claims
 @using Nabohjelp.Models
 
 @{
@@ -6,53 +7,111 @@
 
     bool erAdminEllerKommune =
         User.IsInRole("Admin") || User.IsInRole("Kommune");
+
+    // Brukes til å vise «Trekk tilbake» bare på behov brukeren selv har meldt.
+    string? brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
-<div class="container mt-4">
-    <h1>
-        @(erAdminEllerKommune ? "Alle registrerte behov" : "Mine behov")
-    </h1>
-
-    <p>
-        Her kan du se registrerte behov og statusen deres.
-    </p>
-
-    @if (!Model.Any())
+@functions {
+    // Fargen på merket for statusen (se .merke-* i site.css).
+    string StatusFarge(BehovStatus status)
     {
-        <div class="alert alert-info">
-            Ingen behov er registrert.
-        </div>
+        if (status == BehovStatus.Assigned || status == BehovStatus.Resolved) return "merke-gi";
+        if (status == BehovStatus.UnderReview) return "merke-lys";
+        if (status == BehovStatus.Rejected) return "merke-hjelp";
+        return "";
     }
-    else
+
+    // Forklaring under et behov som er avvist eller trukket tilbake.
+    string AvsluttetTekst(BehovStatus status)
     {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Beskrivelse</th>
-                    <th>Prioritet</th>
-                    <th>Status</th>
-                    <th>Registrert</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var behov in Model)
+        if (status == BehovStatus.Rejected)
+        {
+            return "Kommunen har avvist behovet, for eksempel fordi det var meldt to ganger. Ta kontakt med kommunen hvis du fortsatt trenger hjelp.";
+        }
+        return "Du trakk tilbake dette behovet. Meld et nytt behov hvis du trenger hjelp igjen.";
+    }
+}
+
+<div class="side-topp">
+    <h1>@(erAdminEllerKommune ? "Alle registrerte behov" : "Mine behov")</h1>
+    <p class="ingress">Her ser du hvor langt hvert behov har kommet: fra det er meldt, til kommunen vurderer det, sender en ressurs og markerer det som løst.</p>
+</div>
+
+@if (TempData["Feil"] is string feil)
+{
+    <div class="alert alert-danger" role="alert">@feil</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="tom-tilstand">
+        <h3>Ingen behov er registrert</h3>
+        <p>Behov du melder, vises her med status.</p>
+        <a class="btn btn-danger" asp-controller="Behov" asp-action="Opprett">Meld et behov</a>
+    </div>
+}
+else
+{
+    <div class="liste-topp">
+        <h2>@(erAdminEllerKommune ? "Behov" : "Dine behov")</h2>
+        <span class="antall">@Model.Count</span>
+    </div>
+
+    <div class="behov-liste">
+        @foreach (var behov in Model)
+        {
+            int steg = BehovStatusflyt.StegNummer(behov.Status);
+            bool erEgen = !string.IsNullOrEmpty(brukerId) && behov.OpprettetAvBrukerId == brukerId;
+
+            <article class="behov-kort @(behov.Prioritet == BehovPrioritet.Urgent ? "behov-akutt" : "")" aria-labelledby="behov-@behov.Id">
+                <div class="behov-topp">
+                    <h3 id="behov-@behov.Id">@Visningstekst.Type(behov.Type)</h3>
+                    <span class="merke @(behov.Prioritet == BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Visningstekst.Prioritet(behov.Prioritet)</span>
+                    <span class="merke @StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
+                </div>
+
+                <p class="behov-meta">Meldt @behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
+
+                @if (!string.IsNullOrWhiteSpace(behov.Beskrivelse))
                 {
-                    <tr>
-                        <td>@Visningstekst.Type(behov.Type)</td>
-                        <td>@behov.Beskrivelse</td>
-                        <td>@behov.Prioritet</td>
-                        <td>@Visningstekst.Status(behov.Status)</td>
-                        <td>@behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
-                    </tr>
+                    <p class="behov-tekst">@behov.Beskrivelse</p>
                 }
-            </tbody>
-        </table>
-    }
 
-    <a asp-controller="Behov"
-       asp-action="Opprett"
-       class="btn btn-primary">
-        Registrer nytt behov
-    </a>
+                @if (steg >= 0)
+                {
+                    <ol class="statuslinje" aria-label="Status: @Visningstekst.Status(behov.Status)">
+                        @for (int i = 0; i < BehovStatusflyt.Steg.Length; i++)
+                        {
+                            // Et løst behov er ferdig helt ut: også siste steg blir grønt.
+                            bool erLost = behov.Status == BehovStatus.Resolved;
+                            string klasse = i < steg ? "ferdig" : i == steg ? (erLost ? "ferdig na" : "na") : "";
+                            <li class="@klasse" aria-current="@(i == steg ? "step" : null)">@Visningstekst.Status(BehovStatusflyt.Steg[i])</li>
+                        }
+                    </ol>
+                }
+                else
+                {
+                    <p class="behov-avsluttet">@AvsluttetTekst(behov.Status)</p>
+                }
+
+                @if (erEgen && BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+                {
+                    <form asp-controller="Behov" asp-action="TrekkTilbake" asp-route-id="@behov.Id" method="post" class="behov-handling"
+                          onsubmit="return confirm('Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det.');">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Trekk tilbake</button>
+                        <small class="dempet">Trenger du ikke hjelpen lenger? Da kan kommunen bruke tiden på andre.</small>
+                    </form>
+                }
+            </article>
+        }
+    </div>
+}
+
+<div class="skjema-bunn">
+    <a asp-controller="Behov" asp-action="Opprett" class="btn btn-danger">Meld nytt behov</a>
+    @if (erAdminEllerKommune)
+    {
+        <a asp-controller="Behov" asp-action="Ko" class="btn btn-outline-secondary">Til behovskøen</a>
+    }
 </div>

@@ -1,7 +1,9 @@
 namespace Nabohjelp.Models;
 public enum BehovType { Transport, Drone, Generator, Evakuering, Annet }
 public enum BehovPrioritet { Urgent = 0, Planned = 1 }   
-public enum BehovStatus { New, UnderReview, Assigned, Resolved }
+// Statusen lagres som tall i databasen. Nye verdier legges derfor alltid
+// til på slutten, så de gamle tallene (0–3) beholder betydningen sin.
+public enum BehovStatus { New, UnderReview, Assigned, Resolved, Rejected, Withdrawn }
 public class Behov
 {
     public int Id { get; set; }                       

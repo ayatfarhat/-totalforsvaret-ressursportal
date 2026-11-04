@@ -5,13 +5,10 @@
 }
 
 @functions {
-    // Gjør statusen om til norsk tekst.
+    // Norsk statustekst kommer fra Visningstekst, så alle sider bruker samme ord.
     string StatusTekst(BehovStatus status)
     {
-        if (status == BehovStatus.New) return "Ny";
-        if (status == BehovStatus.UnderReview) return "Under vurdering";
-        if (status == BehovStatus.Assigned) return "Tildelt";
-        return "Løst";
+        return Visningstekst.Status(status);
     }
 
     // Fargen på statusmerket.
@@ -27,7 +24,15 @@
     {
         if (nesteStatus == BehovStatus.UnderReview) return "Start vurdering";
         if (nesteStatus == BehovStatus.Resolved) return "Marker som løst";
+        if (nesteStatus == BehovStatus.Rejected) return "Avvis";
         return "Neste status";
+    }
+
+    // «Avvis» er en avsluttende handling og får en annen farge enn de andre knappene.
+    string KnappKlasse(BehovStatus nesteStatus)
+    {
+        if (nesteStatus == BehovStatus.Rejected) return "btn btn-sm btn-outline-danger";
+        return "btn btn-sm btn-outline-secondary";
     }
 }
 
@@ -64,6 +69,7 @@ else
                     <th scope="col">Status</th>
                     <th scope="col">Beskrivelse</th>
                     <th scope="col">Registrert</th>
+                    <th scope="col">Kontakt</th>
                     <th scope="col"><span class="visually-hidden">Handling</span></th>
                 </tr>
             </thead>
@@ -71,7 +77,7 @@ else
                 @foreach (var b in Model)
                 {
                     <tr class="@(b.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
-                        <td data-label="Type"><strong>@b.Type</strong></td>
+                        <td data-label="Type"><strong>@Nabohjelp.Models.Visningstekst.Type(b.Type)</strong></td>
                         <td data-label="Prioritet">
                             @if (b.Prioritet == BehovPrioritet.Urgent)
                             {
@@ -83,17 +89,31 @@ else
                             }
                         </td>
                         <td data-label="Status"><span class="merke @StatusFarge(b.Status)">@StatusTekst(b.Status)</span></td>
-                        <td data-label="Beskrivelse">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</td>
-                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("g")</td>
+                        <td data-label="Beskrivelse"><span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</span></td>
+                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td data-label="Kontakt">
+                            <span class="kontakt-liste">
+                                @if (!string.IsNullOrWhiteSpace(b.KontaktTelefon))
+                                {
+                                    <a href="tel:@b.KontaktTelefon.Replace(" ", "")">@b.KontaktTelefon</a>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(b.KontaktEpost))
+                                {
+                                    <a href="mailto:@b.KontaktEpost">@b.KontaktEpost</a>
+                                }
+                            </span>
+                        </td>
                         <td data-label="" class="ko-handling">
-                            @foreach (var neste in b.MuligeNesteStatuser)
-                            {
-                                <form asp-action="EndreStatus" method="post">
-                                    <input type="hidden" name="id" value="@b.Id" />
-                                    <input type="hidden" name="nyStatus" value="@neste" />
-                                    <button class="btn btn-sm btn-outline-secondary">@KnappTekst(neste)</button>
-                                </form>
-                            }
+                            <div class="ko-knapper">
+                                @foreach (var neste in b.MuligeNesteStatuser)
+                                {
+                                    <form asp-action="EndreStatus" method="post">
+                                        <input type="hidden" name="id" value="@b.Id" />
+                                        <input type="hidden" name="nyStatus" value="@neste" />
+                                        <button type="submit" class="@KnappKlasse(neste)">@KnappTekst(neste)</button>
+                                    </form>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
