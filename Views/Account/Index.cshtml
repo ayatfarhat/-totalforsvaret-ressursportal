@@ -1,4 +1,5 @@
 @model KontoViewModel
+
 @{
     ViewData["Title"] = "Min konto";
 }
@@ -13,10 +14,12 @@
                 <dt>E-post</dt>
                 <dd>@Model.Epost</dd>
             </div>
+
             <div>
                 <dt>Rolle</dt>
                 <dd>@Model.Rolle</dd>
             </div>
+
             <div>
                 <dt>2FA</dt>
                 <dd>
@@ -35,12 +38,45 @@
         @if (!Model.TofaErPa)
         {
             <div class="mt-4">
-                <p class="dempet mb-3">Tofaktor-innlogging gir ekstra beskyttelse hvis noen får tak i passordet ditt.</p>
-                <a asp-action="AktiverTofa" class="btn btn-primary">Slå på 2FA</a>
+                <p class="dempet mb-3">
+                    Tofaktor-innlogging gir ekstra beskyttelse
+                    hvis noen får tak i passordet ditt.
+                </p>
+
+                <a asp-action="AktiverTofa"
+                   class="btn btn-primary">
+                    Slå på 2FA
+                </a>
             </div>
         }
     </div>
+
+    <!-- MINE REGISTRERINGER -->
+    <div class="auth-flate mt-4">
+        <h2>Mine registreringer</h2>
+
+        <p class="dempet">
+            Her finner du behovene og ressursene du har registrert.
+        </p>
+
+        <div class="d-flex gap-3 flex-wrap mt-3">
+
+            <a asp-controller="Behov"
+               asp-action="MineBehov"
+               class="btn btn-primary">
+                Mine behov
+            </a>
+
+            <a asp-controller="Ressurs"
+               asp-action="Index"
+               class="btn btn-primary">
+                Mine ressurser
+            </a>
+
+        </div>
+    </div>
 </div>
+
 <hr />
 
 <h3>Slett brukerkonto</h3>

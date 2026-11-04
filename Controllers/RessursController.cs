@@ -1,7 +1,7 @@
 using Nabohjelp.Models;
+using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Nabohjelp.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -11,17 +11,40 @@ namespace Nabohjelp.Controllers
     {
         private readonly ApplicationDbContext _db;
 
-        // Gir controlleren tilgang til databasen.
+        // Gir tilgang til databasen.
         public RessursController(ApplicationDbContext db)
         {
             _db = db;
         }
 
-        // Viser ressurser fra databasen.
+        // Frivillige ser egne ressurser.
+        // Admin og Kommune ser alle.
+        [Authorize(Roles = "Admin,Kommune,Frivillig")]
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var ressurser = await _db.Ressurser
-                .AsNoTracking()
+            var sporring = _db.Ressurser.AsNoTracking();
+
+            bool erKoordinator =
+                User.IsInRole("Admin") ||
+                User.IsInRole("Kommune");
+
+            if (!erKoordinator)
+            {
+                var brukerId =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(brukerId))
+                {
+                    return Challenge();
+                }
+
+                // Filtrerer i databasen før data hentes.
+                sporring = sporring.Where(
+                    r => r.OpprettetAvBrukerId == brukerId);
+            }
+
+            var ressurser = await sporring
                 .OrderByDescending(r => r.OpprettetTid)
                 .ToListAsync();
 
@@ -38,14 +61,13 @@ namespace Nabohjelp.Controllers
             return View(new RessursFormViewModel());
         }
 
-        // Lagrer en ny ressurs i databasen.
+        // Lagrer en ressurs med innlogget bruker som eier.
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             RessursFormViewModel model)
         {
-            // Finner brukeren som registrerer ressursen.
             var brukerId =
                 User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -83,18 +105,18 @@ namespace Nabohjelp.Controllers
                 OpprettetAvBrukerId = brukerId
             };
 
+            // Databasen genererer ressursens ID.
             _db.Ressurser.Add(ressurs);
             await _db.SaveChangesAsync();
-
-            // Husker tilgangen til kvitteringen.
-            HuskInnsendtId(ressurs.Id);
 
             return RedirectToAction(
                 nameof(Confirmation),
                 new { id = ressurs.Id });
         }
 
-        // Viser kvitteringen til innsender eller koordinator.
+        // Bare eieren, Admin og Kommune får se kvitteringen.
+        [Authorize(Roles = "Admin,Kommune,Frivillig")]
+        [HttpGet]
         public async Task<IActionResult> Confirmation(int id)
         {
             var ressurs = await _db.Ressurser
@@ -117,17 +139,15 @@ namespace Nabohjelp.Controllers
                 User.IsInRole("Admin") ||
                 User.IsInRole("Kommune");
 
-            if (!erEier &&
-                !erKoordinator &&
-                !ErSendtInnAvDenneNettleseren(id))
+            if (!erEier && !erKoordinator)
             {
-                return RedirectToAction(nameof(Index));
+                return Forbid();
             }
 
             return View(TilViewModel(ressurs));
         }
 
-        // Gjør databasedata klare for de eksisterende visningene.
+        // Gjør databasedata klare for visningene.
         private static RessursFormViewModel TilViewModel(
             Ressurs ressurs)
         {
@@ -145,40 +165,6 @@ namespace Nabohjelp.Controllers
                 Telefon = ressurs.Telefon,
                 Status = ressurs.Status
             };
-        }
-
-        // Kontrollerer nettleserens tilgang til kvitteringen.
-        private bool ErSendtInnAvDenneNettleseren(int id)
-        {
-            string? lagret =
-                TempData.Peek("InnsendteDatabaseRessursIder")
-                as string;
-
-            if (string.IsNullOrEmpty(lagret))
-            {
-                return false;
-            }
-
-            return lagret.Split(',').Contains(id.ToString());
-        }
-
-        // Husker ID-en uten å blande inn gamle minneliste-ID-er.
-        private void HuskInnsendtId(int id)
-        {
-            string? lagret =
-                TempData.Peek("InnsendteDatabaseRessursIder")
-                as string;
-
-            if (string.IsNullOrEmpty(lagret))
-            {
-                TempData["InnsendteDatabaseRessursIder"] =
-                    id.ToString();
-            }
-            else
-            {
-                TempData["InnsendteDatabaseRessursIder"] =
-                    lagret + "," + id;
-            }
         }
     }
 }
