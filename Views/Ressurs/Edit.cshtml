@@ -1,0 +1,23 @@
+@model Nabohjelp.Models.RessursFormViewModel
+
+@{
+    ViewData["Title"] = "Endre ressurs";
+}
+
+@section Head {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
+
+<div class="side-topp">
+    <h1>Endre ressurs</h1>
+    <p class="ingress">Rett opp det som har endret seg. Type, kommune og posisjon må fylles ut, resten er valgfritt.</p>
+</div>
+
+<partial name="_Skjema" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/kart.js" asp-append-version="true"></script>
+    <script src="~/js/ressurs-skjema.js" asp-append-version="true"></script>
+}

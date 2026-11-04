@@ -11,6 +11,10 @@ namespace Nabohjelp.Models
         [StringLength(200, ErrorMessage = "Posisjonen kan ikke være lengre enn 200 tegn.")]
         public string Posisjon { get; set; } = string.Empty;
 
+        // Kommunen ressursen står i. Brukes til å skrive ut ressurslister per region.
+        [Required(ErrorMessage = "Velg kommunen ressursen står i.")]
+        public string? Kommunenummer { get; set; }
+
         // Nøyaktige koordinater fra kartet på Create-siden.
         // Valgfritt — Posisjon (adressen) over er nok til å sende inn skjemaet.
         [Range(-90.0, 90.0, ErrorMessage = "Breddegrad må være mellom -90 og 90.")]
@@ -43,6 +47,9 @@ namespace Nabohjelp.Models
         // Settes av controlleren hvis brukeren lastet opp et bilde.
         // Inneholder nettadressen til bildet, for eksempel /uploads/ressurser/abc.jpg
         public string? BildeSti { get; set; }
+
+        // Krysses av i redigeringsskjemaet hvis eieren vil fjerne bildet.
+        public bool FjernBilde { get; set; }
 
         // Settes automatisk av controlleren ved oppretting, ikke av bruker
         public string Status { get; set; } = "Ny";
@@ -208,6 +215,11 @@ namespace Nabohjelp.Models
 
             Landskode = "+47";
             Telefon = lagret;
+        }
+
+        public string VisKommune()
+        {
+            return Kommuner.VisNavn(Kommunenummer);
         }
 
         public string VisKoordinater()

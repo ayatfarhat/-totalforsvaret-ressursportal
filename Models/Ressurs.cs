@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Nabohjelp.Models;
 
 public class Ressurs
@@ -7,6 +9,11 @@ public class Ressurs
     public string Type { get; set; } = string.Empty;
 
     public string Posisjon { get; set; } = string.Empty;
+
+    // Kommunenummeret, for eksempel «4202» for Grimstad (se Models/Kommuner.cs).
+    // Kan være tomt for ressurser som ble registrert før feltet fantes.
+    [MaxLength(4)]
+    public string? Kommunenummer { get; set; }
 
     public decimal? Breddegrad { get; set; }
 

@@ -48,6 +48,11 @@
     <a class="btn btn-outline-secondary" asp-controller="OnsketRessurs" asp-action="Index">Se ønskede ressurser</a>
 </section>
 
+@if (TempData["Feil"] is string feil)
+{
+    <div class="alert alert-danger" role="alert">@feil</div>
+}
+
 <section aria-labelledby="liste-tittel">
     <div class="liste-topp">
         <h2 id="liste-tittel">@(erKoordinator ? "Registrerte ressurser" : "Dine ressurser")</h2>
@@ -69,17 +74,25 @@
     {
         @if (!erKoordinator)
         {
-            <p class="kart-tips">Her ser du ressursene du selv har registrert. Kommunen og kriseledelsen ser alle.</p>
+            <p class="kart-tips">Her ser du ressursene du selv har registrert. Du kan endre eller slette dem. Kommunen og kriseledelsen ser alle.</p>
+        }
+        else
+        {
+            <div class="liste-handling">
+                <a class="btn btn-outline-secondary" asp-action="Utskrift">Skriv ut ressursliste per kommune</a>
+            </div>
         }
         <div class="table-responsive">
             <table class="table stablet align-middle">
                 <thead>
                     <tr>
                         <th scope="col">Type</th>
+                        <th scope="col">Kommune</th>
                         <th scope="col">Posisjon</th>
                         <th scope="col">Tilgjengelig fra</th>
                         <th scope="col">Status</th>
                         <th scope="col">Kontakt</th>
+                        <th scope="col"><span class="visually-hidden">Handling</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,6 +108,7 @@
                                     <strong>@ressurs.Type</strong>
                                 </span>
                             </td>
+                            <td data-label="Kommune">@ressurs.VisKommune()</td>
                             <td data-label="Posisjon">@ressurs.Posisjon</td>
                             <td data-label="Tilgjengelig fra">@ressurs.VisTilgjengeligFra()</td>
                             <td data-label="Status">
@@ -106,6 +120,11 @@
                                 {
                                     <a href="tel:@ressurs.TelefonLenke()">@ressurs.VisTelefon()</a>
                                 }
+                            </td>
+                            @* Lista viser bare ressurser brukeren kan endre: egne, eller alle for Kommune og Admin. *@
+                            <td data-label="" class="ressurs-handling">
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@ressurs.Id" aria-label="Endre @ressurs.Type, @ressurs.Posisjon">Endre</a>
+                                <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@ressurs.Id" aria-label="Slett @ressurs.Type, @ressurs.Posisjon">Slett</a>
                             </td>
                         </tr>
                     }
