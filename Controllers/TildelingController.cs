@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 using System.Security.Claims;
 
@@ -14,7 +15,6 @@ public class TildelingController : Controller
 {
     private readonly ApplicationDbContext _db;
 
-    // Gir controlleren tilgang til databasen.
     public TildelingController(ApplicationDbContext db)
     {
         _db = db;
@@ -25,7 +25,7 @@ public class TildelingController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        // Avsluttede behov (løst, avvist, trukket tilbake) kan ikke få ressurser.
+        // Avsluttede behov kan ikke få flere ressurser.
         var behov = await _db.Behovsliste
             .Where(b => b.Status != BehovStatus.Resolved &&
                         b.Status != BehovStatus.Rejected &&
@@ -38,7 +38,7 @@ public class TildelingController : Controller
     }
 
     // GET: /Tildeling/Match/5
-    // Finner ressurser som passer til valgt behov.
+    // Finner tilgjengelige ressurser som passer til behovet.
     [HttpGet]
     public async Task<IActionResult> Match(int id)
     {
@@ -49,13 +49,13 @@ public class TildelingController : Controller
             return NotFound();
         }
 
-        // Henter ressursene som allerede er registrert.
+        // Henter bare tilgjengelige ressurser fra databasen.
         var ressurser = await _db.Ressurser
             .AsNoTracking()
             .Where(r => r.Status == "Tilgjengelig")
             .ToListAsync();
 
-        // Velger tilgjengelige ressurser som passer til behovet.
+        // Matcher etter ressurstype, beregner avstand og sorterer.
         var matchendeRessurser = ressurser
             .Where(r => PasserTilBehov(behov.Type, r.Type))
             .Select(r => new MatchendeRessursViewModel
@@ -66,13 +66,21 @@ public class TildelingController : Controller
                 Status = r.Status,
                 Navn = r.Navn,
                 Beskrivelse = r.Beskrivelse,
+
+                AvstandKm = Avstandsberegning.BeregnAvstandKm(
+                    behov.Latitude,
+                    behov.Longitude,
+                    r.Breddegrad,
+                    r.Lengdegrad),
+
                 MatchBegrunnelse = LagMatchBegrunnelse(
                     behov.Type,
                     r.Type)
             })
+            .OrderBy(r => r.AvstandKm ?? double.MaxValue)
+            .ThenBy(r => r.Type)
             .ToList();
 
-        // Samler behov og matcher i én ViewModel.
         var model = new TildelingViewModel
         {
             BehovId = behov.Id,
@@ -88,107 +96,102 @@ public class TildelingController : Controller
         return View(model);
     }
 
-// POST: /Tildeling/Tildel
-// Tildeler en ressurs og lagrer koblingen til behovet.
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Tildel(
-    int behovId,
-    int ressursId)
-{
-    // Henter ID-en til den innloggede brukeren.
-    var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    if (string.IsNullOrEmpty(brukerId))
+    // POST: /Tildeling/Tildel
+    // Tildeler en ressurs og lagrer koblingen til behovet.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Tildel(int behovId, int ressursId)
     {
-        return Challenge();
-    }
+        var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    // Henter behovet og ressursen fra databasen.
-    var behov = await _db.Behovsliste.FindAsync(behovId);
-    var ressurs = await _db.Ressurser.FindAsync(ressursId);
+        if (string.IsNullOrEmpty(brukerId))
+        {
+            return Challenge();
+        }
 
-    if (behov == null || ressurs == null)
-    {
-        return NotFound();
-    }
+        var behov = await _db.Behovsliste.FindAsync(behovId);
+        var ressurs = await _db.Ressurser.FindAsync(ressursId);
 
-    // Hindrer nye tildelinger til et behov som er løst, avvist eller trukket tilbake.
-    if (BehovStatusflyt.ErAvsluttet(behov.Status))
-    {
-        TempData["Feil"] = $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
-        return RedirectToAction(nameof(Index));
-    }
+        if (behov == null || ressurs == null)
+        {
+            return NotFound();
+        }
 
-    // Sjekker at ressurstypen passer til behovet.
-    if (!PasserTilBehov(behov.Type, ressurs.Type))
-    {
-        TempData["Feil"] = "Ressursen passer ikke til dette behovet.";
+        // Avsluttede behov kan ikke få nye tildelinger.
+        if (BehovStatusflyt.ErAvsluttet(behov.Status))
+        {
+            TempData["Feil"] =
+                $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Kontrollerer at ressurstypen passer til behovet.
+        if (!PasserTilBehov(behov.Type, ressurs.Type))
+        {
+            TempData["Feil"] = "Ressursen passer ikke til dette behovet.";
+
+            return RedirectToAction(
+                nameof(Match),
+                new { id = behovId });
+        }
+
+        // Transaksjon sørger for at endringene lagres samlet.
+        await using var transaksjon =
+            await _db.Database.BeginTransactionAsync();
+
+        // Oppdaterer ressursen bare dersom den fortsatt er tilgjengelig.
+        // Dette hindrer at to forespørsler tildeler samme ressurs samtidig.
+        var antallEndret = await _db.Ressurser
+            .Where(r => r.Id == ressursId &&
+                        r.Status == "Tilgjengelig")
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.Status, "Tildelt"));
+
+        if (antallEndret == 0)
+        {
+            await transaksjon.RollbackAsync();
+
+            TempData["Feil"] =
+                "Ressursen er ikke lenger tilgjengelig.";
+
+            return RedirectToAction(
+                nameof(Match),
+                new { id = behovId });
+        }
+
+        var tidspunkt = DateTime.UtcNow;
+
+        // Oppdaterer behovets status.
+        behov.Status = BehovStatus.Assigned;
+        behov.SistEndretTid = tidspunkt;
+        behov.SistEndretAvBrukerId = brukerId;
+
+        // Lagrer koblingen mellom behov, ressurs og brukeren.
+        var tildeling = new Tildeling
+        {
+            BehovId = behovId,
+            RessursId = ressursId,
+            TildeltAvBrukerId = brukerId,
+            TildeltTid = tidspunkt
+        };
+
+        _db.Tildelinger.Add(tildeling);
+
+        await _db.SaveChangesAsync();
+
+        // Bekrefter endringene i databasen.
+        await transaksjon.CommitAsync();
 
         return RedirectToAction(
-            nameof(Match),
-            new { id = behovId });
+            nameof(Resultat),
+            new { behovId, ressursId });
     }
-
-    // Sørger for at alle endringene lagres samlet.
-    await using var transaksjon =
-        await _db.Database.BeginTransactionAsync();
-
-    // Tildeler bare hvis ressursen fortsatt er tilgjengelig.
-    // Hindrer at to forespørsler tildeler samme ressurs samtidig.
-    var antallEndret = await _db.Ressurser
-        .Where(r => r.Id == ressursId &&
-                    r.Status == "Tilgjengelig")
-        .ExecuteUpdateAsync(setters => setters
-            .SetProperty(r => r.Status, "Tildelt"));
-
-    if (antallEndret == 0)
-    {
-        await transaksjon.RollbackAsync();
-
-        TempData["Feil"] = "Ressursen er ikke lenger tilgjengelig.";
-
-        return RedirectToAction(
-            nameof(Match),
-            new { id = behovId });
-    }
-
-    var tidspunkt = DateTime.UtcNow;
-
-    // Oppdaterer behovets status og siste endring.
-    behov.Status = BehovStatus.Assigned;
-    behov.SistEndretTid = tidspunkt;
-    behov.SistEndretAvBrukerId = brukerId;
-
-    // Kobler behov, ressurs og brukeren som tildelte.
-    var tildeling = new Tildeling
-    {
-        BehovId = behovId,
-        RessursId = ressursId,
-        TildeltAvBrukerId = brukerId,
-        TildeltTid = tidspunkt
-    };
-
-    _db.Tildelinger.Add(tildeling);
-
-    // Lagrer behovet og den nye tildelingen.
-    await _db.SaveChangesAsync();
-
-    // Bekrefter alle endringene i transaksjonen.
-    await transaksjon.CommitAsync();
-
-    // Åpner resultatsiden.
-    return RedirectToAction(
-        nameof(Resultat),
-        new { behovId, ressursId });
-}
 
     // GET: /Tildeling/Resultat
-    // Viser resultatet av tildelingen.
+    // Viser resultatet etter en tildeling.
     [HttpGet]
-    public async Task<IActionResult> Resultat(
-        int behovId,
-        int ressursId)
+    public async Task<IActionResult> Resultat(int behovId, int ressursId)
     {
         var behov = await _db.Behovsliste.FindAsync(behovId);
         var ressurs = await _db.Ressurser.FindAsync(ressursId);
@@ -212,12 +215,19 @@ public async Task<IActionResult> Tildel(
             {
                 new()
                 {
-                    RessursId = ressursId,
+                    RessursId = ressurs.Id,
                     Type = ressurs.Type,
                     Posisjon = ressurs.Posisjon,
                     Status = ressurs.Status,
                     Navn = ressurs.Navn,
                     Beskrivelse = ressurs.Beskrivelse,
+
+                    AvstandKm = Avstandsberegning.BeregnAvstandKm(
+                        behov.Latitude,
+                        behov.Longitude,
+                        ressurs.Breddegrad,
+                        ressurs.Lengdegrad),
+
                     MatchBegrunnelse = LagMatchBegrunnelse(
                         behov.Type,
                         ressurs.Type)
@@ -258,17 +268,14 @@ public async Task<IActionResult> Tildel(
                     "Båt" or
                     "Lokaler",
 
-            // «Annet» er et behov som ikke passer i de andre gruppene
-            // (for eksempel rydding etter storm eller samband). Da kan alle
-            // ressurstyper vurderes, så også gravemaskin, sand/grus og
-            // sambandsutstyr kan tildeles et behov.
+            // Behovstypen «Annet» kan matches med alle ressurstyper.
             BehovType.Annet => true,
 
             _ => false
         };
     }
 
-    // Lager en enkel forklaring som vises til brukeren.
+    // Lager en forklaring på hvorfor ressursen matcher behovet.
     private static string LagMatchBegrunnelse(
         BehovType behovType,
         string ressursType)
