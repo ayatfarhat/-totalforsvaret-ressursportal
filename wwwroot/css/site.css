@@ -967,6 +967,8 @@ a[href^="tel:"] { white-space: nowrap; }
 .tekst-linjer { white-space: pre-line; overflow-wrap: anywhere; }
 .behov-avsluttet { margin: .25rem 0 0; color: var(--dempet); font-size: .95rem; }
 .behov-handling { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; margin-top: .35rem; }
+.behov-handling form { margin: 0; }
+.ko-endre { color: var(--natt); font-weight: 600; }
 
 /* Statuslinjen: fire steg med en strek mellom. Ferdige steg er grønne,
    steget behovet står på nå, har en tydelig ring. */
@@ -1045,6 +1047,7 @@ a[href^="tel:"] { white-space: nowrap; }
     .utskrift-tabell { font-size: 9.5pt; }
     .utskrift-tabell th, .utskrift-tabell td { padding: .25rem .35rem; border-color: #999; }
     .utskrift-tabell tr { break-inside: avoid; }
+    .utskrift .table-responsive { overflow: visible; border: 0; }
     .kommune-gruppe h4, .utskrift-fylke { break-after: avoid; }
     .utskrift-fylke { break-before: auto; }
     a { color: #000; text-decoration: none; }

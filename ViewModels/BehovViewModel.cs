@@ -4,6 +4,9 @@ using Nabohjelp.Models;
 namespace Nabohjelp.ViewModels;
 public class BehovViewModel : IValidatableObject
 {
+    // 0 = et nytt behov. Ellers id-en til behovet som endres.
+    public int Id { get; set; }
+
     [Required(ErrorMessage = "Velg behovstype.")]
     [Display(Name = "Behovstype")]
     public BehovType? Type { get; set; }          
@@ -65,6 +68,50 @@ public class BehovViewModel : IValidatableObject
             return null;
         }
         return Landskode + " " + KontaktTelefon.Trim();
+    }
+
+    // Deler et lagret nummer («+47 12345678») opp i landskode og nummer igjen,
+    // slik at skjemaet viser det riktig når behovet endres.
+    public void LesTelefonFraLagring(string? lagret)
+    {
+        if (string.IsNullOrWhiteSpace(lagret))
+        {
+            KontaktTelefon = null;
+            return;
+        }
+
+        lagret = lagret.Trim();
+        foreach (var land in RessursFormViewModel.Landskoder)
+        {
+            if (lagret.StartsWith(land.Kode + " "))
+            {
+                Landskode = land.Kode;
+                KontaktTelefon = lagret.Substring(land.Kode.Length + 1).Trim();
+                return;
+            }
+        }
+
+        // Nummer lagret før landskoden fantes. Et nummer med en ukjent landskode
+        // vises som det er, så brukeren ser det og kan rette det (ingenting forsvinner).
+        Landskode = "+47";
+        KontaktTelefon = lagret;
+    }
+
+    // Fyller skjemaet med et behov fra databasen (brukes når behovet endres).
+    public static BehovViewModel FraBehov(Behov behov)
+    {
+        var skjema = new BehovViewModel
+        {
+            Id = behov.Id,
+            Type = behov.Type,
+            Beskrivelse = behov.Beskrivelse,
+            Latitude = behov.Latitude,
+            Longitude = behov.Longitude,
+            Prioritet = behov.Prioritet,
+            KontaktEpost = behov.KontaktEpost
+        };
+        skjema.LesTelefonFraLagring(behov.KontaktTelefon);
+        return skjema;
     }
 
     // Forslag til beskrivelse som fylles inn når brukeren velger behovstype.

@@ -8,6 +8,16 @@ BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utvi
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 
+### Hovedfunksjoner
+
+- **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
+- **Behov:** innbyggere melder behov med type, hast, posisjon og kontaktinfo. Beskrivelsen får forslag etter type. Behovet kan endres og trekkes tilbake så lenge det ikke er tildelt, og statusen følges under «Mine behov».
+- **Behovskø og statusflyt:** Kommune og Admin ser akutte behov først og flytter dem gjennom Ny → Under vurdering → Tildelt → Løst (eller Avvist). Reglene ligger i `Models/BehovStatusflyt.cs`.
+- **Tildeling og matching:** løsningen foreslår ressurser som passer til behovstypen. Når et behov markeres som løst, blir ressursene ledige igjen.
+- **Ressursliste per kommune:** Kommune og Admin kan filtrere på fylke eller kommune og skrive ut listen (eller lagre som PDF).
+- **Ønskede ressurser:** kriseledelsen legger ut hva de trenger, og frivillige kan registrere en ressurs rett fra ønsket.
+- **Kommandobro:** kart og tall over aktive behov og ressurser for kriseledelsen.
+
 ## Gruppemedlemmer og Roller
 
 | Ansvarsområde | Gruppemedlem |
@@ -34,7 +44,7 @@ Applikasjonen kan kjøres på to måter:
 
 Docker Desktop må være startet før du kjører `docker compose`.
 
-Begge bruker den samme MariaDB-databasen for brukere og behov. Ressurser lagres foreløpig bare i minnet, så de forsvinner når applikasjonen startes på nytt og deles ikke mellom de to kjøremåtene. Kjør bare én av dem om gangen.
+Begge bruker den samme MariaDB-databasen for brukere, behov, ressurser, tildelinger og ønskede ressurser. Bilder av ressurser lagres som filer i `wwwroot/uploads/ressurser/`. Kjør bare én av kjøremåtene om gangen.
 
 ### Starte applikasjonen med Docker
 
@@ -129,8 +139,9 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 | Funksjon | Controller | Views | Model / ViewModel |
 |---|---|---|---|
 | Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel` |
-| Ressurser | `RessursController` | `Views/Ressurs/` | `RessursFormViewModel` |
-| Behov | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel` |
+| Ressurser (registrere, endre, slette, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursUtskriftViewModel`, `Kommuner` |
+| Ønskede ressurser | `OnsketRessursController` | `Views/OnsketRessurs/` | `OnsketRessurs` |
+| Behov (melde, endre, trekke tilbake, kø) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovStatusflyt` |
 | Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
 | Forside | `HomeController` | `Views/Home/` | `HomeViewModel` |
@@ -139,14 +150,14 @@ Database-tilgangen går gjennom `ApplicationDbContext` i `Data/`, sammen med `Se
 
 ## Kartfunksjonalitet
 
-Kartet viser en sanntidsoversikt over alle registrerte ressurser og behov, direkte på Kommandobro-siden. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
+Kartet viser en oversikt over registrerte ressurser og aktive behov, direkte på Kommandobro-siden. Det oppdateres når siden lastes på nytt. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
 
 Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for brukere med rollen `Admin` eller `Kommune`, på samme måte som resten av Kommandobro.
 
 ### Hvordan kartfunksjonen fungerer
 
 1. Brukeren logger inn som `Admin` eller `Kommune` og åpner Kommandobro.
-2. `KommandobroController` henter ressurser med registrert posisjon fra en midlertidig liste i minnet, og behov fra databasen.
+2. `KommandobroController` henter ressurser med registrert posisjon og aktive behov (ikke løst, avvist eller trukket tilbake) fra databasen.
 3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
 4. Ressurser vises som grønne punkter, behov som røde punkter.
 5. Brukeren kan klikke på et punkt for å se hva det gjelder.
@@ -246,6 +257,18 @@ Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatis
 | H12 | `KrevTofaForAnsatte = true`, Kommune uten 2FA åpner Kommandobro | Forklaring om at 2FA kreves, med lenke til Min konto | Ikke testet ennå (kravet er av i Development) |
 
 ## Testing
+
+### Automatiske tester
+
+Enhetstestene ligger i `Nabohjelp.Tests/` (xUnit) og dekker blant annet statusflyten for behov, behovsskjemaet, telefon med landskode, ønskede ressurser, kommunelisten og ressurslisten per kommune. De kjøres med:
+
+```bash
+dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) bygger prosjektet og kjører testene ved hver pull request og push mot `main`.
+
+### Manuelle tester av kartet
 
 Kartfunksjonen er testet manuelt underveis i utviklingen.
 

@@ -49,6 +49,13 @@ public class TildelingController : Controller
             return NotFound();
         }
 
+        // Et avsluttet behov (for eksempel via en gammel lenke) skal ikke vise tildel-knapper.
+        if (BehovStatusflyt.ErAvsluttet(behov.Status))
+        {
+            TempData["Feil"] = $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
+            return RedirectToAction(nameof(Index));
+        }
+
         // Henter bare tilgjengelige ressurser fra databasen.
         var ressurser = await _db.Ressurser
             .AsNoTracking()

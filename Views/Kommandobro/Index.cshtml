@@ -24,11 +24,11 @@
 <div class="kb-tall">
     <div class="kort-kommandobro tall-behov">
         <strong>@Model.Behov.Count</strong>
-        <span>Aktive behov</span>
+        <span>@(Model.Behov.Count == 1 ? "Aktivt behov" : "Aktive behov")</span>
     </div>
     <div class="kort-kommandobro tall-ressurs">
         <strong>@Model.Ressurser.Count</strong>
-        <span>Ressurser på kartet</span>
+        <span>@(Model.Ressurser.Count == 1 ? "Ressurs på kartet" : "Ressurser på kartet")</span>
     </div>
 </div>
 

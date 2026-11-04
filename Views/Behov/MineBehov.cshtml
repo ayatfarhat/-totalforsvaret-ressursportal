@@ -95,13 +95,20 @@ else
                     <p class="behov-avsluttet">@AvsluttetTekst(behov.Status)</p>
                 }
 
-                @if (erEgen && BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+                @if ((erEgen || erAdminEllerKommune) && BehovStatusflyt.KanRedigeres(behov.Status))
                 {
-                    <form asp-controller="Behov" asp-action="TrekkTilbake" asp-route-id="@behov.Id" method="post" class="behov-handling"
-                          onsubmit="return confirm('Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det.');">
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">Trekk tilbake</button>
-                        <small class="dempet">Trenger du ikke hjelpen lenger? Da kan kommunen bruke tiden på andre.</small>
-                    </form>
+                    <div class="behov-handling">
+                        <a asp-controller="Behov" asp-action="Rediger" asp-route-id="@behov.Id" class="btn btn-sm btn-outline-secondary"
+                           aria-label="Endre behovet @Visningstekst.Type(behov.Type), meldt @behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")">Endre</a>
+                        @if (erEgen && BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+                        {
+                            <form asp-controller="Behov" asp-action="TrekkTilbake" asp-route-id="@behov.Id" method="post"
+                                  onsubmit="return confirm('Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det.');">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Trekk tilbake</button>
+                            </form>
+                            <small class="dempet">Trenger du ikke hjelpen lenger? Da kan kommunen bruke tiden på andre.</small>
+                        }
+                    </div>
                 }
             </article>
         }

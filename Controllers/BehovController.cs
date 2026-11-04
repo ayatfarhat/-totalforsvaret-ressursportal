@@ -116,6 +116,112 @@ public class BehovController : Controller
         return View(behov);
     }
 
+    // GET: /Behov/Rediger/5
+    // Den som meldte behovet, Kommune og Admin kan endre det så lenge det ikke er tildelt.
+    [HttpGet]
+    [Authorize(Roles = "Admin,Kommune,Frivillig")]
+    public async Task<IActionResult> Rediger(int id)
+    {
+        var behov = await _db.Behovsliste
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.Id == id);
+
+        if (behov is null)
+        {
+            return NotFound();
+        }
+
+        if (!KanEndre(behov))
+        {
+            return Forbid();
+        }
+
+        if (!BehovStatusflyt.KanRedigeres(behov.Status))
+        {
+            TempData["Feil"] = IkkeRedigerbarMelding(behov.Status);
+            return TilbakeEtterRedigering();
+        }
+
+        return View("Opprett", BehovViewModel.FraBehov(behov));
+    }
+
+    // POST: /Behov/Rediger/5
+    // Status, tidspunkt og eier endres aldri fra skjemaet.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Admin,Kommune,Frivillig")]
+    public async Task<IActionResult> Rediger(int id, BehovViewModel vm)
+    {
+        var behov = await _db.Behovsliste.FindAsync(id);
+
+        if (behov is null)
+        {
+            return NotFound();
+        }
+
+        if (!KanEndre(behov))
+        {
+            return Forbid();
+        }
+
+        // Sjekkes på nytt: behovet kan ha blitt tildelt mens skjemaet var åpent.
+        if (!BehovStatusflyt.KanRedigeres(behov.Status))
+        {
+            TempData["Feil"] = IkkeRedigerbarMelding(behov.Status);
+            return TilbakeEtterRedigering();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            vm.Id = id;
+            return View("Opprett", vm);
+        }
+
+        behov.Type = vm.Type!.Value;
+        behov.Beskrivelse = vm.Beskrivelse;
+        behov.Latitude = vm.Latitude!.Value;
+        behov.Longitude = vm.Longitude!.Value;
+        behov.Prioritet = vm.Prioritet!.Value;
+        behov.KontaktTelefon = vm.TelefonForLagring();
+        behov.KontaktEpost = vm.KontaktEpost;
+        behov.SistEndretTid = DateTime.UtcNow;
+        behov.SistEndretAvBrukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        await _db.SaveChangesAsync();
+
+        TempData["Melding"] = "Endringene er lagret.";
+        return TilbakeEtterRedigering();
+    }
+
+    // Den som meldte behovet, og kriseledelsen (Admin og Kommune).
+    private bool KanEndre(Behov behov)
+    {
+        if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+        {
+            return true;
+        }
+
+        var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return !string.IsNullOrEmpty(brukerId) && behov.OpprettetAvBrukerId == brukerId;
+    }
+
+    private static string IkkeRedigerbarMelding(BehovStatus status)
+    {
+        return $"Behovet er «{Visningstekst.Status(status)}» og kan ikke endres lenger. " +
+               "Kontakt kommunen hvis noe har endret seg.";
+    }
+
+    // Kriseledelsen går tilbake til køen, den som meldte behovet til «Mine behov».
+    private IActionResult TilbakeEtterRedigering()
+    {
+        if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+        {
+            return RedirectToAction(nameof(Ko));
+        }
+
+        return RedirectToAction(nameof(MineBehov));
+    }
+
     // POST: /Behov/TrekkTilbake/5
     // Den som meldte behovet kan trekke det tilbake, så lenge det ikke er tildelt.
     [HttpPost]

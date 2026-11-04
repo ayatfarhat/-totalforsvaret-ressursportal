@@ -113,6 +113,11 @@ else
                                         <button type="submit" class="@KnappKlasse(neste)">@KnappTekst(neste)</button>
                                     </form>
                                 }
+                                @if (BehovStatusflyt.KanRedigeres(b.Status))
+                                {
+                                    <a asp-action="Rediger" asp-route-id="@b.Id" class="btn btn-sm btn-link ko-endre"
+                                       aria-label="Endre behovet @Visningstekst.Type(b.Type), registrert @b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")">Endre</a>
+                                }
                             </div>
                         </td>
                     </tr>
