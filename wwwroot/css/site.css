@@ -831,7 +831,13 @@ textarea.form-control { min-height: 7rem; }
 .melding-side p { margin: 0 auto 1.5rem; color: var(--dempet); }
 .melding-side small { display: block; margin-top: 1.5rem; color: var(--dempet); }
 
-.ko-handling form { display: inline; }
+/* Knappene i køen står under hverandre med luft mellom, like brede og på én linje. */
+.ko-knapper { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
+.ko-knapper .btn { width: 100%; white-space: nowrap; }
+@media (max-width: 767.98px) {
+    .ko-knapper { flex-direction: row; flex-wrap: wrap; }
+    .ko-knapper .btn { width: auto; }
+}
 .rad-akutt td:first-child { box-shadow: inset 4px 0 0 var(--hjelp); }
 .stablet td[data-label=""]::before { display: none; }
 @media (max-width: 767.98px) {
@@ -957,6 +963,8 @@ a[href^="tel:"] { white-space: nowrap; }
 .behov-topp h3 { margin: 0 .25rem 0 0; font-size: 1.2rem; }
 .behov-meta { margin: 0; font-size: .925rem; color: var(--dempet); }
 .behov-tekst { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+/* Beholder linjeskiftene i en beskrivelse i tabeller og kort. */
+.tekst-linjer { white-space: pre-line; overflow-wrap: anywhere; }
 .behov-avsluttet { margin: .25rem 0 0; color: var(--dempet); font-size: .95rem; }
 .behov-handling { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; margin-top: .35rem; }
 

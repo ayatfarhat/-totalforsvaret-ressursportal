@@ -43,7 +43,7 @@ else
                         <td data-label="Type"><strong>@onsket.Type</strong></td>
                         <td data-label="Antall">@onsket.Antall</td>
                         <td data-label="Sted">@onsket.Sted</td>
-                        <td data-label="Beskrivelse">@onsket.VisBeskrivelse()</td>
+                        <td data-label="Beskrivelse"><span class="tekst-linjer">@onsket.VisBeskrivelse()</span></td>
                         <td data-label="">
                             <div class="d-flex flex-wrap gap-2">
                                 <a class="btn btn-success btn-sm" asp-controller="Ressurs" asp-action="Create" asp-route-type="@onsket.Type">Jeg kan stille med dette</a>
