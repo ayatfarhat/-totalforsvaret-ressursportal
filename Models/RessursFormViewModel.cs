@@ -28,6 +28,10 @@ namespace Nabohjelp.Models
         [StringLength(100, ErrorMessage = "Navnet kan ikke være lengre enn 100 tegn.")]
         public string? Navn { get; set; }
 
+        public int Id { get; set; }
+
+        public string? OpprettetAvBrukerId { get; set; }
+
         // Landskoden velges i en egen nedtrekksliste (standard er +47).
         public string Landskode { get; set; } = "+47";
 
@@ -147,6 +151,10 @@ namespace Nabohjelp.Models
             {
                 return "Ikke oppgitt";
             }
+            if (string.IsNullOrEmpty(Landskode))
+            {
+                return Telefon;
+            }
             return Landskode + " " + Telefon;
         }
 
@@ -158,6 +166,48 @@ namespace Nabohjelp.Models
                 return "";
             }
             return Landskode + Telefon.Replace(" ", "");
+        }
+
+        // I databasen lagres landskode og nummer sammen, for eksempel «+47 12345678».
+        public string? TelefonForLagring()
+        {
+            if (string.IsNullOrWhiteSpace(Telefon))
+            {
+                return null;
+            }
+            return Landskode + " " + Telefon.Trim();
+        }
+
+        // Deler et lagret nummer («+47 12345678») opp i landskode og nummer igjen.
+        public void LesTelefonFraLagring(string? lagret)
+        {
+            if (string.IsNullOrWhiteSpace(lagret))
+            {
+                Telefon = null;
+                return;
+            }
+
+            lagret = lagret.Trim();
+            foreach (var land in Landskoder)
+            {
+                if (lagret.StartsWith(land.Kode + " "))
+                {
+                    Landskode = land.Kode;
+                    Telefon = lagret.Substring(land.Kode.Length + 1).Trim();
+                    return;
+                }
+            }
+
+            // Ressurser som ble lagret før landskoden fantes.
+            if (lagret.StartsWith("+"))
+            {
+                Landskode = "";
+                Telefon = lagret;
+                return;
+            }
+
+            Landskode = "+47";
+            Telefon = lagret;
         }
 
         public string VisKoordinater()

@@ -1,105 +1,78 @@
 using Nabohjelp.Models;
+using Nabohjelp.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Nabohjelp.Controllers
 {
     public class RessursController : Controller
     {
+        private readonly ApplicationDbContext _db;
+
         // Gir oss mappen wwwroot, der opplastede bilder lagres.
         private readonly IWebHostEnvironment _miljo;
-
-        public RessursController(IWebHostEnvironment miljo)
-        {
-            _miljo = miljo;
-        }
 
         // Regler for bildene som kan lastes opp.
         private static readonly string[] _tillatteBildeendelser = { ".jpg", ".jpeg", ".png", ".webp" };
         private const long MaksBildeStorrelse = 5 * 1024 * 1024; // 5 MB
 
-        // Midlertidig lagring av ressurser i minnet.
-        // Skal senere erstattes med EF Core/database.
-        private static readonly List<RessursFormViewModel> _midlertidigListe = new();
-
-        // Brukes for å låse listen når vi legger til nye ressurser.
-        private static readonly object _laas = new();
-
-        // Gjør ressursene tilgjengelige for matching.
-        // Listen kan leses, men ikke erstattes utenfra.
-        // Vi gir tilbake en kopi av listen. Da kan andre sider gå gjennom den
-        // uten at en ny innsending samtidig endrer listen og gir feil
-        // («Collection was modified»).
-        public static IReadOnlyList<RessursFormViewModel> HentRessurser()
+        // Gir tilgang til databasen og til mappen for bilder.
+        public RessursController(ApplicationDbContext db, IWebHostEnvironment miljo)
         {
-            lock (_laas)
-            {
-                return _midlertidigListe.ToList();
-            }
+            _db = db;
+            _miljo = miljo;
         }
 
-        // Henter én bestemt ressurs.
-        public static RessursFormViewModel? HentRessurs(int id)
+        // Frivillige ser egne ressurser.
+        // Admin og Kommune ser alle.
+        [Authorize(Roles = "Admin,Kommune,Frivillig")]
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            lock (_laas)
+            var sporring = _db.Ressurser.AsNoTracking();
+
+            bool erKoordinator =
+                User.IsInRole("Admin") ||
+                User.IsInRole("Kommune");
+
+            if (!erKoordinator)
             {
-                if (id < 0 || id >= _midlertidigListe.Count)
+                var brukerId =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(brukerId))
                 {
-                    return null;
+                    return Challenge();
                 }
 
-                return _midlertidigListe[id];
+                // Filtrerer i databasen før data hentes.
+                sporring = sporring.Where(
+                    r => r.OpprettetAvBrukerId == brukerId);
             }
-        }
 
-        // Gjør en ressurs «Tildelt», men bare hvis den fortsatt er «Tilgjengelig».
-        // Sjekken og endringen skjer i ett steg (under lås), slik at to personer
-        // ikke kan tildele samme ressurs samtidig. Gir false hvis den allerede er tatt.
-        public static bool ForsokTildel(int id)
-        {
-            lock (_laas)
-            {
-                if (id < 0 || id >= _midlertidigListe.Count)
-                {
-                    return false;
-                }
+            var ressurser = await sporring
+                .OrderByDescending(r => r.OpprettetTid)
+                .ToListAsync();
 
-                if (_midlertidigListe[id].Status != "Tilgjengelig")
-                {
-                    return false;
-                }
+            var modeller = ressurser.Select(TilViewModel).ToList();
 
-                _midlertidigListe[id].Status = "Tildelt";
-                return true;
-            }
-        }
-
-        // Setter ressursen tilbake til «Tilgjengelig». Brukes hvis noe feiler
-        // etter at ForsokTildel har gått gjennom.
-        public static void Frigjor(int id)
-        {
-            lock (_laas)
-            {
-                if (id >= 0 && id < _midlertidigListe.Count)
-                {
-                    _midlertidigListe[id].Status = "Tilgjengelig";
-                }
-            }
-        }
-
-        // GET: /Ressurs
-        public IActionResult Index()
-        {
+            // Antall ønskede ressurser vises i en egen boks på siden.
             ViewBag.AntallOnskede = OnsketRessursController.Antall();
-            return View(HentRessurser().ToList());
+            ViewBag.ErKoordinator = erKoordinator;
+
+            return View(modeller);
         }
 
-        // GET: /Ressurs/Create
+        // Viser skjemaet for innloggede brukere.
+        // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt.
+        [Authorize]
         [HttpGet]
         public IActionResult Create(string? type)
         {
             var skjema = new RessursFormViewModel();
 
-            // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt.
             if (type != null && RessursFormViewModel.Typer.Contains(type))
             {
                 skjema.Type = type;
@@ -108,11 +81,22 @@ namespace Nabohjelp.Controllers
             return View(skjema);
         }
 
-        // POST: /Ressurs/Create
+        // Lagrer en ressurs med innlogget bruker som eier.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(RessursFormViewModel model, IFormFile? bildefil)
+        public async Task<IActionResult> Create(
+            RessursFormViewModel model,
+            IFormFile? bildefil)
         {
+            var brukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(brukerId))
+            {
+                return Challenge();
+            }
+
             // Bilde-adressen settes bare av oss, aldri av det som kommer fra skjemaet.
             model.BildeSti = null;
 
@@ -128,7 +112,7 @@ namespace Nabohjelp.Controllers
                 ModelState.AddModelError("Landskode", "Velg en landskode fra listen.");
             }
 
-            // Sjekker bildet (valgfritt) før vi lagrer det.
+            // Sjekker bildet (valgfritt) før noe lagres.
             if (bildefil != null && bildefil.Length > 0)
             {
                 string? bildeFeil = SjekkBilde(bildefil);
@@ -138,7 +122,7 @@ namespace Nabohjelp.Controllers
                 }
             }
 
-            // Kontrollerer at tidspunktet ikke ligger i fortiden.
+            // Kontrollerer tidspunktet for tilgjengelighet.
             if (!model.ErValidTilgjengeligFra())
             {
                 ModelState.AddModelError(
@@ -146,58 +130,101 @@ namespace Nabohjelp.Controllers
                     "Tidspunkt kan ikke ligge i fortiden.");
             }
 
-            // Viser skjemaet igjen hvis dataene er ugyldige.
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Alt er gyldig, så vi kan lagre bildet på disken.
+            // Kopierer skjemadata til databasemodellen.
+            // Landskoden lagres sammen med nummeret, for eksempel «+47 12345678».
+            var ressurs = new Ressurs
+            {
+                Type = model.Type,
+                Posisjon = model.Posisjon,
+                Breddegrad = model.Breddegrad,
+                Lengdegrad = model.Lengdegrad,
+                TilgjengeligFra = model.TilgjengeligFra,
+                Beskrivelse = model.Beskrivelse,
+                Navn = model.Navn,
+                Telefon = model.TelefonForLagring(),
+                Status = "Tilgjengelig",
+                OpprettetTid = DateTime.UtcNow,
+                OpprettetAvBrukerId = brukerId
+            };
+
+            // Databasen genererer ressursens ID.
+            _db.Ressurser.Add(ressurs);
+            await _db.SaveChangesAsync();
+
+            // Bildet lagres med ressursens ID som filnavn (for eksempel 12.jpg),
+            // så vi trenger ingen egen kolonne i databasen for det.
             if (bildefil != null && bildefil.Length > 0)
             {
-                model.BildeSti = LagreBilde(bildefil);
+                LagreBilde(bildefil, ressurs.Id);
             }
 
-            // Ny ressurs blir tilgjengelig for matching.
-            model.Status = "Tilgjengelig";
-
-            // Låser listen mens vi legger til, slik at to innsendinger
-            // samtidig ikke får samme id.
-            int nyId;
-            lock (_laas)
-            {
-                _midlertidigListe.Add(model);
-                nyId = _midlertidigListe.Count - 1;
-            }
-
-            // Husker at denne nettleseren har sendt inn ressursen,
-            // slik at bare innsenderen får se kvitteringen.
-            HuskInnsendtId(nyId);
-
-            // Sender brukeren til bekreftelsessiden.
-            return RedirectToAction("Confirmation", new { id = nyId });
+            return RedirectToAction(
+                nameof(Confirmation),
+                new { id = ressurs.Id });
         }
 
-        // GET: /Ressurs/Confirmation
-        public IActionResult Confirmation(int id)
+        // Bare eieren, Admin og Kommune får se kvitteringen.
+        [Authorize(Roles = "Admin,Kommune,Frivillig")]
+        [HttpGet]
+        public async Task<IActionResult> Confirmation(int id)
         {
-            RessursFormViewModel? ressurs = HentRessurs(id);
+            var ressurs = await _db.Ressurser
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == id);
+
             if (ressurs == null)
             {
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
-            // Kvitteringen viser navn, telefon og adresse.
-            // Derfor får bare innsenderen, Admin og Kommune se den.
-            bool erAdminEllerKommune =
-                User.IsInRole("Admin") || User.IsInRole("Kommune");
+            var brukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!erAdminEllerKommune && !ErSendtInnAvDenneNettleseren(id))
+            bool erEier =
+                !string.IsNullOrEmpty(brukerId) &&
+                ressurs.OpprettetAvBrukerId == brukerId;
+
+            bool erKoordinator =
+                User.IsInRole("Admin") ||
+                User.IsInRole("Kommune");
+
+            if (!erEier && !erKoordinator)
             {
-                return RedirectToAction("Index");
+                return Forbid();
             }
 
-            return View(ressurs);
+            return View(TilViewModel(ressurs));
+        }
+
+        // Gjør databasedata klare for visningene.
+        private RessursFormViewModel TilViewModel(
+            Ressurs ressurs)
+        {
+            var modell = new RessursFormViewModel
+            {
+                Id = ressurs.Id,
+                OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
+                Type = ressurs.Type,
+                Posisjon = ressurs.Posisjon,
+                Breddegrad = ressurs.Breddegrad,
+                Lengdegrad = ressurs.Lengdegrad,
+                TilgjengeligFra = ressurs.TilgjengeligFra,
+                Beskrivelse = ressurs.Beskrivelse,
+                Navn = ressurs.Navn,
+                Status = ressurs.Status,
+                BildeSti = FinnBilde(ressurs.Id)
+            };
+
+            // Telefonen er lagret som «+47 12345678». Vi deler den opp igjen
+            // i landskode og nummer, slik at visningen blir riktig.
+            modell.LesTelefonFraLagring(ressurs.Telefon);
+
+            return modell;
         }
 
         // Sjekker at filen er et bilde vi tillater. Gir en feilmelding, eller null hvis OK.
@@ -265,67 +292,47 @@ namespace Nabohjelp.Controllers
             return false;
         }
 
-        // Lagrer bildet i wwwroot/uploads/ressurser med et tilfeldig navn
-        // og gir tilbake nettadressen til bildet.
+        // Mappen der bildene ligger: wwwroot/uploads/ressurser
+        private string BildeMappe()
+        {
+            return Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
+        }
+
+        // Lagrer bildet som «ressurs-ID + filendelse», for eksempel 12.jpg.
         // Vi bruker ikke filnavnet brukeren sendte, slik at ingen kan
         // overskrive andre filer eller lage rare filnavn.
-        private string LagreBilde(IFormFile fil)
+        private void LagreBilde(IFormFile fil, int ressursId)
         {
             string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
-            string nyttNavn = Guid.NewGuid().ToString("N") + endelse;
+            if (endelse == ".jpeg")
+            {
+                endelse = ".jpg";
+            }
 
-            string mappe = Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
+            string mappe = BildeMappe();
             Directory.CreateDirectory(mappe);
 
-            string fullSti = Path.Combine(mappe, nyttNavn);
+            string fullSti = Path.Combine(mappe, ressursId + endelse);
             using (var strom = new FileStream(fullSti, FileMode.Create))
             {
                 fil.CopyTo(strom);
             }
-
-            return "/uploads/ressurser/" + nyttNavn;
         }
 
-        // Sjekker om denne nettleseren selv har sendt inn ressursen.
-        // Id-ene ligger i TempData som tekst, f.eks. "0,3,7".
-        // Peek leser verdien uten å slette den, så kvitteringen
-        // fortsatt vises hvis brukeren oppdaterer siden.
-        private bool ErSendtInnAvDenneNettleseren(int id)
+        // Finner bildet til en ressurs, hvis det finnes. Gir nettadressen
+        // (for eksempel /uploads/ressurser/12.jpg), eller null.
+        private string? FinnBilde(int ressursId)
         {
-            string? lagret = TempData.Peek("InnsendteRessursIder") as string;
-
-            if (string.IsNullOrEmpty(lagret))
+            string mappe = BildeMappe();
+            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
             {
-                return false;
-            }
-
-            string[] ider = lagret.Split(',');
-            foreach (string lagretId in ider)
-            {
-                if (lagretId == id.ToString())
+                if (System.IO.File.Exists(Path.Combine(mappe, ressursId + endelse)))
                 {
-                    return true;
+                    return "/uploads/ressurser/" + ressursId + endelse;
                 }
             }
 
-            return false;
-        }
-
-        // Legger til en ny id i teksten med innsendte ressurser.
-        // TempData lagres i en kryptert informasjonskapsel (cookie),
-        // så brukeren kan ikke selv legge til andres id-er.
-        private void HuskInnsendtId(int id)
-        {
-            string? lagret = TempData.Peek("InnsendteRessursIder") as string;
-
-            if (string.IsNullOrEmpty(lagret))
-            {
-                TempData["InnsendteRessursIder"] = id.ToString();
-            }
-            else
-            {
-                TempData["InnsendteRessursIder"] = lagret + "," + id;
-            }
+            return null;
         }
     }
 }

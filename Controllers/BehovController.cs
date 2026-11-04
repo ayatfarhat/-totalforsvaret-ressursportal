@@ -8,26 +8,34 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Nabohjelp.Controllers;
 
-[Authorize]   
+[Authorize]
 public class BehovController : Controller
 {
     private readonly ApplicationDbContext _db;
 
-    public BehovController(ApplicationDbContext db) => _db = db;
+    public BehovController(ApplicationDbContext db)
+    {
+        _db = db;
+    }
 
+    // GET: /Behov/Opprett
     [HttpGet]
     [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public IActionResult Opprett()
     {
         return View(new BehovViewModel());
     }
-    [HttpPost, ValidateAntiForgeryToken]           
+
+    // POST: /Behov/Opprett
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Opprett(BehovViewModel vm)
     {
-        
         if (!ModelState.IsValid)
-            return View(vm);                      
+        {
+            return View(vm);
+        }
 
         var behov = new Behov
         {
@@ -40,31 +48,68 @@ public class BehovController : Controller
             KontaktEpost = vm.KontaktEpost,
             Status = BehovStatus.New,
             OpprettetTid = DateTime.UtcNow,
-            OpprettetAvBrukerId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            OpprettetAvBrukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
         };
 
         _db.Behovsliste.Add(behov);
         await _db.SaveChangesAsync();
 
-        // Bare Admin/Kommune har tilgang til køen. Frivillige sendes til
-        // forsiden med en bekreftelse i stedet for "Ingen tilgang".
+        // Admin og Kommune sendes til behovskøen.
         if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
         {
             return RedirectToAction(nameof(Ko));
         }
 
-        TempData["Melding"] = "Takk, behovet ditt er registrert. Kommunen kan se det nå.";
-        return RedirectToAction("Index", "Home");
+        // Frivillige får bekreftelse og en knapp til Mine behov.
+TempData["Melding"] = "Ditt behov er registrert.";
+TempData["VisMineBehovKnapp"] = true;
+
+return RedirectToAction("Index", "Home");
     }
 
+    // GET: /Behov/MineBehov
+    // Frivillige ser bare egne behov.
+    // Admin og Kommune ser alle behov.
+    [HttpGet]
+    [Authorize(Roles = "Admin,Kommune,Frivillig")]
+    public async Task<IActionResult> MineBehov()
+    {
+        var brukerId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(brukerId))
+        {
+            return Challenge();
+        }
+
+        var sporring = _db.Behovsliste.AsNoTracking();
+
+        // Begrens til egne behov for Frivillig.
+        if (!User.IsInRole("Admin") &&
+            !User.IsInRole("Kommune"))
+        {
+            sporring = sporring.Where(
+                b => b.OpprettetAvBrukerId == brukerId);
+        }
+
+        var behov = await sporring
+            .OrderByDescending(b => b.OpprettetTid)
+            .ToListAsync();
+
+        return View(behov);
+    }
+
+    // GET: /Behov/Ko
+    // Kun Admin og Kommune har tilgang.
     [HttpGet]
     [Authorize(Roles = "Admin,Kommune")]
     public async Task<IActionResult> Ko()
     {
         var liste = await _db.Behovsliste
-            .Where(b => b.Status != BehovStatus.Resolved)   
-            .OrderBy(b => b.Prioritet)                      
-            .ThenBy(b => b.OpprettetTid)                    
+            .Where(b => b.Status != BehovStatus.Resolved)
+            .OrderBy(b => b.Prioritet)
+            .ThenBy(b => b.OpprettetTid)
             .ToListAsync();
 
         var visning = liste.Select(b => new BehovKoItem
@@ -75,38 +120,62 @@ public class BehovController : Controller
             Status = b.Status,
             Beskrivelse = b.Beskrivelse,
             OpprettetTid = b.OpprettetTid,
-            MuligeNesteStatuser = TillatteManuelleOvergangar(b.Status)
+            MuligeNesteStatuser =
+                TillatteManuelleOvergangar(b.Status)
         }).ToList();
 
         return View(visning);
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
+    // POST: /Behov/EndreStatus
+    // Kun Admin og Kommune kan endre status.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     [Authorize(Roles = "Admin,Kommune")]
-    public async Task<IActionResult> EndreStatus(int id, BehovStatus nyStatus)
+    public async Task<IActionResult> EndreStatus(
+        int id,
+        BehovStatus nyStatus)
     {
         var behov = await _db.Behovsliste.FindAsync(id);
-        if (behov is null) return NotFound();
 
-        if (!TillatteManuelleOvergangar(behov.Status).Contains(nyStatus))
+        if (behov is null)
         {
-            TempData["Feil"] = $"Kan ikke endre status fra «{Visningstekst.Status(behov.Status)}» til «{Visningstekst.Status(nyStatus)}».";
+            return NotFound();
+        }
+
+        if (!TillatteManuelleOvergangar(behov.Status)
+            .Contains(nyStatus))
+        {
+            TempData["Feil"] =
+                $"Kan ikke endre status fra «{Visningstekst.Status(behov.Status)}» " +
+                $"til «{Visningstekst.Status(nyStatus)}».";
+
             return RedirectToAction(nameof(Ko));
         }
 
         behov.Status = nyStatus;
-        behov.SistEndretTid = DateTime.UtcNow;                                   
-        behov.SistEndretAvBrukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        behov.SistEndretTid = DateTime.UtcNow;
+        behov.SistEndretAvBrukerId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         await _db.SaveChangesAsync();
 
         return RedirectToAction(nameof(Ko));
     }
 
-    private static List<BehovStatus> TillatteManuelleOvergangar(BehovStatus fra) => fra switch
+    // Tillatte statusendringer.
+    private static List<BehovStatus> TillatteManuelleOvergangar(
+        BehovStatus fra) => fra switch
     {
-        BehovStatus.New         => new() { BehovStatus.UnderReview },
-        BehovStatus.UnderReview => new() { BehovStatus.Resolved },   
-        BehovStatus.Assigned    => new() { BehovStatus.Resolved },
-        _                       => new()
+        BehovStatus.New =>
+            new() { BehovStatus.UnderReview },
+
+        BehovStatus.UnderReview =>
+            new() { BehovStatus.Resolved },
+
+        BehovStatus.Assigned =>
+            new() { BehovStatus.Resolved },
+
+        _ => new()
     };
 }

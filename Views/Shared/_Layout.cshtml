@@ -87,10 +87,22 @@
         <div class="container">
 
             @* Meldinger fra controller, for eksempel «Ressursen er tildelt». *@
-            @if (TempData["Melding"] != null)
+            @if (TempData["Melding"] is string melding)
             {
                 <div class="alert alert-success mt-4" role="status">
-                    @TempData["Melding"]
+
+                    <p class="mb-2">@melding</p>
+
+                    @* Knappen vises bare etter registrering av et behov. *@
+                    @if (TempData["VisMineBehovKnapp"] is bool visKnapp && visKnapp)
+                    {
+                        <a asp-controller="Behov"
+                           asp-action="MineBehov"
+                           class="btn btn-primary mt-2">
+                            Se mine behov
+                        </a>
+                    }
+
                 </div>
             }
 

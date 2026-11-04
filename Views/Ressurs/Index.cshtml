@@ -4,9 +4,9 @@
     ViewData["Title"] = "Ressurser og behov";
     bool erInnlogget = User.Identity?.IsAuthenticated == true;
 
-    // Adresse, navn og telefon er personopplysninger. De vises bare for
-    // Admin og Kommune (samme regel som for kvitteringen).
-    bool kanSePrivat = User.IsInRole("Admin") || User.IsInRole("Kommune");
+    // Controlleren gir Admin og Kommune alle ressurser, og frivillige bare
+    // sine egne. Derfor kan adresse og kontaktinfo vises for alt i lista.
+    bool erKoordinator = ViewBag.ErKoordinator is bool k && k;
 }
 
 <div class="side-topp">
@@ -50,7 +50,7 @@
 
 <section aria-labelledby="liste-tittel">
     <div class="liste-topp">
-        <h2 id="liste-tittel">Registrerte ressurser</h2>
+        <h2 id="liste-tittel">@(erKoordinator ? "Registrerte ressurser" : "Dine ressurser")</h2>
         @if (Model.Any())
         {
             <span class="antall">@Model.Count</span>
@@ -67,25 +67,19 @@
     }
     else
     {
-        @if (!kanSePrivat)
+        @if (!erKoordinator)
         {
-            <p class="kart-tips">Adresse og kontaktinfo vises bare for kommunen og kriseledelsen.</p>
+            <p class="kart-tips">Her ser du ressursene du selv har registrert. Kommunen og kriseledelsen ser alle.</p>
         }
         <div class="table-responsive">
             <table class="table stablet align-middle">
                 <thead>
                     <tr>
                         <th scope="col">Type</th>
-                        @if (kanSePrivat)
-                        {
-                            <th scope="col">Posisjon</th>
-                        }
+                        <th scope="col">Posisjon</th>
                         <th scope="col">Tilgjengelig fra</th>
                         <th scope="col">Status</th>
-                        @if (kanSePrivat)
-                        {
-                            <th scope="col">Kontakt</th>
-                        }
+                        <th scope="col">Kontakt</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -101,24 +95,18 @@
                                     <strong>@ressurs.Type</strong>
                                 </span>
                             </td>
-                            @if (kanSePrivat)
-                            {
-                                <td data-label="Posisjon">@ressurs.Posisjon</td>
-                            }
+                            <td data-label="Posisjon">@ressurs.Posisjon</td>
                             <td data-label="Tilgjengelig fra">@ressurs.VisTilgjengeligFra()</td>
                             <td data-label="Status">
                                 <span class="merke @(ressurs.Status == "Tilgjengelig" ? "merke-gi" : "")">@ressurs.Status</span>
                             </td>
-                            @if (kanSePrivat)
-                            {
-                                <td data-label="Kontakt">
-                                    @ressurs.Navn
-                                    @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
-                                    {
-                                        <a href="tel:@ressurs.TelefonLenke()">@ressurs.VisTelefon()</a>
-                                    }
-                                </td>
-                            }
+                            <td data-label="Kontakt">
+                                @ressurs.Navn
+                                @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
+                                {
+                                    <a href="tel:@ressurs.TelefonLenke()">@ressurs.VisTelefon()</a>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
