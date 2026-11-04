@@ -8,7 +8,6 @@
 <link rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<!-- Overskrift -->
 <h1>Match ressurs</h1>
 
 <!-- Informasjon om behovet -->
@@ -66,6 +65,11 @@
 <!-- Matchende ressurser -->
 <h2 class="h4">Matchende ressurser</h2>
 
+<p class="text-muted">
+    Ressursene vises med avstand til behovet.
+    Avstanden er beregnet i luftlinje, ikke som kjøreavstand.
+</p>
+
 @if (TempData["Feil"] != null)
 {
     <div class="alert alert-danger">
@@ -73,22 +77,30 @@
     </div>
 }
 
-@if (Model.Status == Nabohjelp.Models.BehovStatus.Assigned || Nabohjelp.Models.BehovStatusflyt.ErAvsluttet(Model.Status))
+@if (Nabohjelp.Models.BehovStatusflyt.ErAvsluttet(Model.Status))
 {
-    <!-- Behovet har allerede fått en ressurs, eller er avsluttet (løst, avvist, trukket tilbake) -->
+    <!-- Avsluttede behov kan ikke få flere ressurser -->
     <div class="alert alert-info">
-        Dette behovet er «@Nabohjelp.Models.Visningstekst.Status(Model.Status)» og kan ikke få flere ressurser.
+        Dette behovet er «@Nabohjelp.Models.Visningstekst.Status(Model.Status)»
+        og kan ikke få flere ressurser.
     </div>
 }
 else if (!Model.MatchendeRessurser.Any())
 {
-    <!-- Ingen ressurs passer akkurat nå -->
     <div class="alert alert-warning">
         Ingen tilgjengelige ressurser matcher dette behovet.
     </div>
 }
 else
 {
+    @if (Model.Status == Nabohjelp.Models.BehovStatus.Assigned)
+    {
+        <div class="alert alert-info">
+            Dette behovet har allerede fått minst én ressurs.
+            Du kan tildele flere tilgjengelige ressurser ved behov.
+        </div>
+    }
+
     <div class="row">
 
         @foreach (var ressurs in Model.MatchendeRessurser)
@@ -108,6 +120,13 @@ else
                         </p>
 
                         <p>
+                            <strong>Avstand:</strong>
+                            @(ressurs.AvstandKm.HasValue
+                                ? $"{ressurs.AvstandKm.Value:F1} km"
+                                : "Avstand ukjent")
+                        </p>
+
+                        <p>
                             <strong>Status:</strong>
                             @ressurs.Status
                         </p>
@@ -124,10 +143,12 @@ else
                             @ressurs.MatchBegrunnelse
                         </p>
 
-                        <!-- POST-er selve tildelingen -->
+                        <!-- Sender tildelingen til controlleren -->
                         <form asp-controller="Tildeling"
                               asp-action="Tildel"
                               method="post">
+
+                            @Html.AntiForgeryToken()
 
                             <input type="hidden"
                                    name="behovId"
@@ -171,11 +192,26 @@ else
     const longitude = @Model.Longitude.ToString(
         System.Globalization.CultureInfo.InvariantCulture);
 
-    // Hvis kartbiblioteket ikke ble lastet (for eksempel uten internett),
-    // skjuler vi kartet i stedet for å få en feil.
-    if (typeof L === 'undefined') {
-        document.getElementById('map').hidden = true;
+    const kartElement = document.getElementById('map');
+
+    // Kontrollerer at koordinatene er gyldige.
+    const gyldigPosisjon =
+        Number.isFinite(latitude) &&
+        Number.isFinite(longitude) &&
+        latitude >= -90 &&
+        latitude <= 90 &&
+        longitude >= -180 &&
+        longitude <= 180 &&
+        !(latitude === 0 && longitude === 0);
+
+    // Skjuler kartet dersom Leaflet mangler
+    // eller behovet ikke har gyldige koordinater.
+    if (typeof L === 'undefined' || !gyldigPosisjon) {
+
+        kartElement.hidden = true;
+
     } else {
+
         // Oppretter kartet rundt behovet.
         const map = L.map('map').setView(
             [latitude, longitude],
