@@ -11,7 +11,10 @@ public class RegisterViewModel
 
     [Required(ErrorMessage = "Skriv inn passord")]
     [MinLength(8, ErrorMessage = "Passordet må være minst 8 tegn")]
-    [RegularExpression(@".*\d.*", ErrorMessage = "Passordet må ha minst ett tall")]
+    // Samme regler som Identity bruker: stor og liten bokstav, tall og spesialtegn.
+    // (?=...) betyr «et sted i teksten må det finnes ...».
+    [RegularExpression(@"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).*$",
+        ErrorMessage = "Passordet må ha stor og liten bokstav, tall og spesialtegn (for eksempel !)")]
     [DataType(DataType.Password)]
     public string Passord { get; set; } = "";
 

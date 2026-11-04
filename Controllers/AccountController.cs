@@ -13,16 +13,19 @@ public class AccountController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly ApplicationDbContext _db;
+    private readonly IWebHostEnvironment _miljo;
 
-    // Gir tilgang til Identity og databasen.
+    // Gir tilgang til Identity, databasen og mappen med opplastede bilder.
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        ApplicationDbContext db)
+        ApplicationDbContext db,
+        IWebHostEnvironment miljo)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _db = db;
+        _miljo = miljo;
     }
 
     // ---------- REGISTRERING ----------
@@ -69,10 +72,12 @@ public class AccountController : Controller
 
         if (!resultat.Succeeded)
         {
-            ModelState.AddModelError(
-                "",
-                "Kunne ikke lage brukeren. Prøv igjen.");
-
+            // Identity har egne passordregler. Vi oversetter feilene til norsk,
+            // slik at brukeren får vite hva som mangler i stedet for en generell melding.
+            foreach (var feil in resultat.Errors)
+            {
+                ModelState.AddModelError("", OversettFeil(feil.Code));
+            }
             return View(model);
         }
 
@@ -88,18 +93,22 @@ public class AccountController : Controller
 
     // ---------- INNLOGGING ----------
 
-    // Viser innloggingsskjemaet.
+    // GET: /Account/Login  -> viser skjemaet
+    // returnUrl er siden brukeren prøvde å åpne før hen ble sendt til innlogging.
     [HttpGet]
-    public IActionResult Login()
+    public IActionResult Login(string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
     // Kontrollerer e-post og passord.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel model)
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -113,13 +122,14 @@ public class AccountController : Controller
 
         if (resultat.Succeeded)
         {
-            return RedirectToAction("Index", "Home");
+            return TilbakeEllerForside(returnUrl);
         }
 
         // Ber om kode hvis tofaktor er aktivert.
         if (resultat.RequiresTwoFactor)
         {
-            return RedirectToAction(nameof(LoginWith2fa));
+            // Riktig passord, men brukeren har 2FA og må skrive inn kode
+            return RedirectToAction("LoginWith2fa", new { returnUrl });
         }
 
         if (resultat.IsLockedOut)
@@ -140,16 +150,19 @@ public class AccountController : Controller
 
     // Viser skjemaet for tofaktorkode.
     [HttpGet]
-    public IActionResult LoginWith2fa()
+    public IActionResult LoginWith2fa(string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
     // Kontrollerer koden fra autentiseringsappen.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LoginWith2fa(TofaViewModel model)
+    public async Task<IActionResult> LoginWith2fa(TofaViewModel model, string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -163,11 +176,64 @@ public class AccountController : Controller
 
         if (resultat.Succeeded)
         {
-            return RedirectToAction("Index", "Home");
+            return TilbakeEllerForside(returnUrl);
         }
 
         ModelState.AddModelError("Kode", "Feil kode");
         return View(model);
+    }
+
+    // Sender brukeren tilbake til siden hen kom fra. Vi tillater bare adresser på
+    // vår egen side (IsLocalUrl), slik at ingen kan lage en lenke som sender
+    // brukeren videre til en falsk nettside etter innlogging.
+    private IActionResult TilbakeEllerForside(string? returnUrl)
+    {
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
+
+        return RedirectToAction("Index", "Home");
+    }
+
+    // Bildene ligger i wwwroot/uploads/ressurser og heter ressurs-ID + endelse (for eksempel 12.jpg).
+    private void SlettRessursBilder(IEnumerable<int> ressursIder)
+    {
+        string mappe = Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
+        foreach (int id in ressursIder)
+        {
+            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
+            {
+                string fil = Path.Combine(mappe, id + endelse);
+                if (System.IO.File.Exists(fil))
+                {
+                    System.IO.File.Delete(fil);
+                }
+            }
+        }
+    }
+
+    // Gjør feilkodene fra Identity om til norsk tekst.
+    private static string OversettFeil(string kode)
+    {
+        switch (kode)
+        {
+            case "PasswordTooShort":
+                return "Passordet er for kort. Det må ha minst 8 tegn.";
+            case "PasswordRequiresDigit":
+                return "Passordet må ha minst ett tall.";
+            case "PasswordRequiresLower":
+                return "Passordet må ha minst én liten bokstav.";
+            case "PasswordRequiresUpper":
+                return "Passordet må ha minst én stor bokstav.";
+            case "PasswordRequiresNonAlphanumeric":
+                return "Passordet må ha minst ett spesialtegn, for eksempel !";
+            case "DuplicateUserName":
+            case "DuplicateEmail":
+                return "E-posten er allerede registrert";
+            default:
+                return "Kunne ikke lage brukeren. Prøv igjen.";
+        }
     }
 
     // ---------- UTLOGGING ----------
@@ -401,6 +467,10 @@ public class AccountController : Controller
 
             return View(model);
         }
+
+        // Sletter også bildene som hørte til ressursene, så ingenting
+        // fra brukeren blir liggende igjen på serveren.
+        SlettRessursBilder(ressursIder);
 
         // Logger ut etter fullført sletting.
         await _signInManager.SignOutAsync();

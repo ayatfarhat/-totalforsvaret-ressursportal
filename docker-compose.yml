@@ -9,6 +9,11 @@
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=nabohjelp;User=nabohjelp_user;Password=nabohjelp_password;"
 
+    # Bilder som brukere laster opp lagres her. Uten dette forsvinner de
+    # hver gang containeren bygges på nytt.
+    volumes:
+      - nabohjelp_uploads:/app/wwwroot/uploads
+
     depends_on:
       mariadb:
         condition: service_healthy
@@ -44,3 +49,4 @@
 
 volumes:
   nabohjelp_data:
+  nabohjelp_uploads:

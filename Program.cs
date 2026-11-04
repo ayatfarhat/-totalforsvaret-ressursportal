@@ -12,7 +12,20 @@ CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 var builder = WebApplication.CreateBuilder(args);
 
 // Legger til MVC
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    // Norske feilmeldinger når en verdi ikke kan leses (for eksempel bokstaver i et tallfelt).
+    var meldinger = options.ModelBindingMessageProvider;
+    meldinger.SetAttemptedValueIsInvalidAccessor((verdi, felt) => $"«{verdi}» er ikke en gyldig verdi for {felt}.");
+    meldinger.SetValueIsInvalidAccessor(verdi => $"«{verdi}» er ikke en gyldig verdi.");
+    meldinger.SetValueMustBeANumberAccessor(felt => $"{felt} må være et tall.");
+    meldinger.SetValueMustNotBeNullAccessor(verdi => "Feltet må fylles ut.");
+    meldinger.SetMissingKeyOrValueAccessor(() => "Feltet må fylles ut.");
+    meldinger.SetUnknownValueIsInvalidAccessor(felt => $"Verdien er ikke gyldig for {felt}.");
+    meldinger.SetNonPropertyAttemptedValueIsInvalidAccessor(verdi => $"«{verdi}» er ikke en gyldig verdi.");
+    meldinger.SetNonPropertyUnknownValueIsInvalidAccessor(() => "Verdien er ikke gyldig.");
+    meldinger.SetNonPropertyValueMustBeANumberAccessor(() => "Feltet må være et tall.");
+});
 
 // Henter connection string fra appsettings.json eller Docker
 var connectionString =
@@ -58,11 +71,25 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Viser en norsk side ved 404 og andre feilkoder i stedet for en tom side.
+app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
+
 app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Gjør at bilder som lastes opp mens appen kjører (wwwroot/uploads) kan vises.
+// MapStaticAssets under kjenner bare filene som fantes da appen ble bygget.
+app.UseStaticFiles(new StaticFileOptions
+{
+    // Forteller nettleseren at den ikke skal «gjette» filtypen på det som er lastet opp.
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    }
+});
 
 app.MapStaticAssets();
 

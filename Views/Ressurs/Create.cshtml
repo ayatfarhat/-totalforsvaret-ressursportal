@@ -14,7 +14,7 @@
 </div>
 
 <div class="skjema-rutenett">
-    <form asp-action="Create" method="post" class="skjema" novalidate>
+    <form asp-action="Create" method="post" class="skjema" enctype="multipart/form-data" novalidate>
         <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
         <fieldset class="felt-gruppe">
@@ -24,8 +24,9 @@
                 @for (var i = 0; i < typer.Count; i++)
                 {
                     <div class="type-valg-element">
-                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" />
-                        <label for="type-@i">@typer[i]</label>
+                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" data-forslag="@Nabohjelp.Models.RessursFormViewModel.HentForslag(typer[i])" />
+                        @* Usynlig mellomrom etter «/» lar lange navn brytes pent på mobil *@
+                        <label for="type-@i">@typer[i].Replace("/", "/\u200B")</label>
                     </div>
                 }
             </div>
@@ -74,8 +75,18 @@
 
             <div class="felt">
                 <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
-                <textarea asp-for="Beskrivelse" class="form-control" rows="3" placeholder="For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"></textarea>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="4" placeholder="For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"></textarea>
+                <p class="kart-tips">Når du velger type, fyller vi inn et forslag du kan endre.</p>
                 <span asp-validation-for="Beskrivelse"></span>
+            </div>
+
+            <div class="felt">
+                <label for="bildefil" class="form-label">Bilde av ressursen <span class="valgfritt">(valgfritt)</span></label>
+                <input type="file" name="bildefil" id="bildefil" class="form-control" accept="image/jpeg,image/png,image/webp" aria-describedby="bildeHjelp" />
+                <p id="bildeHjelp" class="kart-tips">JPG, PNG eller WebP, maks 5 MB. Hvis skjemaet vises på nytt med feil, må du velge bildet igjen.</p>
+                @Html.ValidationMessage("Bilde")
+                <p id="bildeFeil" class="field-validation-error" role="alert" hidden></p>
+                <img id="bildeForhandsvisning" class="ressurs-bilde" alt="Forhåndsvisning av valgt bilde" hidden />
             </div>
 
             <div class="felt-par">
@@ -86,7 +97,16 @@
                 </div>
                 <div class="felt">
                     <label asp-for="Telefon" class="form-label">Telefon <span class="valgfritt">(valgfritt)</span></label>
-                    <input asp-for="Telefon" class="form-control" type="tel" autocomplete="tel" />
+                    <div class="telefon-rad">
+                        <select asp-for="Landskode" class="form-select" aria-label="Landskode">
+                            @foreach (var land in Nabohjelp.Models.RessursFormViewModel.Landskoder)
+                            {
+                                <option value="@land.Kode">@land.Kode @land.Land</option>
+                            }
+                        </select>
+                        <input asp-for="Telefon" class="form-control" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="12345678" />
+                    </div>
+                    <span asp-validation-for="Landskode"></span>
                     <span asp-validation-for="Telefon"></span>
                 </div>
             </div>
@@ -113,4 +133,5 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
+    <script src="~/js/ressurs-skjema.js" asp-append-version="true"></script>
 }

@@ -9,7 +9,7 @@
     <p class="auth-ingress">Åpne autentiseringsappen og skriv inn den 6-sifrede koden.</p>
 
     <div class="auth-flate">
-        <form asp-action="LoginWith2fa" method="post" novalidate>
+        <form asp-action="LoginWith2fa" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
             <div class="felt">
                 <label asp-for="Kode" class="form-label"></label>
                 <input asp-for="Kode" class="form-control kode-felt" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" />

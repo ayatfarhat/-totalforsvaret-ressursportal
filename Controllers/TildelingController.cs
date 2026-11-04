@@ -252,11 +252,14 @@ public async Task<IActionResult> Tildel(
                     "ATV" or
                     "Snøskuter" or
                     "Lastebil" or
-                    "Båt",
+                    "Båt" or
+                    "Lokaler",
 
-            // Andre behov kan matches med ressursen "Annet".
-            BehovType.Annet =>
-                ressursType == "Annet",
+            // «Annet» er et behov som ikke passer i de andre gruppene
+            // (for eksempel rydding etter storm eller samband). Da kan alle
+            // ressurstyper vurderes, så også gravemaskin, sand/grus og
+            // sambandsutstyr kan tildeles et behov.
+            BehovType.Annet => true,
 
             _ => false
         };
@@ -267,6 +270,11 @@ public async Task<IActionResult> Tildel(
         BehovType behovType,
         string ressursType)
     {
+        if (behovType == BehovType.Annet)
+        {
+            return $"Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{ressursType}».";
+        }
+
         return $"Ressurstypen «{ressursType}» passer til behovstypen «{Visningstekst.Type(behovType)}».";
     }
 }

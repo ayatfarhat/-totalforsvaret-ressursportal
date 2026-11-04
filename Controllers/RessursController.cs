@@ -11,10 +11,18 @@ namespace Nabohjelp.Controllers
     {
         private readonly ApplicationDbContext _db;
 
-        // Gir tilgang til databasen.
-        public RessursController(ApplicationDbContext db)
+        // Gir oss mappen wwwroot, der opplastede bilder lagres.
+        private readonly IWebHostEnvironment _miljo;
+
+        // Regler for bildene som kan lastes opp.
+        private static readonly string[] _tillatteBildeendelser = { ".jpg", ".jpeg", ".png", ".webp" };
+        private const long MaksBildeStorrelse = 5 * 1024 * 1024; // 5 MB
+
+        // Gir tilgang til databasen og til mappen for bilder.
+        public RessursController(ApplicationDbContext db, IWebHostEnvironment miljo)
         {
             _db = db;
+            _miljo = miljo;
         }
 
         // Frivillige ser egne ressurser.
@@ -50,15 +58,27 @@ namespace Nabohjelp.Controllers
 
             var modeller = ressurser.Select(TilViewModel).ToList();
 
+            // Antall ønskede ressurser vises i en egen boks på siden.
+            ViewBag.AntallOnskede = OnsketRessursController.Antall();
+            ViewBag.ErKoordinator = erKoordinator;
+
             return View(modeller);
         }
 
         // Viser skjemaet for innloggede brukere.
+        // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt.
         [Authorize]
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult Create(string? type)
         {
-            return View(new RessursFormViewModel());
+            var skjema = new RessursFormViewModel();
+
+            if (type != null && RessursFormViewModel.Typer.Contains(type))
+            {
+                skjema.Type = type;
+            }
+
+            return View(skjema);
         }
 
         // Lagrer en ressurs med innlogget bruker som eier.
@@ -66,7 +86,8 @@ namespace Nabohjelp.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            RessursFormViewModel model)
+            RessursFormViewModel model,
+            IFormFile? bildefil)
         {
             var brukerId =
                 User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -74,6 +95,31 @@ namespace Nabohjelp.Controllers
             if (string.IsNullOrEmpty(brukerId))
             {
                 return Challenge();
+            }
+
+            // Bilde-adressen settes bare av oss, aldri av det som kommer fra skjemaet.
+            model.BildeSti = null;
+
+            // Typen må være en av de faste typene (ikke bare «en tekst»).
+            if (!RessursFormViewModel.Typer.Contains(model.Type))
+            {
+                ModelState.AddModelError("Type", "Du må velge type ressurs.");
+            }
+
+            // Landskoden må være en av de som finnes i listen.
+            if (!RessursFormViewModel.Landskoder.Any(l => l.Kode == model.Landskode))
+            {
+                ModelState.AddModelError("Landskode", "Velg en landskode fra listen.");
+            }
+
+            // Sjekker bildet (valgfritt) før noe lagres.
+            if (bildefil != null && bildefil.Length > 0)
+            {
+                string? bildeFeil = SjekkBilde(bildefil);
+                if (bildeFeil != null)
+                {
+                    ModelState.AddModelError("Bilde", bildeFeil);
+                }
             }
 
             // Kontrollerer tidspunktet for tilgjengelighet.
@@ -90,6 +136,7 @@ namespace Nabohjelp.Controllers
             }
 
             // Kopierer skjemadata til databasemodellen.
+            // Landskoden lagres sammen med nummeret, for eksempel «+47 12345678».
             var ressurs = new Ressurs
             {
                 Type = model.Type,
@@ -99,7 +146,7 @@ namespace Nabohjelp.Controllers
                 TilgjengeligFra = model.TilgjengeligFra,
                 Beskrivelse = model.Beskrivelse,
                 Navn = model.Navn,
-                Telefon = model.Telefon,
+                Telefon = model.TelefonForLagring(),
                 Status = "Tilgjengelig",
                 OpprettetTid = DateTime.UtcNow,
                 OpprettetAvBrukerId = brukerId
@@ -108,6 +155,13 @@ namespace Nabohjelp.Controllers
             // Databasen genererer ressursens ID.
             _db.Ressurser.Add(ressurs);
             await _db.SaveChangesAsync();
+
+            // Bildet lagres med ressursens ID som filnavn (for eksempel 12.jpg),
+            // så vi trenger ingen egen kolonne i databasen for det.
+            if (bildefil != null && bildefil.Length > 0)
+            {
+                LagreBilde(bildefil, ressurs.Id);
+            }
 
             return RedirectToAction(
                 nameof(Confirmation),
@@ -148,10 +202,10 @@ namespace Nabohjelp.Controllers
         }
 
         // Gjør databasedata klare for visningene.
-        private static RessursFormViewModel TilViewModel(
+        private RessursFormViewModel TilViewModel(
             Ressurs ressurs)
         {
-            return new RessursFormViewModel
+            var modell = new RessursFormViewModel
             {
                 Id = ressurs.Id,
                 OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
@@ -162,9 +216,123 @@ namespace Nabohjelp.Controllers
                 TilgjengeligFra = ressurs.TilgjengeligFra,
                 Beskrivelse = ressurs.Beskrivelse,
                 Navn = ressurs.Navn,
-                Telefon = ressurs.Telefon,
-                Status = ressurs.Status
+                Status = ressurs.Status,
+                BildeSti = FinnBilde(ressurs.Id)
             };
+
+            // Telefonen er lagret som «+47 12345678». Vi deler den opp igjen
+            // i landskode og nummer, slik at visningen blir riktig.
+            modell.LesTelefonFraLagring(ressurs.Telefon);
+
+            return modell;
+        }
+
+        // Sjekker at filen er et bilde vi tillater. Gir en feilmelding, eller null hvis OK.
+        private static string? SjekkBilde(IFormFile fil)
+        {
+            if (fil.Length > MaksBildeStorrelse)
+            {
+                return "Bildet er for stort. Maks størrelse er 5 MB.";
+            }
+
+            string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
+            if (!_tillatteBildeendelser.Contains(endelse))
+            {
+                return "Bildet må være JPG, PNG eller WebP.";
+            }
+
+            if (!fil.ContentType.StartsWith("image/"))
+            {
+                return "Filen er ikke et bilde.";
+            }
+
+            // Filtypen og Content-Type kommer fra nettleseren og kan være falske.
+            // Derfor ser vi også på de første bytene i selve filen.
+            if (!ErEkteBilde(fil, endelse))
+            {
+                return "Filen ser ikke ut som et ekte bilde.";
+            }
+
+            return null;
+        }
+
+        // Sjekker «signaturen» (de første bytene) i filen:
+        //   JPEG begynner med FF D8 FF, PNG med 89 50 4E 47,
+        //   WebP med «RIFF» og så «WEBP» fra byte 8.
+        private static bool ErEkteBilde(IFormFile fil, string endelse)
+        {
+            byte[] start = new byte[12];
+            int lest;
+            using (var strom = fil.OpenReadStream())
+            {
+                lest = strom.Read(start, 0, start.Length);
+            }
+
+            if (lest < 12)
+            {
+                return false;
+            }
+
+            if (endelse == ".jpg" || endelse == ".jpeg")
+            {
+                return start[0] == 0xFF && start[1] == 0xD8 && start[2] == 0xFF;
+            }
+
+            if (endelse == ".png")
+            {
+                return start[0] == 0x89 && start[1] == 0x50 && start[2] == 0x4E && start[3] == 0x47;
+            }
+
+            if (endelse == ".webp")
+            {
+                return start[0] == 'R' && start[1] == 'I' && start[2] == 'F' && start[3] == 'F'
+                    && start[8] == 'W' && start[9] == 'E' && start[10] == 'B' && start[11] == 'P';
+            }
+
+            return false;
+        }
+
+        // Mappen der bildene ligger: wwwroot/uploads/ressurser
+        private string BildeMappe()
+        {
+            return Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
+        }
+
+        // Lagrer bildet som «ressurs-ID + filendelse», for eksempel 12.jpg.
+        // Vi bruker ikke filnavnet brukeren sendte, slik at ingen kan
+        // overskrive andre filer eller lage rare filnavn.
+        private void LagreBilde(IFormFile fil, int ressursId)
+        {
+            string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
+            if (endelse == ".jpeg")
+            {
+                endelse = ".jpg";
+            }
+
+            string mappe = BildeMappe();
+            Directory.CreateDirectory(mappe);
+
+            string fullSti = Path.Combine(mappe, ressursId + endelse);
+            using (var strom = new FileStream(fullSti, FileMode.Create))
+            {
+                fil.CopyTo(strom);
+            }
+        }
+
+        // Finner bildet til en ressurs, hvis det finnes. Gir nettadressen
+        // (for eksempel /uploads/ressurser/12.jpg), eller null.
+        private string? FinnBilde(int ressursId)
+        {
+            string mappe = BildeMappe();
+            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
+            {
+                if (System.IO.File.Exists(Path.Combine(mappe, ressursId + endelse)))
+                {
+                    return "/uploads/ressurser/" + ressursId + endelse;
+                }
+            }
+
+            return null;
         }
     }
 }
