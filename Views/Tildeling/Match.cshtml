@@ -36,9 +36,9 @@
 
         <p>
             <strong>Beskrivelse:</strong>
-            @(string.IsNullOrWhiteSpace(Model.Beskrivelse)
+            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(Model.Beskrivelse)
                 ? "Ingen beskrivelse"
-                : Model.Beskrivelse)
+                : Model.Beskrivelse)</span>
         </p>
 
     </div>

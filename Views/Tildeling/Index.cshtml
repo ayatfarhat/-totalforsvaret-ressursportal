@@ -57,9 +57,9 @@ else
                         </td>
 
                         <td data-label="Beskrivelse">
-                            @(string.IsNullOrWhiteSpace(behov.Beskrivelse)
+                            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(behov.Beskrivelse)
                                 ? "Ingen beskrivelse"
-                                : behov.Beskrivelse)
+                                : behov.Beskrivelse)</span>
                         </td>
 
                         <td data-label="">

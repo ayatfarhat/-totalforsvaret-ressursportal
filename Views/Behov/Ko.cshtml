@@ -89,7 +89,7 @@ else
                             }
                         </td>
                         <td data-label="Status"><span class="merke @StatusFarge(b.Status)">@StatusTekst(b.Status)</span></td>
-                        <td data-label="Beskrivelse">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</td>
+                        <td data-label="Beskrivelse"><span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</span></td>
                         <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                         <td data-label="Kontakt">
                             <span class="kontakt-liste">

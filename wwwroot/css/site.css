@@ -963,6 +963,8 @@ a[href^="tel:"] { white-space: nowrap; }
 .behov-topp h3 { margin: 0 .25rem 0 0; font-size: 1.2rem; }
 .behov-meta { margin: 0; font-size: .925rem; color: var(--dempet); }
 .behov-tekst { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+/* Beholder linjeskiftene i en beskrivelse i tabeller og kort. */
+.tekst-linjer { white-space: pre-line; overflow-wrap: anywhere; }
 .behov-avsluttet { margin: .25rem 0 0; color: var(--dempet); font-size: .95rem; }
 .behov-handling { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .9rem; margin-top: .35rem; }
 
