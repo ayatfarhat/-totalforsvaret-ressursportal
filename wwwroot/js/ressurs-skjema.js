@@ -1,4 +1,6 @@
-// Små hjelpefunksjoner for skjemaet "Registrer en ressurs".
+// Små hjelpefunksjoner for skjemaene "Registrer en ressurs" og "Meld behov".
+// Autofyllen virker på alle typevalg med data-forslag. Bildedelen gjør
+// ingenting på sider uten bildefelt.
 (function () {
     // ---- 1) Autofyll av beskrivelse når brukeren velger type ----
     var beskrivelse = document.getElementById("Beskrivelse");

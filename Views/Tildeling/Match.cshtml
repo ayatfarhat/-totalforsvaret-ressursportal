@@ -73,11 +73,11 @@
     </div>
 }
 
-@if (Model.Status == Nabohjelp.Models.BehovStatus.Assigned || Model.Status == Nabohjelp.Models.BehovStatus.Resolved)
+@if (Model.Status == Nabohjelp.Models.BehovStatus.Assigned || Nabohjelp.Models.BehovStatusflyt.ErAvsluttet(Model.Status))
 {
-    <!-- Behovet har allerede fått en ressurs, eller er løst -->
+    <!-- Behovet har allerede fått en ressurs, eller er avsluttet (løst, avvist, trukket tilbake) -->
     <div class="alert alert-info">
-        Dette behovet er allerede tildelt eller løst, og kan ikke få flere ressurser.
+        Dette behovet er «@Nabohjelp.Models.Visningstekst.Status(Model.Status)» og kan ikke få flere ressurser.
     </div>
 }
 else if (!Model.MatchendeRessurser.Any())
