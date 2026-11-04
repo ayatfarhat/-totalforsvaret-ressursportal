@@ -1,75 +1,59 @@
 using Nabohjelp.Models;
+using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Nabohjelp.Controllers
 {
     public class RessursController : Controller
     {
-        // Midlertidig lagring av ressurser i minnet.
-        private static readonly List<RessursFormViewModel> _midlertidigListe = new();
+        private readonly ApplicationDbContext _db;
 
-        private static readonly object _laas = new();
-        private static int _nesteId = 0;
-
-        // Henter alle ressurser for intern bruk i systemet.
-        public static IReadOnlyList<RessursFormViewModel> HentRessurser()
+        // Gir tilgang til databasen.
+        public RessursController(ApplicationDbContext db)
         {
-            lock (_laas)
-            {
-                return _midlertidigListe.ToList().AsReadOnly();
-            }
+            _db = db;
         }
 
-        // Sletter alle ressurser registrert av en bestemt bruker.
-        public static void SlettRessurserForBruker(string brukerId)
-        {
-            lock (_laas)
-            {
-                _midlertidigListe.RemoveAll(
-                    ressurs => ressurs.OpprettetAvBrukerId == brukerId);
-            }
-        }
-
-        // Henter en ressurs ved hjelp av dens faste ID.
-        public static RessursFormViewModel? HentRessurs(int id)
-        {
-            lock (_laas)
-            {
-                return _midlertidigListe.FirstOrDefault(r => r.Id == id);
-            }
-        }
-
-        // GET: /Ressurs
-        // Frivillige ser bare egne ressurser.
-        // Admin og Kommune ser alle ressurser.
+        // Frivillige ser egne ressurser.
+        // Admin og Kommune ser alle.
         [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-           var ressurser = HentRessurser().ToList();
+            var sporring = _db.Ressurser.AsNoTracking();
 
-            if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
-{
-    return View(ressurser.ToList());
-}
+            bool erKoordinator =
+                User.IsInRole("Admin") ||
+                User.IsInRole("Kommune");
 
-            var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(brukerId))
+            if (!erKoordinator)
             {
-                return Challenge();
+                var brukerId =
+                    User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(brukerId))
+                {
+                    return Challenge();
+                }
+
+                // Filtrerer i databasen før data hentes.
+                sporring = sporring.Where(
+                    r => r.OpprettetAvBrukerId == brukerId);
             }
 
-            var egneRessurser = ressurser
-                .Where(r => r.OpprettetAvBrukerId == brukerId)
-                .ToList();
+            var ressurser = await sporring
+                .OrderByDescending(r => r.OpprettetTid)
+                .ToListAsync();
 
-            return View(egneRessurser);
+            var modeller = ressurser.Select(TilViewModel).ToList();
+
+            return View(modeller);
         }
 
-        // GET: /Ressurs/Create
+        // Viser skjemaet for innloggede brukere.
         [Authorize]
         [HttpGet]
         public IActionResult Create()
@@ -77,12 +61,22 @@ namespace Nabohjelp.Controllers
             return View(new RessursFormViewModel());
         }
 
-        // POST: /Ressurs/Create
+        // Lagrer en ressurs med innlogget bruker som eier.
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(RessursFormViewModel model)
+        public async Task<IActionResult> Create(
+            RessursFormViewModel model)
         {
+            var brukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(brukerId))
+            {
+                return Challenge();
+            }
+
+            // Kontrollerer tidspunktet for tilgjengelighet.
             if (!model.ErValidTilgjengeligFra())
             {
                 ModelState.AddModelError(
@@ -95,55 +89,82 @@ namespace Nabohjelp.Controllers
                 return View(model);
             }
 
-            model.Status = "Tilgjengelig";
-
-            // Knytter ressursen til innlogget bruker.
-            model.OpprettetAvBrukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(model.OpprettetAvBrukerId))
+            // Kopierer skjemadata til databasemodellen.
+            var ressurs = new Ressurs
             {
-                return Challenge();
-            }
+                Type = model.Type,
+                Posisjon = model.Posisjon,
+                Breddegrad = model.Breddegrad,
+                Lengdegrad = model.Lengdegrad,
+                TilgjengeligFra = model.TilgjengeligFra,
+                Beskrivelse = model.Beskrivelse,
+                Navn = model.Navn,
+                Telefon = model.Telefon,
+                Status = "Tilgjengelig",
+                OpprettetTid = DateTime.UtcNow,
+                OpprettetAvBrukerId = brukerId
+            };
 
-            // Gir ressursen en unik ID og lagrer den.
-            int nyId;
+            // Databasen genererer ressursens ID.
+            _db.Ressurser.Add(ressurs);
+            await _db.SaveChangesAsync();
 
-            lock (_laas)
-            {
-                nyId = _nesteId++;
-                model.Id = nyId;
-                _midlertidigListe.Add(model);
-            }
-
-            return RedirectToAction("Confirmation", new { id = nyId });
+            return RedirectToAction(
+                nameof(Confirmation),
+                new { id = ressurs.Id });
         }
 
-        // GET: /Ressurs/Confirmation
-        // Bare eieren, Admin og Kommune kan se bekreftelsen.
+        // Bare eieren, Admin og Kommune får se kvitteringen.
         [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
-        public IActionResult Confirmation(int id)
+        public async Task<IActionResult> Confirmation(int id)
         {
-            var ressurs = HentRessurs(id);
+            var ressurs = await _db.Ressurser
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (ressurs == null)
             {
                 return NotFound();
             }
 
-            bool erAdminEllerKommune =
-                User.IsInRole("Admin") || User.IsInRole("Kommune");
+            var brukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            bool erEier =
+                !string.IsNullOrEmpty(brukerId) &&
+                ressurs.OpprettetAvBrukerId == brukerId;
 
-            if (!erAdminEllerKommune &&
-                ressurs.OpprettetAvBrukerId != brukerId)
+            bool erKoordinator =
+                User.IsInRole("Admin") ||
+                User.IsInRole("Kommune");
+
+            if (!erEier && !erKoordinator)
             {
                 return Forbid();
             }
 
-            return View(ressurs);
+            return View(TilViewModel(ressurs));
+        }
+
+        // Gjør databasedata klare for visningene.
+        private static RessursFormViewModel TilViewModel(
+            Ressurs ressurs)
+        {
+            return new RessursFormViewModel
+            {
+                Id = ressurs.Id,
+                OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
+                Type = ressurs.Type,
+                Posisjon = ressurs.Posisjon,
+                Breddegrad = ressurs.Breddegrad,
+                Lengdegrad = ressurs.Lengdegrad,
+                TilgjengeligFra = ressurs.TilgjengeligFra,
+                Beskrivelse = ressurs.Beskrivelse,
+                Navn = ressurs.Navn,
+                Telefon = ressurs.Telefon,
+                Status = ressurs.Status
+            };
         }
     }
 }
