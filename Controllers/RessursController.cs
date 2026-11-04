@@ -1,39 +1,31 @@
 using Nabohjelp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Nabohjelp.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Nabohjelp.Controllers
 {
     public class RessursController : Controller
     {
-        // Midlertidig lagring av ressurser i minnet.
-        // Skal senere erstattes med EF Core/database.
-        private static readonly List<RessursFormViewModel> _midlertidigListe = new();
+        private readonly ApplicationDbContext _db;
 
-        // Brukes for å låse listen når vi legger til nye ressurser.
-        private static readonly object _laas = new();
-
-        // Gjør ressursene tilgjengelige for matching.
-        // Listen kan leses, men ikke erstattes utenfra.
-        public static IReadOnlyList<RessursFormViewModel> HentRessurser()
+        public RessursController(ApplicationDbContext db)
         {
-            return _midlertidigListe.AsReadOnly();
+            _db = db;
         }
 
-        // Henter én bestemt ressurs.
-        public static RessursFormViewModel? HentRessurs(int id)
-        {
-            if (id < 0 || id >= _midlertidigListe.Count)
-            {
-                return null;
-            }
 
-            return _midlertidigListe[id];
-        }
-
-        // GET: /Ressurs
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View(_midlertidigListe);
+            var ressurser = await _db.Ressurser
+                .AsNoTracking()
+                .OrderByDescending(r => r.OpprettetTid)
+                .ToListAsync();
+
+            var modeller = ressurser.Select(TilViewModel).ToList();
+
+             return View(modeller);
         }
 
         // GET: /Ressurs/Create
@@ -45,63 +37,86 @@ namespace Nabohjelp.Controllers
 
         // POST: /Ressurs/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(RessursFormViewModel model)
-        {
-            // Kontrollerer at tidspunktet ikke ligger i fortiden.
-            if (!model.ErValidTilgjengeligFra())
-            {
-                ModelState.AddModelError(
-                    "TilgjengeligFra",
-                    "Tidspunkt kan ikke ligge i fortiden.");
-            }
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Create(RessursFormViewModel model)
+{
+    if (!model.ErValidTilgjengeligFra())
+    {
+        ModelState.AddModelError(
+            "TilgjengeligFra",
+            "Tidspunkt kan ikke ligge i fortiden.");
+    }
 
-            // Viser skjemaet igjen hvis dataene er ugyldige.
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+    if (!ModelState.IsValid)
+    {
+        return View(model);
+    }
 
-            // Ny ressurs blir tilgjengelig for matching.
-            model.Status = "Tilgjengelig";
+    var ressurs = new Ressurs
+    {
+        Type = model.Type,
+        Posisjon = model.Posisjon,
+        Breddegrad = model.Breddegrad,
+        Lengdegrad = model.Lengdegrad,
+        TilgjengeligFra = model.TilgjengeligFra,
+        Beskrivelse = model.Beskrivelse,
+        Navn = model.Navn,
+        Telefon = model.Telefon,
+        Status = "Tilgjengelig",
+        OpprettetTid = DateTime.UtcNow,
+        OpprettetAvBrukerId =
+            User.FindFirstValue(ClaimTypes.NameIdentifier)
+    };
 
-            // Låser listen mens vi legger til, slik at to innsendinger
-            // samtidig ikke får samme id.
-            int nyId;
-            lock (_laas)
-            {
-                _midlertidigListe.Add(model);
-                nyId = _midlertidigListe.Count - 1;
-            }
+    _db.Ressurser.Add(ressurs);
+    await _db.SaveChangesAsync();
 
-            // Husker at denne nettleseren har sendt inn ressursen,
-            // slik at bare innsenderen får se kvitteringen.
-            HuskInnsendtId(nyId);
+    HuskInnsendtId(ressurs.Id);
 
-            // Sender brukeren til bekreftelsessiden.
-            return RedirectToAction("Confirmation", new { id = nyId });
-        }
+    return RedirectToAction(
+        nameof(Confirmation),
+        new { id = ressurs.Id });
+}
 
         // GET: /Ressurs/Confirmation
-        public IActionResult Confirmation(int id)
+        public async Task<IActionResult> Confirmation(int id)
         {
-            if (id < 0 || id >= _midlertidigListe.Count)
-            {
-                return RedirectToAction("Index");
-            }
-
-            // Kvitteringen viser navn, telefon og adresse.
-            // Derfor får bare innsenderen, Admin og Kommune se den.
             bool erAdminEllerKommune =
-                User.IsInRole("Admin") || User.IsInRole("Kommune");
+            User.IsInRole("Admin") || User.IsInRole("Kommune");
 
-            if (!erAdminEllerKommune && !ErSendtInnAvDenneNettleseren(id))
+            if (!erAdminEllerKommune &&
+            !ErSendtInnAvDenneNettleseren(id))
             {
-                return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
             }
 
-            return View(_midlertidigListe[id]);
+            var ressurs = await _db.Ressurser
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (ressurs == null)
+            {
+            return NotFound();
+            }
+
+            return View(TilViewModel(ressurs));
         }
+
+        private static RessursFormViewModel TilViewModel(Ressurs ressurs)
+        {
+            return new RessursFormViewModel
+            {
+                Type = ressurs.Type,
+                Posisjon = ressurs.Posisjon,
+                Breddegrad = ressurs.Breddegrad,
+                Lengdegrad = ressurs.Lengdegrad,
+                TilgjengeligFra = ressurs.TilgjengeligFra,
+                Beskrivelse = ressurs.Beskrivelse,
+                Navn = ressurs.Navn,
+                Telefon = ressurs.Telefon,
+                Status = ressurs.Status
+            };
+}
 
         // Sjekker om denne nettleseren selv har sendt inn ressursen.
         // Id-ene ligger i TempData som tekst, f.eks. "0,3,7".
@@ -109,7 +124,7 @@ namespace Nabohjelp.Controllers
         // fortsatt vises hvis brukeren oppdaterer siden.
         private bool ErSendtInnAvDenneNettleseren(int id)
         {
-            string? lagret = TempData.Peek("InnsendteRessursIder") as string;
+            string? lagret = TempData.Peek("InnsendteDatabaseRessursIder") as string;
 
             if (string.IsNullOrEmpty(lagret))
             {
@@ -133,15 +148,15 @@ namespace Nabohjelp.Controllers
         // så brukeren kan ikke selv legge til andres id-er.
         private void HuskInnsendtId(int id)
         {
-            string? lagret = TempData.Peek("InnsendteRessursIder") as string;
+            string? lagret = TempData.Peek("InnsendteDatabaseRessursIder") as string;
 
             if (string.IsNullOrEmpty(lagret))
             {
-                TempData["InnsendteRessursIder"] = id.ToString();
+                TempData["InnsendteDatabaseRessursIder"] = id.ToString();
             }
             else
             {
-                TempData["InnsendteRessursIder"] = lagret + "," + id;
+                TempData["InnsendteDatabaseRessursIder"] = lagret + "," + id;
             }
         }
     }
