@@ -49,8 +49,14 @@ namespace Nabohjelp.Controllers
                 });
             }
 
-            // Behov: hentes fra databasen.
-            var behovsliste = await _db.Behovsliste.ToListAsync();
+            // Behov: hentes fra databasen. Avsluttede behov (løst, avvist,
+            // trukket tilbake) vises ikke, så kartet bare viser det som trenger hjelp.
+            var behovsliste = await _db.Behovsliste
+                .AsNoTracking()
+                .Where(b => b.Status != BehovStatus.Resolved &&
+                            b.Status != BehovStatus.Rejected &&
+                            b.Status != BehovStatus.Withdrawn)
+                .ToListAsync();
             foreach (var behov in behovsliste)
             {
                 modell.Behov.Add(new KartPunkt

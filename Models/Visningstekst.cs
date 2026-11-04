@@ -33,6 +33,8 @@ public static class Visningstekst
             case BehovStatus.New: return "Ny";
             case BehovStatus.UnderReview: return "Under vurdering";
             case BehovStatus.Assigned: return "Tildelt";
+            case BehovStatus.Rejected: return "Avvist";
+            case BehovStatus.Withdrawn: return "Trukket tilbake";
             default: return "Løst";
         }
     }
@@ -54,6 +56,8 @@ public static class Visningstekst
             case BehovStatus.New: return "";
             case BehovStatus.UnderReview: return "merke-gul";
             case BehovStatus.Assigned: return "merke-bla";
+            case BehovStatus.Rejected: return "merke-rod";
+            case BehovStatus.Withdrawn: return "";
             default: return "merke-gronn";
         }
     }

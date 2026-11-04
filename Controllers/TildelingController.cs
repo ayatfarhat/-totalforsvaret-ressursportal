@@ -25,8 +25,11 @@ public class TildelingController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        // Avsluttede behov (løst, avvist, trukket tilbake) kan ikke få ressurser.
         var behov = await _db.Behovsliste
-            .Where(b => b.Status != BehovStatus.Resolved)
+            .Where(b => b.Status != BehovStatus.Resolved &&
+                        b.Status != BehovStatus.Rejected &&
+                        b.Status != BehovStatus.Withdrawn)
             .OrderBy(b => b.Prioritet)
             .ThenBy(b => b.OpprettetTid)
             .ToListAsync();
@@ -110,10 +113,10 @@ public async Task<IActionResult> Tildel(
         return NotFound();
     }
 
-    // Hindrer nye tildelinger til et løst behov.
-    if (behov.Status == BehovStatus.Resolved)
+    // Hindrer nye tildelinger til et behov som er løst, avvist eller trukket tilbake.
+    if (BehovStatusflyt.ErAvsluttet(behov.Status))
     {
-        TempData["Feil"] = "Behovet er allerede løst.";
+        TempData["Feil"] = $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
         return RedirectToAction(nameof(Index));
     }
 

@@ -22,7 +22,7 @@
                 @foreach (var type in Enum.GetValues<Nabohjelp.Models.BehovType>())
                 {
                     <div class="type-valg-element">
-                        <input type="radio" asp-for="Type" value="@type" id="type-@type" />
+                        <input type="radio" asp-for="Type" value="@type" id="type-@type" data-forslag="@Nabohjelp.ViewModels.BehovViewModel.HentForslag(type)" />
                         <label for="type-@type">@Nabohjelp.Models.Visningstekst.Type(type)</label>
                     </div>
                 }
@@ -82,21 +82,35 @@
 
             <div class="felt">
                 <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
-                <textarea asp-for="Beskrivelse" class="form-control" rows="3" placeholder="For eksempel hvor mange personer det gjelder, eller hva som har skjedd"></textarea>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="4" placeholder="For eksempel hvor mange personer det gjelder, eller hva som har skjedd"></textarea>
                 <span asp-validation-for="Beskrivelse"></span>
+                <p class="kart-tips">Når du velger behovstype, fyller vi inn noen spørsmål du kan svare på. Du kan endre teksten fritt.</p>
             </div>
 
             <p class="felt-hjelp">Oppgi telefon eller e-post, minst én av dem.</p>
             <div class="felt-par">
                 <div class="felt">
                     <label asp-for="KontaktTelefon" class="form-label">Telefon</label>
-                    <input asp-for="KontaktTelefon" class="form-control" type="tel" autocomplete="tel" />
+                    <div class="telefon-rad">
+                        <select asp-for="Landskode" class="form-select" aria-label="Landskode">
+                            @foreach (var land in Nabohjelp.Models.RessursFormViewModel.Landskoder)
+                            {
+                                <option value="@land.Kode">@land.Kode @land.Land</option>
+                            }
+                        </select>
+                        <input asp-for="KontaktTelefon" class="form-control" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="12345678" />
+                    </div>
+                    <span asp-validation-for="Landskode"></span>
                     <span asp-validation-for="KontaktTelefon"></span>
                 </div>
                 <div class="felt">
                     <label asp-for="KontaktEpost" class="form-label">E-post</label>
                     <input asp-for="KontaktEpost" class="form-control" type="email" autocomplete="email" />
                     <span asp-validation-for="KontaktEpost"></span>
+                    @if (!string.IsNullOrEmpty(Model.KontaktEpost) && Model.KontaktEpost == User.Identity?.Name)
+                    {
+                        <p class="kart-tips">Hentet fra kontoen din. Du kan endre den.</p>
+                    }
                 </div>
             </div>
         </fieldset>
@@ -122,4 +136,5 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
+    <script src="~/js/ressurs-skjema.js" asp-append-version="true"></script>
 }
