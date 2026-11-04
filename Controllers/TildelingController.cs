@@ -47,14 +47,14 @@ public class TildelingController : Controller
         var ressurser = RessursController.HentRessurser();
 
         var matchendeRessurser = ressurser
-            .Select((ressurs, index) => new
-            {
-                Ressurs = ressurs,
-                Id = index
-            })
-            .Where(x =>
-                x.Ressurs.Status == "Tilgjengelig" &&
-                PasserTilBehov(behov.Type, x.Ressurs.Type))
+          .Select(ressurs => new
+{
+    Ressurs = ressurs,
+    Id = ressurs.Id
+})
+.Where(x =>
+    x.Ressurs.Status == "Tilgjengelig" &&
+    PasserTilBehov(behov.Type, x.Ressurs.Type))
             .Select(x => new MatchendeRessursViewModel
             {
                 RessursId = x.Id,
