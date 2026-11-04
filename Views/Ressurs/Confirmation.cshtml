@@ -26,6 +26,7 @@
         <h2 id="sammendrag-tittel">Sammendrag</h2>
         <dl class="sammendrag">
             <div><dt>Type</dt><dd>@Model.Type</dd></div>
+            <div><dt>Kommune</dt><dd>@Model.VisKommune()</dd></div>
             <div><dt>Posisjon</dt><dd>@Model.Posisjon</dd></div>
             <div><dt>Koordinater</dt><dd>@Model.VisKoordinater()</dd></div>
             <div><dt>Tilgjengelig fra</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
@@ -53,6 +54,7 @@
 
     <div class="kvittering-handling">
         <a asp-action="Create" class="btn btn-success">Registrer en til</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Endre</a>
         <a asp-action="Index" class="btn btn-outline-secondary">Se alle ressurser</a>
     </div>
 </div>

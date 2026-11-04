@@ -1,0 +1,110 @@
+@model Nabohjelp.ViewModels.RessursUtskriftViewModel
+@using Nabohjelp.Models
+
+@{
+    ViewData["Title"] = "Ressursliste per kommune";
+    string? forrigeFylke = null;
+}
+
+<div class="side-topp utskrift-skjul">
+    <h1>Ressursliste per kommune</h1>
+    <p class="ingress">Velg fylke eller kommune, og skriv ut listen eller lagre den som PDF. Listen viser alle registrerte ressurser, også de som er tildelt.</p>
+</div>
+
+<form method="get" asp-action="Utskrift" class="utskrift-filter utskrift-skjul">
+    <div class="felt">
+        <label for="fylke" class="form-label">Fylke</label>
+        <select id="fylke" name="fylke" class="form-select">
+            <option value="">Alle fylker</option>
+            @foreach (var fylke in Kommuner.Fylker)
+            {
+                <option value="@fylke" selected="@(fylke == Model.ValgtFylke && Model.ValgtKommune == null)">@fylke</option>
+            }
+        </select>
+    </div>
+    <div class="felt">
+        <label for="kommune" class="form-label">Kommune <span class="valgfritt">(går foran fylket)</span></label>
+        <select id="kommune" name="kommune" class="form-select">
+            <option value="">Alle kommuner</option>
+            @foreach (var fylke in Kommuner.Fylker)
+            {
+                <optgroup label="@fylke">
+                    @foreach (var kommune in Kommuner.Alle.Where(k => k.Fylke == fylke))
+                    {
+                        <option value="@kommune.Nummer" selected="@(kommune.Nummer == Model.ValgtKommune)">@kommune.Navn</option>
+                    }
+                </optgroup>
+            }
+        </select>
+    </div>
+    <div class="utskrift-knapper">
+        <button type="submit" class="btn btn-outline-secondary">Vis liste</button>
+        <button type="button" id="skrivUt" class="btn btn-success">Skriv ut</button>
+    </div>
+</form>
+
+<section class="utskrift" aria-labelledby="utskrift-tittel">
+    <div class="utskrift-hode">
+        <h2 id="utskrift-tittel">Ressurser: @Model.VisOmrade()</h2>
+        <p>BeredskapsPortalen, laget @Model.Laget.ToString("dd.MM.yyyy 'kl.' HH:mm"). @Model.Antall @(Model.Antall == 1 ? "ressurs" : "ressurser") i @Model.Grupper.Count @(Model.Grupper.Count == 1 ? "kommune" : "kommuner").</p>
+    </div>
+
+    @if (!Model.Grupper.Any())
+    {
+        <div class="tom-tilstand">
+            <h3>Ingen ressurser i @Model.VisOmrade()</h3>
+            <p>Velg et annet fylke eller en annen kommune, eller vis hele landet.</p>
+            <a class="btn btn-outline-secondary" asp-action="Utskrift">Vis hele landet</a>
+        </div>
+    }
+
+    @foreach (var gruppe in Model.Grupper)
+    {
+        @if (gruppe.Fylke != forrigeFylke && !string.IsNullOrEmpty(gruppe.Fylke))
+        {
+            <h3 class="utskrift-fylke">@gruppe.Fylke</h3>
+        }
+        forrigeFylke = gruppe.Fylke;
+
+        <section class="kommune-gruppe" aria-label="@gruppe.Kommune">
+            <h4>@gruppe.Kommune <span class="antall">@gruppe.Ressurser.Count</span></h4>
+            <table class="table utskrift-tabell">
+                <thead>
+                    <tr>
+                        <th scope="col">Type</th>
+                        <th scope="col">Adresse</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Tilgjengelig fra</th>
+                        <th scope="col">Kontakt</th>
+                        <th scope="col">Beskrivelse</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ressurs in gruppe.Ressurser)
+                    {
+                        <tr>
+                            <td><strong>@ressurs.Type</strong></td>
+                            <td>@ressurs.Posisjon</td>
+                            <td>@ressurs.Status</td>
+                            <td>@ressurs.VisTilgjengeligFra()</td>
+                            <td>
+                                @ressurs.VisNavn()<br />
+                                @ressurs.VisTelefon()
+                            </td>
+                            <td><span class="tekst-linjer">@ressurs.VisBeskrivelse()</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </section>
+    }
+</section>
+
+@section Scripts {
+    <script>
+        // «Skriv ut» åpner nettleserens utskrift. Der kan listen også lagres som PDF.
+        document.getElementById("skrivUt").addEventListener("click", function () {
+            window.print();
+        });
+    </script>
+}

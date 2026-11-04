@@ -1016,3 +1016,36 @@ a[href^="tel:"] { white-space: nowrap; }
 /* Kontaktinfo i behovskøen: telefon og e-post under hverandre */
 .kontakt-liste { display: grid; gap: .15rem; min-width: 0; }
 .kontakt-liste a { overflow-wrap: anywhere; }
+
+/* ---------- Endre og slette ressurser ---------- */
+.ressurs-handling { white-space: nowrap; }
+.ressurs-handling .btn + .btn { margin-left: .4rem; }
+.liste-handling { margin-bottom: 1rem; }
+.slett-boks { margin-bottom: 1.5rem; }
+.slett-boks h2 { background: var(--hjelp-lys); color: var(--hjelp); }
+.skjema-bunn form { margin: 0; }
+
+/* ---------- Ressursliste per kommune (utskrift) ---------- */
+.utskrift-filter { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; background: var(--flate); border: 1px solid var(--linje); border-radius: var(--radius-stor); padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+.utskrift-filter .felt { flex: 1 1 14rem; margin: 0; }
+.utskrift-knapper { display: flex; gap: .5rem; flex-wrap: wrap; }
+.utskrift-hode { border-bottom: 2px solid var(--natt); padding-bottom: .75rem; margin-bottom: 1.5rem; }
+.utskrift-hode h2 { margin: 0 0 .25rem; }
+.utskrift-hode p { margin: 0; color: var(--dempet); }
+.utskrift-fylke { margin: 2rem 0 .75rem; font-size: 1.35rem; }
+.kommune-gruppe { margin-bottom: 1.5rem; }
+.kommune-gruppe h4 { font-size: 1.1rem; display: flex; gap: .6rem; align-items: baseline; margin-bottom: .5rem; }
+.utskrift-tabell { background: var(--flate); font-size: .95rem; }
+.utskrift-tabell td { vertical-align: top; overflow-wrap: anywhere; }
+
+@media print {
+    /* Bare selve listen skrives ut: ingen meny, bunntekst, filter eller knapper. */
+    header, .sidefot, .utskrift-skjul, .alert { display: none !important; }
+    body, main, .container { background: #fff !important; color: #000; max-width: none; padding: 0; margin: 0; }
+    .utskrift-tabell { font-size: 9.5pt; }
+    .utskrift-tabell th, .utskrift-tabell td { padding: .25rem .35rem; border-color: #999; }
+    .utskrift-tabell tr { break-inside: avoid; }
+    .kommune-gruppe h4, .utskrift-fylke { break-after: avoid; }
+    .utskrift-fylke { break-before: auto; }
+    a { color: #000; text-decoration: none; }
+}

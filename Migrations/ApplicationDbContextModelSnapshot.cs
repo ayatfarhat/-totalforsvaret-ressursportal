@@ -313,6 +313,10 @@ namespace Nabohjelp.Migrations
                     b.Property<decimal?>("Breddegrad")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<string>("Kommunenummer")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)");
+
                     b.Property<decimal?>("Lengdegrad")
                         .HasColumnType("decimal(65,30)");
 
