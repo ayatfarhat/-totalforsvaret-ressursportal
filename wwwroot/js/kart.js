@@ -1,4 +1,4 @@
-// Kart for Nabohjelp. Bruker Leaflet (kartbibliotek) og OpenStreetMap (selve kartet).
+// Kart for BeredskapsPortalen. Bruker Leaflet (kartbibliotek) og OpenStreetMap (selve kartet).
 //
 // Filen gjør tre ting, styrt av data-attributter i HTML-en:
 //   1. Kartvelger  (data-kartvelger): brukeren klikker på kartet, og
@@ -88,16 +88,36 @@ function startKartvelger(element) {
 
     // Hvis skjemaet vises på nytt med koordinater (for eksempel etter en feil),
     // eller brukeren skriver dem inn selv, flytter vi nålen dit.
+    // Nordmenn skriver ofte komma som desimaltegn (58,14656). Serveren og
+    // kartet forventer punktum, så vi bytter det ut før vi bruker verdiene.
+    function rensKoordinater() {
+        breddeFelt.value = breddeFelt.value.replace(',', '.').trim();
+        lengdeFelt.value = lengdeFelt.value.replace(',', '.').trim();
+    }
+
     function flyttNalFraFeltene() {
+        rensKoordinater();
         var breddegrad = parseFloat(breddeFelt.value);
         var lengdegrad = parseFloat(lengdeFelt.value);
-        if (!isNaN(breddegrad) && !isNaN(lengdegrad)) {
+
+        // Koordinater utenfor jordkloden ignoreres (serveren gir feilmelding).
+        var gyldig = !isNaN(breddegrad) && !isNaN(lengdegrad)
+            && breddegrad >= -90 && breddegrad <= 90
+            && lengdegrad >= -180 && lengdegrad <= 180;
+
+        if (gyldig) {
             velgSted(breddegrad, lengdegrad);
             kart.setView([breddegrad, lengdegrad], 13);
         }
     }
     breddeFelt.addEventListener('change', flyttNalFraFeltene);
     lengdeFelt.addEventListener('change', flyttNalFraFeltene);
+
+    // Rydder også når skjemaet sendes (for eksempel hvis brukeren trykker Enter).
+    var skjema = element.closest('form');
+    if (skjema !== null) {
+        skjema.addEventListener('submit', rensKoordinater);
+    }
     flyttNalFraFeltene();
     if (nal === null) {
         statusTekst.textContent = 'Ingen posisjon valgt ennå.';
@@ -105,6 +125,12 @@ function startKartvelger(element) {
 
     // Knappen «Bruk min posisjon»
     knapp.addEventListener('click', function () {
+        // Noen nettlesere (eller sider uten https) har ikke posisjonstjenesten.
+        if (!navigator.geolocation) {
+            statusTekst.textContent = 'Nettleseren din støtter ikke posisjon. Trykk på kartet i stedet.';
+            return;
+        }
+
         statusTekst.textContent = 'Henter posisjonen din ...';
         navigator.geolocation.getCurrentPosition(
             function (posisjon) {

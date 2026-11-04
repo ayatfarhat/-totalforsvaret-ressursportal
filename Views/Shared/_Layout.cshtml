@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#12212D" />
 
-    <title>@ViewData["Title"] - Nabohjelp</title>
+    <title>@ViewData["Title"] - BeredskapsPortalen</title>
 
     <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="~/favicon.ico" sizes="any" />
@@ -44,7 +44,7 @@
 
                     <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                         <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
-                        Nabohjelp
+                        BeredskapsPortalen
                     </a>
 
                     <button class="navbar-toggler"
@@ -64,8 +64,8 @@
                                    asp-area="" asp-controller="Home" asp-action="Index">Forside</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link @(side == "Ressurs" || side == "Behov" ? "active" : "")"
-                                   asp-area="" asp-controller="Ressurs" asp-action="Index">Nabohjelp</a>
+                                <a class="nav-link @(side == "Ressurs" || side == "Behov" || side == "OnsketRessurs" ? "active" : "")"
+                                   asp-area="" asp-controller="Ressurs" asp-action="Index">Ressurser</a>
                             </li>
                             @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
                             {
@@ -104,21 +104,22 @@
                 <div>
                     <div class="fot-merke">
                         <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
-                        Nabohjelp
+                        BeredskapsPortalen
                     </div>
-                    <p>En plattform som kobler folk som trenger hjelp under kriser med naboer og frivillige som kan stille opp.</p>
+                    <p>En beredskapsportal som kobler behov under kriser med utstyr, kjøretøy og frivillige som kan stille opp.</p>
                 </div>
                 <div>
                     <h2>Sider</h2>
                     <ul>
-                        <li><a asp-controller="Ressurs" asp-action="Index">Nabohjelp</a></li>
+                        <li><a asp-controller="Ressurs" asp-action="Index">Ressurser og behov</a></li>
                         <li><a asp-controller="Behov" asp-action="Opprett">Meld behov</a></li>
                         <li><a asp-controller="Ressurs" asp-action="Create">Registrer en ressurs</a></li>
+                        <li><a asp-controller="OnsketRessurs" asp-action="Index">Ønskede ressurser</a></li>
                         <li><a asp-controller="Kommandobro" asp-action="Index">For nødetater og kriseledelse</a></li>
                     </ul>
                 </div>
             </div>
-            <p class="fot-bunn">&copy; 2026 Nabohjelp. Studentprosjekt i IS-200, gruppe 15. Nabohjelp erstatter ikke nødnumrene.</p>
+            <p class="fot-bunn">&copy; 2026 BeredskapsPortalen. Studentprosjekt i IS-200, gruppe 15. BeredskapsPortalen erstatter ikke nødnumrene.</p>
         </div>
     </footer>
 

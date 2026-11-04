@@ -21,17 +21,17 @@
 
         <p>
             <strong>Type:</strong>
-            @Model.BehovType
+            @Nabohjelp.Models.Visningstekst.Type(Model.BehovType)
         </p>
 
         <p>
             <strong>Prioritet:</strong>
-            @Model.Prioritet
+            @Nabohjelp.Models.Visningstekst.Prioritet(Model.Prioritet)
         </p>
 
         <p>
             <strong>Status:</strong>
-            @Model.Status
+            @Nabohjelp.Models.Visningstekst.Status(Model.Status)
         </p>
 
         <p>
@@ -73,7 +73,14 @@
     </div>
 }
 
-@if (!Model.MatchendeRessurser.Any())
+@if (Model.Status == Nabohjelp.Models.BehovStatus.Assigned || Model.Status == Nabohjelp.Models.BehovStatus.Resolved)
+{
+    <!-- Behovet har allerede fått en ressurs, eller er løst -->
+    <div class="alert alert-info">
+        Dette behovet er allerede tildelt eller løst, og kan ikke få flere ressurser.
+    </div>
+}
+else if (!Model.MatchendeRessurser.Any())
 {
     <!-- Ingen ressurs passer akkurat nå -->
     <div class="alert alert-warning">
@@ -164,24 +171,30 @@ else
     const longitude = @Model.Longitude.ToString(
         System.Globalization.CultureInfo.InvariantCulture);
 
-    // Oppretter kartet rundt behovet.
-    const map = L.map('map').setView(
-        [latitude, longitude],
-        13
-    );
+    // Hvis kartbiblioteket ikke ble lastet (for eksempel uten internett),
+    // skjuler vi kartet i stedet for å få en feil.
+    if (typeof L === 'undefined') {
+        document.getElementById('map').hidden = true;
+    } else {
+        // Oppretter kartet rundt behovet.
+        const map = L.map('map').setView(
+            [latitude, longitude],
+            13
+        );
 
-    // Legger til OpenStreetMap.
-    L.tileLayer(
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }
-    ).addTo(map);
+        // Legger til OpenStreetMap.
+        L.tileLayer(
+            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }
+        ).addTo(map);
 
-    // Viser behovet med en markør.
-    L.marker([latitude, longitude])
-        .addTo(map)
-        .bindPopup('Behov #@Model.BehovId')
-        .openPopup();
+        // Viser behovet med en markør.
+        L.marker([latitude, longitude])
+            .addTo(map)
+            .bindPopup('Behov #@Model.BehovId')
+            .openPopup();
+    }
 </script>

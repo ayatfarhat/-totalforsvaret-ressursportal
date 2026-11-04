@@ -22,8 +22,9 @@ public class TildelingController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        // Bare behov som fortsatt kan få en ressurs. Tildelte og løste behov vises ikke.
         var behov = await _db.Behovsliste
-            .Where(b => b.Status != BehovStatus.Resolved)
+            .Where(b => b.Status != BehovStatus.Resolved && b.Status != BehovStatus.Assigned)
             .OrderBy(b => b.Prioritet)
             .ThenBy(b => b.OpprettetTid)
             .ToListAsync();
@@ -93,6 +94,25 @@ public class TildelingController : Controller
         int behovId,
         int ressursId)
     {
+        // Bare én tildeling om gangen, så to personer ikke kan tildele
+        // hver sin ressurs til samme behov samtidig.
+        await TildelLaas.WaitAsync();
+        try
+        {
+            return await TildelInnenforLaas(behovId, ressursId);
+        }
+        finally
+        {
+            TildelLaas.Release();
+        }
+    }
+
+    private static readonly SemaphoreSlim TildelLaas = new(1, 1);
+
+    private async Task<IActionResult> TildelInnenforLaas(
+        int behovId,
+        int ressursId)
+    {
         var behov = await _db.Behovsliste.FindAsync(behovId);
 
         if (behov == null)
@@ -100,21 +120,19 @@ public class TildelingController : Controller
             return NotFound();
         }
 
+        // Et behov som allerede er tildelt eller løst, kan ikke tildeles på nytt.
+        if (behov.Status == BehovStatus.Assigned || behov.Status == BehovStatus.Resolved)
+        {
+            TempData["Feil"] = "Behovet er allerede tildelt eller løst.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
         var ressurs = RessursController.HentRessurs(ressursId);
 
         if (ressurs == null)
         {
             return NotFound();
-        }
-
-        // Ressursen må fortsatt være tilgjengelig.
-        if (ressurs.Status != "Tilgjengelig")
-        {
-            TempData["Feil"] = "Ressursen er ikke lenger tilgjengelig.";
-
-            return RedirectToAction(
-                nameof(Match),
-                new { id = behovId });
         }
 
         // Kontrollerer matchen også på serveren.
@@ -127,14 +145,31 @@ public class TildelingController : Controller
                 new { id = behovId });
         }
 
-        // Marker ressursen som tildelt.
-        ressurs.Status = "Tildelt";
+        // Tar ressursen i ett steg: sjekker at den fortsatt er tilgjengelig
+        // og markerer den som tildelt. Da kan ikke to personer ta den samtidig.
+        if (!RessursController.ForsokTildel(ressursId))
+        {
+            TempData["Feil"] = "Ressursen er ikke lenger tilgjengelig.";
 
-        // Marker behovet som tildelt.
-        behov.Status = BehovStatus.Assigned;
-        behov.SistEndretTid = DateTime.UtcNow;
+            return RedirectToAction(
+                nameof(Match),
+                new { id = behovId });
+        }
 
-        await _db.SaveChangesAsync();
+        // Marker behovet som tildelt. Hvis lagringen feiler, gir vi
+        // ressursen tilbake, så den ikke blir stående som «Tildelt» uten behov.
+        try
+        {
+            behov.Status = BehovStatus.Assigned;
+            behov.SistEndretTid = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+        }
+        catch
+        {
+            RessursController.Frigjor(ressursId);
+            throw;
+        }
 
         // Viser resultatet etter tildelingen.
         return RedirectToAction(
@@ -218,11 +253,14 @@ public class TildelingController : Controller
                     "ATV" or
                     "Snøskuter" or
                     "Lastebil" or
-                    "Båt",
+                    "Båt" or
+                    "Lokaler",
 
-            // Andre behov kan matches med ressursen "Annet".
-            BehovType.Annet =>
-                ressursType == "Annet",
+            // «Annet» er et behov som ikke passer i de andre gruppene
+            // (for eksempel rydding etter storm eller samband). Da kan alle
+            // ressurstyper vurderes, så også gravemaskin, sand/grus og
+            // sambandsutstyr kan tildeles et behov.
+            BehovType.Annet => true,
 
             _ => false
         };
@@ -233,6 +271,11 @@ public class TildelingController : Controller
         BehovType behovType,
         string ressursType)
     {
+        if (behovType == BehovType.Annet)
+        {
+            return $"Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{ressursType}».";
+        }
+
         return $"Ressurstypen «{ressursType}» passer til behovstypen «{Visningstekst.Type(behovType)}».";
     }
 }

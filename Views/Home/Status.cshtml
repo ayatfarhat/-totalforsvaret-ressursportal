@@ -1,0 +1,24 @@
+@{
+    int kode = ViewBag.Kode ?? 0;
+    bool ikkeFunnet = kode == 404;
+    ViewData["Title"] = ikkeFunnet ? "Siden finnes ikke" : "Noe gikk galt";
+}
+
+<div class="melding-side">
+    <svg class="symbol" viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+        <circle cx="36" cy="36" r="34" fill="#FCE9E3" stroke="#C93A17" stroke-width="3" />
+        <path d="M36 20v20" stroke="#A52E10" stroke-width="6" stroke-linecap="round" />
+        <circle cx="36" cy="51" r="3.6" fill="#A52E10" />
+    </svg>
+    @if (ikkeFunnet)
+    {
+        <h1>Siden finnes ikke</h1>
+        <p>Vi fant ikke siden du lette etter. Den kan være flyttet, eller lenken kan være feil.</p>
+    }
+    else
+    {
+        <h1>Noe gikk galt</h1>
+        <p>Forespørselen kunne ikke fullføres (feilkode @kode). Gå tilbake og prøv igjen.</p>
+    }
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
+</div>

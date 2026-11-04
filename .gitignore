@@ -485,3 +485,9 @@ $RECYCLE.BIN/
 *.db
 *.db-shm
 *.db-wal
+
+# Bilder som brukere laster opp mens appen kjører
+wwwroot/uploads/
+
+# Lokale innstillinger for Claude
+.claude/

@@ -14,7 +14,7 @@ public class HomeController : Controller
         // Lager en ViewModel med data til nettsiden
         var viewModel = new HomeViewModel
         {
-            Title = "Nabohjelp",
+            Title = "BeredskapsPortalen",
             Message = "En plattform for deling av ressurser under kriser og nødsituasjoner."
         };
 
@@ -31,5 +31,15 @@ public class HomeController : Controller
         {
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
         });
+    }
+
+    // Side for feilkoder (for eksempel 404). Brukes av
+    // UseStatusCodePagesWithReExecute("/Home/Status/{0}") i Program.cs.
+    [Route("Home/Status/{kode:int}")]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Status(int kode)
+    {
+        ViewBag.Kode = kode;
+        return View();
     }
 }

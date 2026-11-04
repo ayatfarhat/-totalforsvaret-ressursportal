@@ -4,12 +4,15 @@
     ViewData["Title"] = "Tildeling";
 }
 
-<!-- Overskrift -->
-<h1>Tildeling og matching</h1>
+<div class="side-topp">
+    <h1>Tildeling og matching</h1>
+    <p class="ingress">Velg et behov for å finne tilgjengelige ressurser som passer.</p>
+</div>
 
-<p>
-    Velg et behov for å finne tilgjengelige ressurser som passer.
-</p>
+@if (TempData["Feil"] is string feil)
+{
+    <div class="alert alert-danger" role="alert">@feil</div>
+}
 
 @if (!Model.Any())
 {
@@ -20,37 +23,46 @@
 }
 else
 {
-    <!-- Gjør tabellen responsiv på små skjermer -->
+    <div class="liste-topp">
+        <h2>Aktive behov</h2>
+        <span class="antall">@Model.Count()</span>
+    </div>
+
+    <!-- På mobil blir hver rad et lite kort (klassen «stablet») -->
     <div class="table-responsive">
-        <table class="table table-striped align-middle">
+        <table class="table stablet align-middle">
 
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Behov</th>
-                    <th>Prioritet</th>
-                    <th>Status</th>
-                    <th>Beskrivelse</th>
-                    <th></th>
+                    <th scope="col">Nr.</th>
+                    <th scope="col">Behov</th>
+                    <th scope="col">Prioritet</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Beskrivelse</th>
+                    <th scope="col"><span class="visually-hidden">Handling</span></th>
                 </tr>
             </thead>
 
             <tbody>
                 @foreach (var behov in Model)
                 {
-                    <tr>
-                        <td>@behov.Id</td>
-                        <td>@behov.Type</td>
-                        <td>@behov.Prioritet</td>
-                        <td>@behov.Status</td>
+                    <tr class="@(behov.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "rad-akutt" : "")">
+                        <td data-label="Nr.">@behov.Id</td>
+                        <td data-label="Behov"><strong>@Nabohjelp.Models.Visningstekst.Type(behov.Type)</strong></td>
+                        <td data-label="Prioritet">
+                            <span class="merke @(behov.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Nabohjelp.Models.Visningstekst.Prioritet(behov.Prioritet)</span>
+                        </td>
+                        <td data-label="Status">
+                            <span class="merke @(behov.Status == Nabohjelp.Models.BehovStatus.Assigned ? "merke-gi" : behov.Status == Nabohjelp.Models.BehovStatus.UnderReview ? "merke-lys" : "")">@Nabohjelp.Models.Visningstekst.Status(behov.Status)</span>
+                        </td>
 
-                        <td>
+                        <td data-label="Beskrivelse">
                             @(string.IsNullOrWhiteSpace(behov.Beskrivelse)
                                 ? "Ingen beskrivelse"
                                 : behov.Beskrivelse)
                         </td>
 
-                        <td>
+                        <td data-label="">
                             <!-- Åpner matching for dette behovet -->
                             <a asp-controller="Tildeling"
                                asp-action="Match"

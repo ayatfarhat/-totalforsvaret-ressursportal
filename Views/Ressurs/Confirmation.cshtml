@@ -30,6 +30,10 @@
             <div><dt>Koordinater</dt><dd>@Model.VisKoordinater()</dd></div>
             <div><dt>Tilgjengelig fra</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
             <div><dt>Beskrivelse</dt><dd>@Model.VisBeskrivelse()</dd></div>
+            @if (!string.IsNullOrEmpty(Model.BildeSti))
+            {
+                <div><dt>Bilde</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="Bilde av ressursen: @Model.Type" /></dd></div>
+            }
             <div><dt>Navn</dt><dd>@Model.VisNavn()</dd></div>
             <div><dt>Telefon</dt><dd>@Model.VisTelefon()</dd></div>
             <div><dt>Status</dt><dd><span class="merke merke-gi">@Model.Status</span></dd></div>

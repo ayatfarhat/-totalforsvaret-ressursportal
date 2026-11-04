@@ -52,7 +52,12 @@ public class AccountController : Controller
         var resultat = await _userManager.CreateAsync(bruker, model.Passord);
         if (!resultat.Succeeded)
         {
-            ModelState.AddModelError("", "Kunne ikke lage brukeren. Prøv igjen.");
+            // Identity har egne passordregler. Vi oversetter feilene til norsk,
+            // slik at brukeren får vite hva som mangler i stedet for en generell melding.
+            foreach (var feil in resultat.Errors)
+            {
+                ModelState.AddModelError("", OversettFeil(feil.Code));
+            }
             return View(model);
         }
 
@@ -67,17 +72,21 @@ public class AccountController : Controller
     // ---------- INNLOGGING ----------
 
     // GET: /Account/Login  -> viser skjemaet
+    // returnUrl er siden brukeren prøvde å åpne før hen ble sendt til innlogging.
     [HttpGet]
-    public IActionResult Login()
+    public IActionResult Login(string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
     // POST: /Account/Login  -> sjekker e-post og passord
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel model)
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -89,13 +98,13 @@ public class AccountController : Controller
 
         if (resultat.Succeeded)
         {
-            return RedirectToAction("Index", "Home");
+            return TilbakeEllerForside(returnUrl);
         }
 
         if (resultat.RequiresTwoFactor)
         {
             // Riktig passord, men brukeren har 2FA og må skrive inn kode
-            return RedirectToAction("LoginWith2fa");
+            return RedirectToAction("LoginWith2fa", new { returnUrl });
         }
 
         if (resultat.IsLockedOut)
@@ -111,16 +120,19 @@ public class AccountController : Controller
 
     // GET: /Account/LoginWith2fa  -> ber om koden fra appen
     [HttpGet]
-    public IActionResult LoginWith2fa()
+    public IActionResult LoginWith2fa(string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
     // POST: /Account/LoginWith2fa  -> sjekker koden
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LoginWith2fa(TofaViewModel model)
+    public async Task<IActionResult> LoginWith2fa(TofaViewModel model, string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -131,11 +143,47 @@ public class AccountController : Controller
 
         if (resultat.Succeeded)
         {
-            return RedirectToAction("Index", "Home");
+            return TilbakeEllerForside(returnUrl);
         }
 
         ModelState.AddModelError("Kode", "Feil kode");
         return View(model);
+    }
+
+    // Sender brukeren tilbake til siden hen kom fra. Vi tillater bare adresser på
+    // vår egen side (IsLocalUrl), slik at ingen kan lage en lenke som sender
+    // brukeren videre til en falsk nettside etter innlogging.
+    private IActionResult TilbakeEllerForside(string? returnUrl)
+    {
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
+
+        return RedirectToAction("Index", "Home");
+    }
+
+    // Gjør feilkodene fra Identity om til norsk tekst.
+    private static string OversettFeil(string kode)
+    {
+        switch (kode)
+        {
+            case "PasswordTooShort":
+                return "Passordet er for kort. Det må ha minst 8 tegn.";
+            case "PasswordRequiresDigit":
+                return "Passordet må ha minst ett tall.";
+            case "PasswordRequiresLower":
+                return "Passordet må ha minst én liten bokstav.";
+            case "PasswordRequiresUpper":
+                return "Passordet må ha minst én stor bokstav.";
+            case "PasswordRequiresNonAlphanumeric":
+                return "Passordet må ha minst ett spesialtegn, for eksempel !";
+            case "DuplicateUserName":
+            case "DuplicateEmail":
+                return "E-posten er allerede registrert";
+            default:
+                return "Kunne ikke lage brukeren. Prøv igjen.";
+        }
     }
 
     // ---------- UTLOGGING ----------

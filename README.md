@@ -4,7 +4,7 @@ IS-200 / IS-201 / IS-202 – Kriseberedskap, ressurs- og behovsportal for Totalf
 
 ## Om Prosjektet
 
-Nabohjelp er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
+BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 

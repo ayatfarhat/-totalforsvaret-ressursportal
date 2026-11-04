@@ -1,5 +1,5 @@
 /* =====================================================================
-   Nabohjelp – designsystem
+   BeredskapsPortalen – designsystem
    ---------------------------------------------------------------------
    Idé: «lys i vinduet». Når krisen rammer, er et opplyst vindu tegnet på
    at noen er hjemme og kan hjelpe. Logoen, forsiden og fargene bygger på det.
@@ -358,6 +358,8 @@ textarea.form-control { min-height: 7rem; }
     color: var(--natt);
 }
 .navbar-brand:hover { color: var(--natt); }
+/* «BeredskapsPortalen» er et langt navn: litt mindre på de smaleste mobilene, så menyknappen får plass */
+@media (max-width: 22.5rem) { .navbar-brand { font-size: 1.2rem; gap: .5rem; } }
 
 .logo-icon { display: inline-block; flex: none; line-height: 0; }
 .logo-icon svg { width: 100%; height: 100%; display: block; }
@@ -404,7 +406,8 @@ textarea.form-control { min-height: 7rem; }
 .sidefot .fot-merke { display: flex; align-items: center; gap: .65rem; font-family: var(--font-visning); font-weight: 700; font-size: 1.3rem; color: #fff; }
 .sidefot p { margin: .75rem 0 0; max-width: 40ch; }
 .sidefot h2 { font-size: 1rem; color: #fff; margin: 0 0 .6rem; letter-spacing: 0; }
-.sidefot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.sidefot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
+.sidefot ul a { display: inline-block; padding-block: .25rem; } /* stor nok trykkflate på mobil */
 .sidefot .fot-bunn { margin-top: 2rem; padding-top: 1.1rem; border-top: 1px solid #2B4357; font-size: .9rem; max-width: none; }
 @media (max-width: 575.98px) { .sidefot .fot-rutenett { grid-template-columns: 1fr; } }
 
@@ -443,16 +446,107 @@ textarea.form-control { min-height: 7rem; }
 .hero-merknad { margin: 1rem 0 0; font-size: .975rem; color: var(--dempet); }
 
 .hero-bilde { margin: 0; }
-.hero-bilde svg { width: 100%; height: auto; display: block; border-radius: 28px; box-shadow: 0 18px 40px rgba(18, 33, 45, .22); }
 .hero-bilde figcaption { margin-top: .85rem; font-size: .975rem; color: var(--dempet); display: flex; flex-wrap: wrap; gap: .35rem 1.25rem; }
 .hero-bilde figcaption span { display: inline-flex; align-items: center; gap: .45rem; }
 .hero-bilde figcaption i { width: .75rem; height: .75rem; border-radius: 50%; display: inline-block; }
 
-/* Eneste bevegelse på forsiden: vinduet som trenger hjelp, lyser rolig */
-.puls { transform-box: fill-box; transform-origin: center; animation: puls 2.6s ease-in-out infinite; }
-@keyframes puls { 0%, 100% { opacity: .22; transform: scale(1); } 50% { opacity: .5; transform: scale(1.35); } }
+/* Scenen på forsiden: et behov blir koblet med en ressurs en uværsnatt */
+.scene {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: grid;
+    align-content: center;
+    gap: 0;
+    min-height: 22rem;
+    padding: clamp(1.1rem, 3vw, 1.75rem);
+    padding-bottom: clamp(4.5rem, 9vw, 6.5rem); /* plass til åsene og strømmastene nederst */
+    border-radius: 28px;
+    background: var(--natt);
+    box-shadow: 0 18px 40px rgba(18, 33, 45, .22);
+}
+.scene-bakgrunn { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+
+.scene-varsel {
+    justify-self: start;
+    display: inline-flex; align-items: center; gap: .5rem;
+    margin: 0 0 1.1rem;
+    padding: .35rem .75rem .35rem .6rem;
+    border-radius: 999px;
+    background: rgba(243, 245, 244, .1);
+    color: #E9EEF1;
+    font-size: .9rem; font-weight: 600;
+}
+.varsel-trekant {
+    width: 1rem; height: .9rem; flex: none;
+    background: #F28C28;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.scene-kort {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .8rem;
+    width: min(100%, 23rem);
+    padding: .85rem 1rem;
+    border-radius: var(--radius-stor);
+    background: var(--flate);
+    color: var(--natt);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .28);
+}
+.kort-behov { justify-self: start; }
+.kort-ressurs { justify-self: end; }
+
+.kort-ikon { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 12px; }
+.kort-ikon svg { width: 1.4rem; height: 1.4rem; }
+.kort-behov .kort-ikon { background: var(--hjelp-lys); color: var(--hjelp); }
+.kort-ressurs .kort-ikon { background: var(--gi-lys); color: var(--gi); }
+
+.kort-tekst { display: grid; gap: .1rem; min-width: 0; }
+.kort-tekst strong { font-family: var(--font-visning); font-size: 1.08rem; line-height: 1.2; }
+.kort-tekst span { font-size: .9rem; color: var(--dempet); }
+
+.kort-status {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .25rem .6rem; border-radius: 999px;
+    font-size: .82rem; font-weight: 700; white-space: nowrap;
+}
+.status-haster { background: var(--hjelp-lys); color: var(--hjelp-mork); }
+.status-klar { background: var(--gi-lys); color: var(--gi-mork); }
+
+/* Eneste bevegelse på forsiden: prikken ved «Haster» blinker rolig */
+.signal { position: relative; width: .5rem; height: .5rem; border-radius: 50%; background: var(--hjelp); }
+.signal::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid var(--hjelp);
+    animation: signal 2.4s ease-out infinite;
+}
+@keyframes signal { 0% { opacity: .7; transform: scale(.6); } 100% { opacity: 0; transform: scale(1.6); } }
+
+.scene-kobling { position: relative; height: 4.5rem; margin-inline: 1.5rem; }
+.scene-kobling > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.kobling-merke {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .3rem .75rem .3rem .6rem; border-radius: 999px;
+    background: var(--lys); color: var(--natt);
+    font-family: var(--font-visning); font-size: .9rem; font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+}
+.kobling-merke svg { width: 1rem; height: 1rem; }
+
+@media (max-width: 30rem) {
+    .scene { min-height: 0; padding-bottom: 3.5rem; }
+    .scene-kort { grid-template-columns: auto minmax(0, 1fr); width: 100%; }
+    .kort-status { grid-column: 2; justify-self: start; }
+    .scene-kobling { height: 3.5rem; }
+}
 @media (prefers-reduced-motion: reduce) {
-    .puls { animation: none; opacity: .35; }
+    .signal::after { animation: none; opacity: .5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     * { transition: none !important; }
 }
@@ -537,6 +631,11 @@ textarea.form-control { min-height: 7rem; }
 
 /* Valgfliser: store, tydelige alternativer i stedet for lang nedtrekksliste */
 .type-valg { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: .6rem; }
+/* På mobil: to kolonner, så lange typelister ikke blir én lang rad å scrolle forbi */
+@media (min-width: 22.5rem) and (max-width: 30rem) {
+    .type-valg:not(.type-valg-bred) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .type-valg:not(.type-valg-bred) label { padding: .55rem .65rem; gap: .5rem; font-size: .95rem; hyphens: auto; }
+}
 .type-valg-element { position: relative; }
 .type-valg input {
     position: absolute;
@@ -702,7 +801,7 @@ textarea.form-control { min-height: 7rem; }
 .sammendrag > div { display: grid; grid-template-columns: 11rem 1fr; gap: .25rem 1rem; padding: .8rem 0; border-bottom: 1px solid var(--linje); }
 .sammendrag > div:last-child { border-bottom: 0; }
 .sammendrag dt { color: var(--dempet); font-weight: 600; }
-.sammendrag dd { margin: 0; overflow-wrap: anywhere; }
+.sammendrag dd { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
 @media (max-width: 575.98px) { .sammendrag > div { grid-template-columns: 1fr; } }
 .kvittering .kart-boks { margin-top: 1.25rem; height: 240px; }
 .kvittering-handling { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; margin-top: 2rem; }
@@ -742,7 +841,7 @@ textarea.form-control { min-height: 7rem; }
 
 
 /* ---------- 8. Kommandobro (mørk visning for nødetater) ----------
-   Kommandobro og Nabohjelp ser bevisst forskjellige ut: to ulike
+   Kommandobro og BeredskapsPortalen ser bevisst forskjellige ut: to ulike
    brukergrupper. Her gjelder mørk bakgrunn, men samme skrift og logo. */
 
 body.kb {
@@ -779,6 +878,11 @@ body.kb {
 .kb .navbar-kommandobro .nav-link.active { box-shadow: inset 0 -3px 0 var(--lys); border-radius: var(--radius) var(--radius) 0 0; }
 .kb .navbar-kommandobro .navbar-toggler { border-color: var(--kb-linje); }
 .kb .navbar-kommandobro .navbar-toggler-icon { filter: invert(1); }
+/* På smale mobiler står «BeredskapsPortalen» under «Kommandobro», så menyknappen får plass på samme linje */
+@media (max-width: 30rem) {
+    .kb .navbar-kommandobro .navbar-brand > span:last-child { display: flex; flex-direction: column; line-height: 1.15; }
+    .kb .navbar-kommandobro .navbar-brand small { font-size: .8rem; }
+}
 .kb .navbar-nav { gap: .15rem; align-items: center; }
 .kb .brukernavn { color: var(--kb-dempet); font-size: .95rem; padding-inline: .5rem; }
 @media (max-width: 767.98px) { .kb .navbar-kommandobro .navbar-nav { align-items: stretch; } }
@@ -800,7 +904,10 @@ body.kb {
 .kb .btn-omriss { --bs-btn-color: var(--kb-tekst); --bs-btn-border-color: var(--kb-linje); --bs-btn-hover-bg: var(--kb-panel-2); --bs-btn-hover-border-color: var(--kb-dempet); --bs-btn-hover-color: #fff; }
 
 .kb-tall { display: grid; grid-template-columns: repeat(2, minmax(0, 14rem)); gap: 1rem; margin-bottom: 1.25rem; }
-@media (max-width: 575.98px) { .kb-tall { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 575.98px) {
+    .kb-tall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kb-tall > div { flex-direction: column; gap: .35rem; min-width: 0; }
+}
 .kb-tall > div { padding: .9rem 1.2rem; display: flex; align-items: baseline; gap: .75rem; }
 .kb-tall strong { font-family: var(--font-visning); font-size: 2.1rem; line-height: 1; }
 .kb-tall span { color: var(--kb-dempet); font-size: .975rem; line-height: 1.25; }
@@ -817,3 +924,20 @@ body.kb {
 @media (max-width: 575.98px) { #oversiktsKart { height: 380px; } }
 .kb-kartstatus { margin: .75rem 0 0; color: var(--kb-dempet); font-size: .95rem; }
 .kb .leaflet-popup-content { color: var(--natt); font-family: var(--font-tekst); }
+
+/* Landskode + telefonnummer på samme rad */
+.telefon-rad { display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: .5rem; }
+.telefon-rad .form-select { min-width: 0; }
+@media (max-width: 575.98px) { .telefon-rad { grid-template-columns: 8.5rem 1fr; } }
+
+/* Bilder av ressurser */
+.ressurs-bilde { display: block; max-width: 100%; max-height: 12rem; margin-top: .75rem; border-radius: var(--radius); border: 1px solid var(--linje); object-fit: cover; }
+.ressurs-miniatyr { width: 3.5rem; height: 3.5rem; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--linje); flex: 0 0 auto; }
+.type-med-bilde { display: flex; align-items: center; gap: .6rem; }
+@media (max-width: 767.98px) { .stablet .ressurs-miniatyr { width: 3rem; height: 3rem; } }
+
+/* Boks for ønskede ressurser på siden «Ressurser og behov» */
+.onsket-boks { margin-bottom: 2.5rem; }
+
+/* Telefonnummer skal ikke deles over to linjer */
+a[href^="tel:"] { white-space: nowrap; }

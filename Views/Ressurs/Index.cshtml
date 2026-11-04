@@ -1,12 +1,16 @@
 @model List<Nabohjelp.Models.RessursFormViewModel>
 
 @{
-    ViewData["Title"] = "Nabohjelp";
+    ViewData["Title"] = "Ressurser og behov";
     bool erInnlogget = User.Identity?.IsAuthenticated == true;
+
+    // Adresse, navn og telefon er personopplysninger. De vises bare for
+    // Admin og Kommune (samme regel som for kvitteringen).
+    bool kanSePrivat = User.IsInRole("Admin") || User.IsInRole("Kommune");
 }
 
 <div class="side-topp">
-    <h1>Nabohjelp</h1>
+    <h1>Ressurser og behov</h1>
     <p class="ingress">Trenger du hjelp, eller kan du bidra? Velg riktig spor.</p>
 </div>
 
@@ -28,6 +32,22 @@
     </section>
 </div>
 
+<section class="spor-kort onsket-boks" aria-labelledby="onsket-tittel">
+    <h2 id="onsket-tittel">Ønskede ressurser</h2>
+    <p>
+        @if ((int)ViewBag.AntallOnskede > 0)
+        {
+            int antallOnskede = (int)ViewBag.AntallOnskede;
+            <text>Kommunen og kriseledelsen har akkurat nå <strong>@antallOnskede</strong> @(antallOnskede == 1 ? "ønske" : "ønsker"). Se om du kan stille med noe.</text>
+        }
+        else
+        {
+            <text>Her ser du hva kommunen og kriseledelsen ønsker at innbyggere registrerer.</text>
+        }
+    </p>
+    <a class="btn btn-outline-secondary" asp-controller="OnsketRessurs" asp-action="Index">Se ønskede ressurser</a>
+</section>
+
 <section aria-labelledby="liste-tittel">
     <div class="liste-topp">
         <h2 id="liste-tittel">Registrerte ressurser</h2>
@@ -47,34 +67,58 @@
     }
     else
     {
+        @if (!kanSePrivat)
+        {
+            <p class="kart-tips">Adresse og kontaktinfo vises bare for kommunen og kriseledelsen.</p>
+        }
         <div class="table-responsive">
             <table class="table stablet align-middle">
                 <thead>
                     <tr>
                         <th scope="col">Type</th>
-                        <th scope="col">Posisjon</th>
+                        @if (kanSePrivat)
+                        {
+                            <th scope="col">Posisjon</th>
+                        }
                         <th scope="col">Tilgjengelig fra</th>
                         <th scope="col">Status</th>
-                        <th scope="col">Kontakt</th>
+                        @if (kanSePrivat)
+                        {
+                            <th scope="col">Kontakt</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var ressurs in Model)
                     {
                         <tr>
-                            <td data-label="Type"><strong>@ressurs.Type</strong></td>
-                            <td data-label="Posisjon">@ressurs.Posisjon</td>
+                            <td data-label="Type">
+                                <span class="type-med-bilde">
+                                    @if (!string.IsNullOrEmpty(ressurs.BildeSti))
+                                    {
+                                        <img src="@ressurs.BildeSti" class="ressurs-miniatyr" alt="Bilde av @ressurs.Type" loading="lazy" />
+                                    }
+                                    <strong>@ressurs.Type</strong>
+                                </span>
+                            </td>
+                            @if (kanSePrivat)
+                            {
+                                <td data-label="Posisjon">@ressurs.Posisjon</td>
+                            }
                             <td data-label="Tilgjengelig fra">@ressurs.VisTilgjengeligFra()</td>
                             <td data-label="Status">
                                 <span class="merke @(ressurs.Status == "Tilgjengelig" ? "merke-gi" : "")">@ressurs.Status</span>
                             </td>
-                            <td data-label="Kontakt">
-                                @ressurs.Navn
-                                @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
-                                {
-                                    <a href="tel:@ressurs.Telefon">@ressurs.Telefon</a>
-                                }
-                            </td>
+                            @if (kanSePrivat)
+                            {
+                                <td data-label="Kontakt">
+                                    @ressurs.Navn
+                                    @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
+                                    {
+                                        <a href="tel:@ressurs.TelefonLenke()">@ressurs.VisTelefon()</a>
+                                    }
+                                </td>
+                            }
                         </tr>
                     }
                 </tbody>

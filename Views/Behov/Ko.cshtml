@@ -71,7 +71,7 @@ else
                 @foreach (var b in Model)
                 {
                     <tr class="@(b.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
-                        <td data-label="Type"><strong>@b.Type</strong></td>
+                        <td data-label="Type"><strong>@Nabohjelp.Models.Visningstekst.Type(b.Type)</strong></td>
                         <td data-label="Prioritet">
                             @if (b.Prioritet == BehovPrioritet.Urgent)
                             {
@@ -84,7 +84,7 @@ else
                         </td>
                         <td data-label="Status"><span class="merke @StatusFarge(b.Status)">@StatusTekst(b.Status)</span></td>
                         <td data-label="Beskrivelse">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</td>
-                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("g")</td>
+                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                         <td data-label="" class="ko-handling">
                             @foreach (var neste in b.MuligeNesteStatuser)
                             {

@@ -3,8 +3,8 @@
     ViewData["Title"] = "Slå på 2FA";
 
     // Teksten som gjøres om til QR-kode. Autentiseringsappen forstår dette formatet.
-    var qrTekst = "otpauth://totp/Nabohjelp:" + Uri.EscapeDataString(User.Identity?.Name ?? "")
-                  + "?secret=" + Uri.EscapeDataString(Model.Nokkel) + "&issuer=Nabohjelp";
+    var qrTekst = "otpauth://totp/BeredskapsPortalen:" + Uri.EscapeDataString(User.Identity?.Name ?? "")
+                  + "?secret=" + Uri.EscapeDataString(Model.Nokkel) + "&issuer=BeredskapsPortalen";
 }
 
 <div class="auth auth-bred">
@@ -45,6 +45,9 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        new QRCode(document.getElementById("qrkode"), { text: @Json.Serialize(qrTekst), width: 180, height: 180 });
+        // Hvis QR-biblioteket ikke ble lastet, kan brukeren skrive inn nøkkelen under i stedet.
+        if (typeof QRCode !== "undefined") {
+            new QRCode(document.getElementById("qrkode"), { text: @Json.Serialize(qrTekst), width: 180, height: 180 });
+        }
     </script>
 }
