@@ -1,0 +1,58 @@
+@model List<Nabohjelp.Models.Behov>
+@using Nabohjelp.Models
+
+@{
+    ViewData["Title"] = "Mine behov";
+
+    bool erAdminEllerKommune =
+        User.IsInRole("Admin") || User.IsInRole("Kommune");
+}
+
+<div class="container mt-4">
+    <h1>
+        @(erAdminEllerKommune ? "Alle registrerte behov" : "Mine behov")
+    </h1>
+
+    <p>
+        Her kan du se registrerte behov og statusen deres.
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            Ingen behov er registrert.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Beskrivelse</th>
+                    <th>Prioritet</th>
+                    <th>Status</th>
+                    <th>Registrert</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var behov in Model)
+                {
+                    <tr>
+                        <td>@Visningstekst.Type(behov.Type)</td>
+                        <td>@behov.Beskrivelse</td>
+                        <td>@behov.Prioritet</td>
+                        <td>@Visningstekst.Status(behov.Status)</td>
+                        <td>@behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <a asp-controller="Behov"
+       asp-action="Opprett"
+       class="btn btn-primary">
+        Registrer nytt behov
+    </a>
+</div>
