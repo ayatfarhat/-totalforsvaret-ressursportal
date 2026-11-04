@@ -20,8 +20,8 @@ namespace Nabohjelp.Models
         [StringLength(300, ErrorMessage = "Beskrivelsen kan ikke være lengre enn 300 tegn.")]
         public string? Beskrivelse { get; set; }
 
-        // Settes av controlleren, ikke av bruker
-        public DateTime Opprettet { get; set; } = DateTime.Now;
+        // Settes av controlleren, ikke av bruker (lagres i UTC, som resten av databasen)
+        public DateTime Opprettet { get; set; } = DateTime.UtcNow;
 
         public string VisBeskrivelse()
         {

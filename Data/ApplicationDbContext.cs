@@ -19,6 +19,9 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<Ressurs> Ressurser { get; set; } = null!;
     public DbSet<Tildeling> Tildelinger { get; set; } = null!;
 
+    // Ressurser som kommunen eller kriseledelsen ønsker at innbyggere registrerer.
+    public DbSet<OnsketRessurs> OnskedeRessurser { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder builder)
 {
     // Beholder Identity-oppsettet for brukere og roller.

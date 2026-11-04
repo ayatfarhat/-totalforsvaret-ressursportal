@@ -59,7 +59,7 @@ namespace Nabohjelp.Controllers
             var modeller = ressurser.Select(TilViewModel).ToList();
 
             // Antall ønskede ressurser vises i en egen boks på siden.
-            ViewBag.AntallOnskede = OnsketRessursController.Antall();
+            ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
             ViewBag.ErKoordinator = erKoordinator;
 
             return View(modeller);
