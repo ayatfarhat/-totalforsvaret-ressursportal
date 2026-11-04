@@ -831,7 +831,13 @@ textarea.form-control { min-height: 7rem; }
 .melding-side p { margin: 0 auto 1.5rem; color: var(--dempet); }
 .melding-side small { display: block; margin-top: 1.5rem; color: var(--dempet); }
 
-.ko-handling form { display: inline; }
+/* Knappene i køen står under hverandre med luft mellom, like brede og på én linje. */
+.ko-knapper { display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
+.ko-knapper .btn { width: 100%; white-space: nowrap; }
+@media (max-width: 767.98px) {
+    .ko-knapper { flex-direction: row; flex-wrap: wrap; }
+    .ko-knapper .btn { width: auto; }
+}
 .rad-akutt td:first-child { box-shadow: inset 4px 0 0 var(--hjelp); }
 .stablet td[data-label=""]::before { display: none; }
 @media (max-width: 767.98px) {

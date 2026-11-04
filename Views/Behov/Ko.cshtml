@@ -104,14 +104,16 @@ else
                             </span>
                         </td>
                         <td data-label="" class="ko-handling">
-                            @foreach (var neste in b.MuligeNesteStatuser)
-                            {
-                                <form asp-action="EndreStatus" method="post">
-                                    <input type="hidden" name="id" value="@b.Id" />
-                                    <input type="hidden" name="nyStatus" value="@neste" />
-                                    <button type="submit" class="@KnappKlasse(neste)">@KnappTekst(neste)</button>
-                                </form>
-                            }
+                            <div class="ko-knapper">
+                                @foreach (var neste in b.MuligeNesteStatuser)
+                                {
+                                    <form asp-action="EndreStatus" method="post">
+                                        <input type="hidden" name="id" value="@b.Id" />
+                                        <input type="hidden" name="nyStatus" value="@neste" />
+                                        <button type="submit" class="@KnappKlasse(neste)">@KnappTekst(neste)</button>
+                                    </form>
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
