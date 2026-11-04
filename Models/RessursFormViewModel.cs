@@ -22,6 +22,9 @@ namespace Nabohjelp.Models
         public string? Beskrivelse { get; set; }
 
         public string? Navn { get; set; }
+public int Id { get; set; }
+
+        public string? OpprettetAvBrukerId { get; set; }
 
         [Phone(ErrorMessage = "Ugyldig telefonnummer.")]
         public string? Telefon { get; set; }

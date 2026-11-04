@@ -1,4 +1,5 @@
 using Nabohjelp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Nabohjelp.Controllers
@@ -6,37 +7,47 @@ namespace Nabohjelp.Controllers
     public class RessursController : Controller
     {
         // Midlertidig lagring av ressurser i minnet.
-        // Skal senere erstattes med EF Core/database.
         private static readonly List<RessursFormViewModel> _midlertidigListe = new();
 
-        // Brukes for å låse listen når vi legger til nye ressurser.
         private static readonly object _laas = new();
+        private static int _nesteId = 0;
 
         // Gjør ressursene tilgjengelige for matching.
-        // Listen kan leses, men ikke erstattes utenfra.
         public static IReadOnlyList<RessursFormViewModel> HentRessurser()
         {
-            return _midlertidigListe.AsReadOnly();
+            lock (_laas)
+            {
+                return _midlertidigListe.ToList().AsReadOnly();
+            }
         }
 
-        // Henter én bestemt ressurs.
+        // Sletter alle ressurser registrert av en bestemt bruker.
+        public static void SlettRessurserForBruker(string brukerId)
+        {
+            lock (_laas)
+            {
+                _midlertidigListe.RemoveAll(
+                    ressurs => ressurs.OpprettetAvBrukerId == brukerId);
+            }
+        }
+
+        // Henter en ressurs ved hjelp av dens faste ID.
         public static RessursFormViewModel? HentRessurs(int id)
         {
-            if (id < 0 || id >= _midlertidigListe.Count)
+            lock (_laas)
             {
-                return null;
+                return _midlertidigListe.FirstOrDefault(r => r.Id == id);
             }
-
-            return _midlertidigListe[id];
         }
 
         // GET: /Ressurs
         public IActionResult Index()
         {
-            return View(_midlertidigListe);
+            return View(HentRessurser());
         }
 
         // GET: /Ressurs/Create
+        [Authorize]
         [HttpGet]
         public IActionResult Create()
         {
@@ -44,11 +55,11 @@ namespace Nabohjelp.Controllers
         }
 
         // POST: /Ressurs/Create
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(RessursFormViewModel model)
         {
-            // Kontrollerer at tidspunktet ikke ligger i fortiden.
             if (!model.ErValidTilgjengeligFra())
             {
                 ModelState.AddModelError(
@@ -56,60 +67,65 @@ namespace Nabohjelp.Controllers
                     "Tidspunkt kan ikke ligge i fortiden.");
             }
 
-            // Viser skjemaet igjen hvis dataene er ugyldige.
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // Ny ressurs blir tilgjengelig for matching.
             model.Status = "Tilgjengelig";
 
-            // Låser listen mens vi legger til, slik at to innsendinger
-            // samtidig ikke får samme id.
-            int nyId;
-            lock (_laas)
+            // Knytter ressursen til innlogget bruker.
+            model.OpprettetAvBrukerId =
+                User.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(model.OpprettetAvBrukerId))
             {
-                _midlertidigListe.Add(model);
-                nyId = _midlertidigListe.Count - 1;
+                return Challenge();
             }
 
-            // Husker at denne nettleseren har sendt inn ressursen,
-            // slik at bare innsenderen får se kvitteringen.
+            // Gir ressursen en unik ID.
+            int nyId;
+
+            lock (_laas)
+            {
+                nyId = _nesteId++;
+                model.Id = nyId;
+                _midlertidigListe.Add(model);
+            }
+
             HuskInnsendtId(nyId);
 
-            // Sender brukeren til bekreftelsessiden.
             return RedirectToAction("Confirmation", new { id = nyId });
         }
 
         // GET: /Ressurs/Confirmation
         public IActionResult Confirmation(int id)
         {
-            if (id < 0 || id >= _midlertidigListe.Count)
+            var ressurs = HentRessurs(id);
+
+            if (ressurs == null)
             {
                 return RedirectToAction("Index");
             }
 
-            // Kvitteringen viser navn, telefon og adresse.
-            // Derfor får bare innsenderen, Admin og Kommune se den.
             bool erAdminEllerKommune =
                 User.IsInRole("Admin") || User.IsInRole("Kommune");
 
-            if (!erAdminEllerKommune && !ErSendtInnAvDenneNettleseren(id))
+            if (!erAdminEllerKommune &&
+                !ErSendtInnAvDenneNettleseren(id))
             {
                 return RedirectToAction("Index");
             }
 
-            return View(_midlertidigListe[id]);
+            return View(ressurs);
         }
 
-        // Sjekker om denne nettleseren selv har sendt inn ressursen.
-        // Id-ene ligger i TempData som tekst, f.eks. "0,3,7".
-        // Peek leser verdien uten å slette den, så kvitteringen
-        // fortsatt vises hvis brukeren oppdaterer siden.
+        // Kontrollerer om denne nettleseren har sendt inn ressursen.
         private bool ErSendtInnAvDenneNettleseren(int id)
         {
-            string? lagret = TempData.Peek("InnsendteRessursIder") as string;
+            string? lagret =
+                TempData.Peek("InnsendteRessursIder") as string;
 
             if (string.IsNullOrEmpty(lagret))
             {
@@ -117,6 +133,7 @@ namespace Nabohjelp.Controllers
             }
 
             string[] ider = lagret.Split(',');
+
             foreach (string lagretId in ider)
             {
                 if (lagretId == id.ToString())
@@ -128,12 +145,11 @@ namespace Nabohjelp.Controllers
             return false;
         }
 
-        // Legger til en ny id i teksten med innsendte ressurser.
-        // TempData lagres i en kryptert informasjonskapsel (cookie),
-        // så brukeren kan ikke selv legge til andres id-er.
+        // Husker ressurs-ID for bekreftelsessiden.
         private void HuskInnsendtId(int id)
         {
-            string? lagret = TempData.Peek("InnsendteRessursIder") as string;
+            string? lagret =
+                TempData.Peek("InnsendteRessursIder") as string;
 
             if (string.IsNullOrEmpty(lagret))
             {
@@ -141,7 +157,8 @@ namespace Nabohjelp.Controllers
             }
             else
             {
-                TempData["InnsendteRessursIder"] = lagret + "," + id;
+                TempData["InnsendteRessursIder"] =
+                    lagret + "," + id;
             }
         }
     }

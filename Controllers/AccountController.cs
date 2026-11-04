@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +15,16 @@ public class AccountController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
-
-    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
-    {
-        _userManager = userManager;
-        _signInManager = signInManager;
-    }
+private readonly ApplicationDbContext _db;
+    public AccountController(
+    UserManager<IdentityUser> userManager,
+    SignInManager<IdentityUser> signInManager,
+    ApplicationDbContext db)
+{
+    _userManager = userManager;
+    _signInManager = signInManager;
+    _db = db;
+}
 
     // ---------- REGISTRERING ----------
 
@@ -231,4 +237,76 @@ public class AccountController : Controller
         TempData["Melding"] = "2FA er slått på!";
         return RedirectToAction("Index");
     }
+   // GET: /Account/SlettKonto
+[Authorize]
+[HttpGet]
+public IActionResult SlettKonto()
+{
+    return View(new SlettKontoViewModel());
+}
+
+// POST: /Account/SlettKonto
+[Authorize]
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> SlettKonto(SlettKontoViewModel model)
+{
+    if (!ModelState.IsValid)
+    {
+        return View(model);
+    }
+
+    var bruker = await _userManager.GetUserAsync(User);
+
+    if (bruker == null)
+    {
+        return RedirectToAction("Login");
+    }
+
+    // Brukeren må bekrefte passordet.
+    bool riktigPassord =
+        await _userManager.CheckPasswordAsync(bruker, model.Passord);
+
+    if (!riktigPassord)
+    {
+        ModelState.AddModelError("Passord", "Feil passord.");
+        return View(model);
+    }
+
+    // Sletter behov og brukerkonto i én databasetransaksjon.
+    await using var transaksjon =
+        await _db.Database.BeginTransactionAsync();
+
+    var behov = await _db.Behovsliste
+        .Where(b => b.OpprettetAvBrukerId == bruker.Id)
+        .ToListAsync();
+
+    _db.Behovsliste.RemoveRange(behov);
+    await _db.SaveChangesAsync();
+
+    var resultat = await _userManager.DeleteAsync(bruker);
+
+    if (!resultat.Succeeded)
+    {
+        await transaksjon.RollbackAsync();
+
+        ModelState.AddModelError(
+            "",
+            "Kunne ikke slette kontoen. Prøv igjen.");
+
+        return View(model);
+    }
+
+    await transaksjon.CommitAsync();
+
+    // Sletter brukerens ressurser fra den midlertidige listen.
+    RessursController.SlettRessurserForBruker(bruker.Id);
+
+    await _signInManager.SignOutAsync();
+
+    TempData["Melding"] =
+        "Kontoen din og tilhørende registreringer er slettet.";
+
+    return RedirectToAction("Index", "Home");
+} 
 }
