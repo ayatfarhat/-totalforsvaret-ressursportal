@@ -1,4 +1,5 @@
 using Nabohjelp.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Nabohjelp.Data;
 using Microsoft.EntityFrameworkCore;
@@ -10,12 +11,13 @@ namespace Nabohjelp.Controllers
     {
         private readonly ApplicationDbContext _db;
 
+        // Gir controlleren tilgang til databasen.
         public RessursController(ApplicationDbContext db)
         {
             _db = db;
         }
 
-
+        // Viser ressurser fra databasen.
         public async Task<IActionResult> Index()
         {
             var ressurser = await _db.Ressurser
@@ -25,87 +27,114 @@ namespace Nabohjelp.Controllers
 
             var modeller = ressurser.Select(TilViewModel).ToList();
 
-             return View(modeller);
+            return View(modeller);
         }
 
-        // GET: /Ressurs/Create
+        // Viser skjemaet for innloggede brukere.
+        [Authorize]
         [HttpGet]
         public IActionResult Create()
         {
             return View(new RessursFormViewModel());
         }
 
-        // POST: /Ressurs/Create
+        // Lagrer en ny ressurs i databasen.
+        [Authorize]
         [HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Create(RessursFormViewModel model)
-{
-    if (!model.ErValidTilgjengeligFra())
-    {
-        ModelState.AddModelError(
-            "TilgjengeligFra",
-            "Tidspunkt kan ikke ligge i fortiden.");
-    }
-
-    if (!ModelState.IsValid)
-    {
-        return View(model);
-    }
-
-    var ressurs = new Ressurs
-    {
-        Type = model.Type,
-        Posisjon = model.Posisjon,
-        Breddegrad = model.Breddegrad,
-        Lengdegrad = model.Lengdegrad,
-        TilgjengeligFra = model.TilgjengeligFra,
-        Beskrivelse = model.Beskrivelse,
-        Navn = model.Navn,
-        Telefon = model.Telefon,
-        Status = "Tilgjengelig",
-        OpprettetTid = DateTime.UtcNow,
-        OpprettetAvBrukerId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier)
-    };
-
-    _db.Ressurser.Add(ressurs);
-    await _db.SaveChangesAsync();
-
-    HuskInnsendtId(ressurs.Id);
-
-    return RedirectToAction(
-        nameof(Confirmation),
-        new { id = ressurs.Id });
-}
-
-        // GET: /Ressurs/Confirmation
-        public async Task<IActionResult> Confirmation(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(
+            RessursFormViewModel model)
         {
-            bool erAdminEllerKommune =
-            User.IsInRole("Admin") || User.IsInRole("Kommune");
+            // Finner brukeren som registrerer ressursen.
+            var brukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (!erAdminEllerKommune &&
-            !ErSendtInnAvDenneNettleseren(id))
+            if (string.IsNullOrEmpty(brukerId))
             {
-            return RedirectToAction(nameof(Index));
+                return Challenge();
             }
 
+            // Kontrollerer tidspunktet for tilgjengelighet.
+            if (!model.ErValidTilgjengeligFra())
+            {
+                ModelState.AddModelError(
+                    "TilgjengeligFra",
+                    "Tidspunkt kan ikke ligge i fortiden.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Kopierer skjemadata til databasemodellen.
+            var ressurs = new Ressurs
+            {
+                Type = model.Type,
+                Posisjon = model.Posisjon,
+                Breddegrad = model.Breddegrad,
+                Lengdegrad = model.Lengdegrad,
+                TilgjengeligFra = model.TilgjengeligFra,
+                Beskrivelse = model.Beskrivelse,
+                Navn = model.Navn,
+                Telefon = model.Telefon,
+                Status = "Tilgjengelig",
+                OpprettetTid = DateTime.UtcNow,
+                OpprettetAvBrukerId = brukerId
+            };
+
+            _db.Ressurser.Add(ressurs);
+            await _db.SaveChangesAsync();
+
+            // Husker tilgangen til kvitteringen.
+            HuskInnsendtId(ressurs.Id);
+
+            return RedirectToAction(
+                nameof(Confirmation),
+                new { id = ressurs.Id });
+        }
+
+        // Viser kvitteringen til innsender eller koordinator.
+        public async Task<IActionResult> Confirmation(int id)
+        {
             var ressurs = await _db.Ressurser
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == id);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (ressurs == null)
             {
-            return NotFound();
+                return NotFound();
+            }
+
+            var brukerId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            bool erEier =
+                !string.IsNullOrEmpty(brukerId) &&
+                ressurs.OpprettetAvBrukerId == brukerId;
+
+            bool erKoordinator =
+                User.IsInRole("Admin") ||
+                User.IsInRole("Kommune");
+
+            if (!erEier &&
+                !erKoordinator &&
+                !ErSendtInnAvDenneNettleseren(id))
+            {
+                return RedirectToAction(nameof(Index));
             }
 
             return View(TilViewModel(ressurs));
         }
 
-        private static RessursFormViewModel TilViewModel(Ressurs ressurs)
+        // Gjør databasedata klare for de eksisterende visningene.
+        private static RessursFormViewModel TilViewModel(
+            Ressurs ressurs)
         {
             return new RessursFormViewModel
             {
+                Id = ressurs.Id,
+                OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
                 Type = ressurs.Type,
                 Posisjon = ressurs.Posisjon,
                 Breddegrad = ressurs.Breddegrad,
@@ -116,47 +145,39 @@ public async Task<IActionResult> Create(RessursFormViewModel model)
                 Telefon = ressurs.Telefon,
                 Status = ressurs.Status
             };
-}
+        }
 
-        // Sjekker om denne nettleseren selv har sendt inn ressursen.
-        // Id-ene ligger i TempData som tekst, f.eks. "0,3,7".
-        // Peek leser verdien uten å slette den, så kvitteringen
-        // fortsatt vises hvis brukeren oppdaterer siden.
+        // Kontrollerer nettleserens tilgang til kvitteringen.
         private bool ErSendtInnAvDenneNettleseren(int id)
         {
-            string? lagret = TempData.Peek("InnsendteDatabaseRessursIder") as string;
+            string? lagret =
+                TempData.Peek("InnsendteDatabaseRessursIder")
+                as string;
 
             if (string.IsNullOrEmpty(lagret))
             {
                 return false;
             }
 
-            string[] ider = lagret.Split(',');
-            foreach (string lagretId in ider)
-            {
-                if (lagretId == id.ToString())
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return lagret.Split(',').Contains(id.ToString());
         }
 
-        // Legger til en ny id i teksten med innsendte ressurser.
-        // TempData lagres i en kryptert informasjonskapsel (cookie),
-        // så brukeren kan ikke selv legge til andres id-er.
+        // Husker ID-en uten å blande inn gamle minneliste-ID-er.
         private void HuskInnsendtId(int id)
         {
-            string? lagret = TempData.Peek("InnsendteDatabaseRessursIder") as string;
+            string? lagret =
+                TempData.Peek("InnsendteDatabaseRessursIder")
+                as string;
 
             if (string.IsNullOrEmpty(lagret))
             {
-                TempData["InnsendteDatabaseRessursIder"] = id.ToString();
+                TempData["InnsendteDatabaseRessursIder"] =
+                    id.ToString();
             }
             else
             {
-                TempData["InnsendteDatabaseRessursIder"] = lagret + "," + id;
+                TempData["InnsendteDatabaseRessursIder"] =
+                    lagret + "," + id;
             }
         }
     }

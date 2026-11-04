@@ -3,21 +3,22 @@
     ViewData["Title"] = "Skriv inn kode";
 }
 
-<div class="smal-side">
-    <div class="sidetopp">
-        <h1>Skriv inn kode</h1>
-        <p class="ingress">Åpne autentiseringsappen og skriv inn den 6-sifrede koden.</p>
+<div class="auth">
+    <span class="logo-icon logo-icon-large"><partial name="_Logo" /></span>
+    <h1>Skriv inn kode</h1>
+    <p class="auth-ingress">Åpne autentiseringsappen og skriv inn den 6-sifrede koden.</p>
+
+    <div class="auth-flate">
+        <form asp-action="LoginWith2fa" method="post" novalidate>
+            <div class="felt">
+                <label asp-for="Kode" class="form-label"></label>
+                <input asp-for="Kode" class="form-control kode-felt" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" />
+                <span asp-validation-for="Kode"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Logg inn</button>
+        </form>
     </div>
-
-    <form asp-action="LoginWith2fa" method="post" class="panel">
-        <div class="mb-4">
-            <label asp-for="Kode" class="form-label"></label>
-            <input asp-for="Kode" class="form-control kodefelt" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" />
-            <span asp-validation-for="Kode"></span>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg w-100">Logg inn</button>
-    </form>
 </div>
 
 @section Scripts {

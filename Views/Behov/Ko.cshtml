@@ -1,57 +1,97 @@
+@using Nabohjelp.Models
 @model List<Nabohjelp.ViewModels.BehovKoItem>
 @{
     ViewData["Title"] = "Behovskø";
 }
 
-<div class="sidetopp sidetopp-rad">
-    <div>
-        <h1>Behovskø</h1>
-        <p class="ingress">Alle behov som ikke er løst. Akutte behov står øverst, deretter de eldste.</p>
-    </div>
-    <a class="btn btn-danger" asp-action="Opprett">Meld inn behov</a>
+@functions {
+    // Gjør statusen om til norsk tekst.
+    string StatusTekst(BehovStatus status)
+    {
+        if (status == BehovStatus.New) return "Ny";
+        if (status == BehovStatus.UnderReview) return "Under vurdering";
+        if (status == BehovStatus.Assigned) return "Tildelt";
+        return "Løst";
+    }
+
+    // Fargen på statusmerket.
+    string StatusFarge(BehovStatus status)
+    {
+        if (status == BehovStatus.Assigned) return "merke-gi";
+        if (status == BehovStatus.UnderReview) return "merke-lys";
+        return "";
+    }
+
+    // Teksten på knappen som flytter behovet til neste status.
+    string KnappTekst(BehovStatus nesteStatus)
+    {
+        if (nesteStatus == BehovStatus.UnderReview) return "Start vurdering";
+        if (nesteStatus == BehovStatus.Resolved) return "Marker som løst";
+        return "Neste status";
+    }
+}
+
+<div class="side-topp">
+    <h1>Behovskø</h1>
+    <p class="ingress">Aktive behov, med de akutte først.</p>
 </div>
 
 @if (TempData["Feil"] is string feil)
 {
-    <div class="melding melding-feil" role="alert">@feil</div>
+    <div class="alert alert-danger" role="alert">@feil</div>
 }
 
 @if (!Model.Any())
 {
-    <div class="tom-liste">
-        <p>Ingen aktive behov akkurat nå.</p>
+    <div class="tom-tilstand">
+        <h3>Ingen aktive behov</h3>
+        <p>Nye behov som meldes inn, dukker opp her.</p>
     </div>
 }
 else
 {
-    <div class="tabell-ramme">
-        <table class="tabell">
+    <div class="liste-topp">
+        <h2>Aktive behov</h2>
+        <span class="antall">@Model.Count</span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table stablet align-middle">
             <thead>
                 <tr>
-                    <th>Type</th>
-                    <th>Prioritet</th>
-                    <th>Status</th>
-                    <th>Beskrivelse</th>
-                    <th>Registrert</th>
-                    <th class="hoyre">Endre status</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Prioritet</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Beskrivelse</th>
+                    <th scope="col">Registrert</th>
+                    <th scope="col"><span class="visually-hidden">Handling</span></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var b in Model)
                 {
-                    <tr class="@Visningstekst.RadKlasse(b.Prioritet)">
-                        <td class="sterk">@Visningstekst.Type(b.Type)</td>
-                        <td><span class="merke @Visningstekst.PrioritetFarge(b.Prioritet)">@Visningstekst.Prioritet(b.Prioritet)</span></td>
-                        <td><span class="merke @Visningstekst.StatusFarge(b.Status)">@Visningstekst.Status(b.Status)</span></td>
-                        <td class="lang-tekst">@b.Beskrivelse</td>
-                        <td>@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
-                        <td class="hoyre">
+                    <tr class="@(b.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
+                        <td data-label="Type"><strong>@b.Type</strong></td>
+                        <td data-label="Prioritet">
+                            @if (b.Prioritet == BehovPrioritet.Urgent)
+                            {
+                                <span class="merke merke-hjelp">Akutt</span>
+                            }
+                            else
+                            {
+                                <span class="merke">Planlagt</span>
+                            }
+                        </td>
+                        <td data-label="Status"><span class="merke @StatusFarge(b.Status)">@StatusTekst(b.Status)</span></td>
+                        <td data-label="Beskrivelse">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</td>
+                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("g")</td>
+                        <td data-label="" class="ko-handling">
                             @foreach (var neste in b.MuligeNesteStatuser)
                             {
-                                <form asp-action="EndreStatus" method="post" class="d-inline">
+                                <form asp-action="EndreStatus" method="post">
                                     <input type="hidden" name="id" value="@b.Id" />
                                     <input type="hidden" name="nyStatus" value="@neste" />
-                                    <button class="btn btn-sm btn-outline-secondary">Sett til «@Visningstekst.Status(neste)»</button>
+                                    <button class="btn btn-sm btn-outline-secondary">@KnappTekst(neste)</button>
                                 </form>
                             }
                         </td>

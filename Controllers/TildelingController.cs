@@ -1,21 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
 namespace Nabohjelp.Controllers;
 
 // Bare Admin og Kommune kan bruke matching og tildeling.
 [Authorize(Roles = "Admin,Kommune")]
-
 public class TildelingController : Controller
 {
     private readonly ApplicationDbContext _db;
 
-    // Henter databasen gjennom dependency injection.
+    // Gir controlleren tilgang til databasen.
     public TildelingController(ApplicationDbContext db)
     {
         _db = db;
@@ -53,6 +52,7 @@ public class TildelingController : Controller
             .Where(r => r.Status == "Tilgjengelig")
             .ToListAsync();
 
+        // Velger tilgjengelige ressurser som passer til behovet.
         var matchendeRessurser = ressurser
             .Where(r => PasserTilBehov(behov.Type, r.Type))
             .Select(r => new MatchendeRessursViewModel
@@ -85,9 +85,7 @@ public class TildelingController : Controller
         return View(model);
     }
 
-    // POST: /Tildeling/Tildel
-    // Tildeler valgt ressurs til behovet.
-    // POST: /Tildeling/Tildel
+// POST: /Tildeling/Tildel
 // Tildeler en ressurs og lagrer koblingen til behovet.
 [HttpPost]
 [ValidateAntiForgeryToken]

@@ -1,76 +1,135 @@
 @{
     ViewData["Title"] = "Forside";
-    bool erInnlogget = User.Identity != null && User.Identity.IsAuthenticated;
 }
 
 @* ---------------------------------------------------------------
-   Forsiden. Det viktigste kommer først: de to store valgene
-   "Jeg trenger hjelp" (rød) og "Jeg kan hjelpe" (grønn).
-   Deretter en kort forklaring i tre steg.
-   Alle farger og former kommer fra site.css.
+   Forsiden. Øverst: hva Nabohjelp er, og de to valgene man faktisk
+   kommer for å gjøre. Illustrasjonen viser en gate om kvelden der
+   noen trenger hjelp (rødt vindu) og naboer kan stille opp (grønne).
    --------------------------------------------------------------- *@
 
-<section class="forside-topp">
-    <h1>Når krisen rammer, er det naboen som når frem først.</h1>
-    <p class="ingress">
-        Nabohjelp kobler folk som trenger hjelp under strømbrudd, ekstremvær
-        eller evakuering med naboer som kan stille med utstyr, kjøretøy,
-        husrom eller egen innsats.
-    </p>
+<section class="hero" aria-labelledby="hero-tittel">
+    <div class="hero-tekst">
+        <h1 id="hero-tittel">Når krisen rammer, er naboen først på stedet.</h1>
+        <p class="hero-ingress">
+            Strømbrudd, ekstremvær eller evakuering: Nabohjelp kobler dem som trenger hjelp
+            med naboer og frivillige som har utstyr, kjøretøy, husrom eller tid å dele.
+        </p>
+
+        <div class="hero-valg">
+            <a class="valg valg-hjelp" asp-controller="Behov" asp-action="Opprett">
+                <strong>Jeg trenger hjelp</strong>
+                <span>Meld et behov i nærheten av deg</span>
+            </a>
+            <a class="valg valg-gi" asp-controller="Ressurs" asp-action="Create">
+                <strong>Jeg kan hjelpe</strong>
+                <span>Registrer utstyr, kjøretøy eller innsats</span>
+            </a>
+        </div>
+        <p class="hero-merknad">Er det fare for liv og helse, ring 110, 112 eller 113 først.</p>
+    </div>
+
+    <figure class="hero-bilde">
+        <svg viewBox="0 150 560 370" role="img" aria-labelledby="gate-tittel gate-beskrivelse">
+            <title id="gate-tittel">En gate om kvelden</title>
+            <desc id="gate-beskrivelse">Fire hus i skumringen. Ett vindu lyser rødt fordi noen trenger hjelp. To vinduer lyser grønt fordi naboene kan hjelpe, og stiplede lys går fra dem til det røde vinduet.</desc>
+            <defs>
+                <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#0B1620" />
+                    <stop offset="1" stop-color="#23415A" />
+                </linearGradient>
+            </defs>
+
+            <rect width="560" height="520" fill="url(#himmel)" />
+
+            <g fill="#F3F5F4">
+                <circle cx="60" cy="60" r="1.6" opacity=".8" />
+                <circle cx="150" cy="110" r="1.2" opacity=".6" />
+                <circle cx="250" cy="48" r="1.8" opacity=".9" />
+                <circle cx="340" cy="96" r="1.2" opacity=".6" />
+                <circle cx="430" cy="52" r="1.6" opacity=".8" />
+                <circle cx="505" cy="120" r="1.2" opacity=".6" />
+                <circle cx="95" cy="160" r="1.2" opacity=".5" />
+                <circle cx="395" cy="160" r="1.4" opacity=".6" />
+            </g>
+
+            @* Bakke og vei *@
+            <rect y="430" width="560" height="90" fill="#0A141C" />
+            <rect y="430" width="560" height="3" fill="#2B4357" />
+            <path d="M0 480h560" stroke="#2B4357" stroke-width="2" stroke-dasharray="26 22" />
+
+            @* Hus 1 *@
+            <g>
+                <path d="M16 332 88 268l72 64Z" fill="#1F3A50" />
+                <rect x="26" y="332" width="124" height="98" fill="#1B3345" />
+                <rect x="52" y="356" width="32" height="34" rx="3" fill="#F4B740" />
+                <rect x="104" y="372" width="28" height="58" rx="3" fill="#12212D" />
+            </g>
+
+            @* Hus 2 (rødt vindu: trenger hjelp) *@
+            <g>
+                <path d="M170 290 236 224l66 66Z" fill="#1F3A50" />
+                <rect x="178" y="290" width="116" height="140" fill="#1B3345" />
+                <circle class="puls" cx="205" cy="328" r="30" fill="#FF8A6B" />
+                <rect x="190" y="312" width="32" height="36" rx="3" fill="#E5522C" />
+                <rect x="244" y="312" width="32" height="36" rx="3" fill="#F4B740" />
+                <rect x="214" y="372" width="30" height="58" rx="3" fill="#12212D" />
+            </g>
+
+            @* Hus 3 (grønt vindu: kan hjelpe) *@
+            <g>
+                <path d="M312 336 372 278l60 58Z" fill="#1F3A50" />
+                <rect x="320" y="336" width="104" height="94" fill="#1B3345" />
+                <rect x="338" y="358" width="30" height="34" rx="3" fill="#4FD39A" />
+                <rect x="384" y="376" width="26" height="54" rx="3" fill="#12212D" />
+            </g>
+
+            @* Hus 4 (grønt vindu: kan hjelpe) *@
+            <g>
+                <path d="M436 308 494 244l62 64Z" fill="#1F3A50" />
+                <rect x="444" y="308" width="106" height="122" fill="#1B3345" />
+                <rect x="462" y="330" width="30" height="34" rx="3" fill="#4FD39A" />
+                <rect x="506" y="330" width="28" height="34" rx="3" fill="#F4B740" />
+                <rect x="470" y="386" width="28" height="44" rx="3" fill="#12212D" />
+            </g>
+
+            @* Lys fra naboene til vinduet som trenger hjelp *@
+            <g fill="none" stroke="#F4B740" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 9">
+                <path d="M338 372C296 392 240 392 214 352" />
+                <path d="M462 348C420 250 300 240 226 312" />
+            </g>
+        </svg>
+        <figcaption>
+            <span><i style="background:#E5522C"></i>Trenger hjelp</span>
+            <span><i style="background:#4FD39A"></i>Kan hjelpe</span>
+        </figcaption>
+    </figure>
 </section>
 
-<section class="valg" aria-label="Hva vil du gjøre?">
-    <a class="valg-knapp valg-hjelp" asp-controller="Behov" asp-action="Opprett">
-        <span class="valg-tittel">Jeg trenger hjelp</span>
-        <span class="valg-tekst">Meld inn hva du trenger og hvor du er, så kan kommunen sende hjelp.</span>
-        @if (!erInnlogget)
-        {
-            <span class="valg-merknad">Du må logge inn først.</span>
-        }
-        <span class="valg-bunn">
-            <span class="valg-handling">Meld inn behov</span>
-        </span>
-    </a>
-
-    <a class="valg-knapp valg-bidra" asp-controller="Ressurs" asp-action="Create">
-        <span class="valg-tittel">Jeg kan hjelpe</span>
-        <span class="valg-tekst">Registrer utstyr, kjøretøy, lokaler eller deg selv som frivillig.</span>
-        <span class="valg-bunn">
-            <span class="valg-handling">Registrer en ressurs</span>
-        </span>
-    </a>
-</section>
-
-<section class="steg-seksjon" id="steg">
-    <h2>Slik fungerer det</h2>
-
-    <ol class="steg-liste">
+<section class="seksjon" aria-labelledby="slik-tittel">
+    <h2 id="slik-tittel">Slik fungerer det</h2>
+    <ol class="steg">
         <li>
-            <span class="steg-nummer">1</span>
-            <h3>Velg hva du vil gjøre</h3>
-            <p>Trykk &laquo;Jeg trenger hjelp&raquo; eller &laquo;Jeg kan hjelpe&raquo;. Hver har sitt eget korte skjema.</p>
+            <h3>Velg riktig spor</h3>
+            <p>Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema.</p>
         </li>
         <li>
-            <span class="steg-nummer">2</span>
-            <h3>Fyll ut skjemaet</h3>
-            <p>Hva det gjelder, hvor du er, og eventuelt navn og telefon. Det tar under ett minutt.</p>
+            <h3>Fortell hva og hvor</h3>
+            <p>Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt.</p>
         </li>
         <li>
-            <span class="steg-nummer">3</span>
-            <h3>Få kvittering</h3>
-            <p>Du ser en kvittering med en gang, og kriseledelsen ser meldingen din.</p>
+            <h3>Kriseledelsen ser det</h3>
+            <p>Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser.</p>
         </li>
     </ol>
 </section>
 
-<section class="etat-lenke">
-    <p><strong>Jobber du i kommunen, nødetatene eller kriseledelsen?</strong> Logg inn for å se kart, behovskø og tildeling.</p>
-    @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
-    {
-        <a class="btn btn-primary" asp-controller="Kommandobro" asp-action="Index">Åpne Kommandobro</a>
-    }
-    else if (!erInnlogget)
-    {
-        <a class="btn btn-primary" asp-controller="Account" asp-action="Login">Logg inn</a>
-    }
+<section class="seksjon" aria-labelledby="dele-tittel">
+    <h2 id="dele-tittel">Dette kan du stille med</h2>
+    <ul class="deleliste">
+        @foreach (var type in Nabohjelp.Models.RessursFormViewModel.Typer)
+        {
+            <li>@type</li>
+        }
+    </ul>
 </section>

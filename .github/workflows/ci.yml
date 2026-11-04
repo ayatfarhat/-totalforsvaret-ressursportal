@@ -1,0 +1,23 @@
+﻿name: Bygg og test
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  bygg-og-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hent koden
+        uses: actions/checkout@v4
+
+      - name: Sett opp .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Bygg og kjør testene
+        run: dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj

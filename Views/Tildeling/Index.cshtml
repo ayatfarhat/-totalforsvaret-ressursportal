@@ -4,25 +4,29 @@
     ViewData["Title"] = "Tildeling";
 }
 
-<div class="sidetopp">
-    <h1>Tildeling</h1>
-    <p class="ingress">Velg et behov for å se hvilke tilgjengelige ressurser som passer.</p>
-</div>
+<!-- Overskrift -->
+<h1>Tildeling og matching</h1>
+
+<p>
+    Velg et behov for å finne tilgjengelige ressurser som passer.
+</p>
 
 @if (!Model.Any())
 {
     <!-- Vises når det ikke finnes aktive behov -->
-    <div class="tom-liste">
-        <p>Det finnes ingen aktive behov som kan tildeles.</p>
+    <div class="alert alert-info">
+        Det finnes ingen aktive behov som kan tildeles.
     </div>
 }
 else
 {
-    <div class="tabell-ramme">
-        <table class="tabell">
+    <!-- Gjør tabellen responsiv på små skjermer -->
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+
             <thead>
                 <tr>
-                    <th>Nr.</th>
+                    <th>ID</th>
                     <th>Behov</th>
                     <th>Prioritet</th>
                     <th>Status</th>
@@ -34,22 +38,19 @@ else
             <tbody>
                 @foreach (var behov in Model)
                 {
-                    <tr class="@Visningstekst.RadKlasse(behov.Prioritet)">
+                    <tr>
                         <td>@behov.Id</td>
-                        <td class="sterk">@Visningstekst.Type(behov.Type)</td>
-                        <td><span class="merke @Visningstekst.PrioritetFarge(behov.Prioritet)">@Visningstekst.Prioritet(behov.Prioritet)</span></td>
-                        <td><span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span></td>
-                        <td class="lang-tekst">
-                            @if (string.IsNullOrWhiteSpace(behov.Beskrivelse))
-                            {
-                                <span>Ingen beskrivelse</span>
-                            }
-                            else
-                            {
-                                @behov.Beskrivelse
-                            }
+                        <td>@behov.Type</td>
+                        <td>@behov.Prioritet</td>
+                        <td>@behov.Status</td>
+
+                        <td>
+                            @(string.IsNullOrWhiteSpace(behov.Beskrivelse)
+                                ? "Ingen beskrivelse"
+                                : behov.Beskrivelse)
                         </td>
-                        <td class="hoyre">
+
+                        <td>
                             <!-- Åpner matching for dette behovet -->
                             <a asp-controller="Tildeling"
                                asp-action="Match"
@@ -61,6 +62,7 @@ else
                     </tr>
                 }
             </tbody>
+
         </table>
     </div>
 }

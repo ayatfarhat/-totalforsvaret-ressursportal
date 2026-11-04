@@ -1,35 +1,40 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Nabohjelp.Data;
 using Nabohjelp.Models;
 
 namespace Nabohjelp.Controllers;
 
-// Håndterer registrering, innlogging, utlogging og tofaktor (2FA).
-// Vi bruker ASP.NET Core Identity:
-//   UserManager   = lage og finne brukere, roller og 2FA-nøkler
-//   SignInManager = logge inn og ut
+// Håndterer brukerkontoer, innlogging og tofaktor.
 public class AccountController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly ApplicationDbContext _db;
 
-    public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+    // Gir tilgang til Identity og databasen.
+    public AccountController(
+        UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager,
+        ApplicationDbContext db)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _db = db;
     }
 
     // ---------- REGISTRERING ----------
 
-    // GET: /Account/Register  -> viser skjemaet
+    // Viser registreringsskjemaet.
     [HttpGet]
     public IActionResult Register()
     {
         return View();
     }
 
-    // POST: /Account/Register  -> lager ny bruker
+    // Oppretter en ny bruker.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
@@ -39,41 +44,58 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Sjekker om e-posten er i bruk fra før
+        // Kontrollerer om e-posten allerede er registrert.
         var finnes = await _userManager.FindByEmailAsync(model.Epost);
+
         if (finnes != null)
         {
-            ModelState.AddModelError("Epost", "E-posten er allerede registrert");
+            ModelState.AddModelError(
+                "Epost",
+                "E-posten er allerede registrert");
+
             return View(model);
         }
 
-        // Lager brukeren. Identity lagrer passordet kryptert (hash), aldri i klartekst.
-        var bruker = new IdentityUser { UserName = model.Epost, Email = model.Epost };
-        var resultat = await _userManager.CreateAsync(bruker, model.Passord);
+        var bruker = new IdentityUser
+        {
+            UserName = model.Epost,
+            Email = model.Epost
+        };
+
+        // Identity lagrer en hash av passordet.
+        var resultat = await _userManager.CreateAsync(
+            bruker,
+            model.Passord);
+
         if (!resultat.Succeeded)
         {
-            ModelState.AddModelError("", "Kunne ikke lage brukeren. Prøv igjen.");
+            ModelState.AddModelError(
+                "",
+                "Kunne ikke lage brukeren. Prøv igjen.");
+
             return View(model);
         }
 
-        // Alle nye brukere får rollen Frivillig
+        // Alle nye brukere får rollen Frivillig.
         await _userManager.AddToRoleAsync(bruker, "Frivillig");
 
-        // Logger inn brukeren med en gang
-        await _signInManager.SignInAsync(bruker, isPersistent: false);
+        await _signInManager.SignInAsync(
+            bruker,
+            isPersistent: false);
+
         return RedirectToAction("Index", "Home");
     }
 
     // ---------- INNLOGGING ----------
 
-    // GET: /Account/Login  -> viser skjemaet
+    // Viser innloggingsskjemaet.
     [HttpGet]
     public IActionResult Login()
     {
         return View();
     }
 
-    // POST: /Account/Login  -> sjekker e-post og passord
+    // Kontrollerer e-post og passord.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
@@ -83,40 +105,47 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // lockoutOnFailure: true -> kontoen låses etter 5 feil (se Program.cs)
         var resultat = await _signInManager.PasswordSignInAsync(
-            model.Epost, model.Passord, isPersistent: false, lockoutOnFailure: true);
+            model.Epost,
+            model.Passord,
+            isPersistent: false,
+            lockoutOnFailure: true);
 
         if (resultat.Succeeded)
         {
             return RedirectToAction("Index", "Home");
         }
 
+        // Ber om kode hvis tofaktor er aktivert.
         if (resultat.RequiresTwoFactor)
         {
-            // Riktig passord, men brukeren har 2FA og må skrive inn kode
-            return RedirectToAction("LoginWith2fa");
+            return RedirectToAction(nameof(LoginWith2fa));
         }
 
         if (resultat.IsLockedOut)
         {
-            ModelState.AddModelError("", "Kontoen er låst i 5 minutter etter for mange feil.");
+            ModelState.AddModelError(
+                "",
+                "Kontoen er midlertidig låst etter for mange feil.");
+
             return View(model);
         }
 
-        // Vi sier ikke om det var e-posten eller passordet som var feil (sikkerhet)
-        ModelState.AddModelError("", "Feil e-post eller passord");
+        ModelState.AddModelError(
+            "",
+            "Feil e-post eller passord");
+
         return View(model);
     }
 
-    // GET: /Account/LoginWith2fa  -> ber om koden fra appen
+    // Viser skjemaet for tofaktorkode.
     [HttpGet]
     public IActionResult LoginWith2fa()
     {
         return View();
     }
 
-    // POST: /Account/LoginWith2fa  -> sjekker koden
+    // Kontrollerer koden fra autentiseringsappen.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LoginWith2fa(TofaViewModel model)
@@ -126,8 +155,11 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var resultat = await _signInManager.TwoFactorAuthenticatorSignInAsync(
-            model.Kode, isPersistent: false, rememberClient: false);
+        var resultat =
+            await _signInManager.TwoFactorAuthenticatorSignInAsync(
+                model.Kode,
+                isPersistent: false,
+                rememberClient: false);
 
         if (resultat.Succeeded)
         {
@@ -140,34 +172,37 @@ public class AccountController : Controller
 
     // ---------- UTLOGGING ----------
 
-    // POST: /Account/Logout
+    // Logger ut brukeren.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
+
         return RedirectToAction("Index", "Home");
     }
 
-    // Vises når brukeren er innlogget, men ikke har riktig rolle
+    // Vises når brukeren mangler tilgang.
     [HttpGet]
     public IActionResult AccessDenied()
     {
         return View();
     }
 
-    // ---------- MIN KONTO OG 2FA ----------
+    // ---------- MIN KONTO ----------
 
-    // GET: /Account  -> viser e-post, rolle og om 2FA er på
+    // Viser e-post, roller og tofaktorstatus.
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index()
     {
         var bruker = await _userManager.GetUserAsync(User);
+
         if (bruker == null)
         {
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(Login));
         }
+
         var roller = await _userManager.GetRolesAsync(bruker);
 
         var model = new KontoViewModel
@@ -176,33 +211,44 @@ public class AccountController : Controller
             Rolle = string.Join(", ", roller),
             TofaErPa = bruker.TwoFactorEnabled
         };
+
         return View(model);
     }
 
-    // GET: /Account/AktiverTofa  -> viser nøkkel og QR-kode
+    // ---------- AKTIVERING AV TOFAKTOR ----------
+
+    // Henter nøkkelen til autentiseringsappen.
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> AktiverTofa()
     {
         var bruker = await _userManager.GetUserAsync(User);
+
         if (bruker == null)
         {
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(Login));
         }
 
-        // Henter brukerens hemmelige nøkkel. Lager en ny hvis den ikke finnes.
-        var nokkel = await _userManager.GetAuthenticatorKeyAsync(bruker);
+        var nokkel =
+            await _userManager.GetAuthenticatorKeyAsync(bruker);
+
         if (nokkel == null)
         {
             await _userManager.ResetAuthenticatorKeyAsync(bruker);
-            nokkel = await _userManager.GetAuthenticatorKeyAsync(bruker);
+
+            nokkel =
+                await _userManager.GetAuthenticatorKeyAsync(bruker);
         }
 
-        var model = new TofaViewModel { Nokkel = nokkel ?? "" };
+        var model = new TofaViewModel
+        {
+            Nokkel = nokkel ?? ""
+        };
+
         return View(model);
     }
 
-    // POST: /Account/AktiverTofa  -> sjekker koden og slår på 2FA
+    // Kontrollerer koden før tofaktor aktiveres.
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -214,21 +260,154 @@ public class AccountController : Controller
         }
 
         var bruker = await _userManager.GetUserAsync(User);
+
         if (bruker == null)
         {
-            return RedirectToAction("Login");
+            return RedirectToAction(nameof(Login));
         }
 
-        // "Authenticator" betyr at koden kommer fra en autentiseringsapp
-        var riktigKode = await _userManager.VerifyTwoFactorTokenAsync(bruker, "Authenticator", model.Kode);
+        var riktigKode =
+            await _userManager.VerifyTwoFactorTokenAsync(
+                bruker,
+                "Authenticator",
+                model.Kode);
+
         if (!riktigKode)
         {
-            ModelState.AddModelError("Kode", "Feil kode, prøv igjen");
+            ModelState.AddModelError(
+                "Kode",
+                "Feil kode, prøv igjen");
+
             return View(model);
         }
 
         await _userManager.SetTwoFactorEnabledAsync(bruker, true);
+
         TempData["Melding"] = "2FA er slått på!";
-        return RedirectToAction("Index");
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ---------- SLETTING AV KONTO ----------
+
+    // Viser skjemaet for kontosletting.
+    [Authorize]
+    [HttpGet]
+    public IActionResult SlettKonto()
+    {
+        return View(new SlettKontoViewModel());
+    }
+
+    // Sletter kontoen og brukerens behov og ressurser.
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SlettKonto(
+        SlettKontoViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var bruker = await _userManager.GetUserAsync(User);
+
+        if (bruker == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        // Krever riktig passord før sletting.
+        bool riktigPassord =
+            await _userManager.CheckPasswordAsync(
+                bruker,
+                model.Passord);
+
+        if (!riktigPassord)
+        {
+            ModelState.AddModelError(
+                "Passord",
+                "Feil passord.");
+
+            return View(model);
+        }
+
+        // Finner brukerens behov og ressurser.
+        var behov = await _db.Behovsliste
+            .Where(b => b.OpprettetAvBrukerId == bruker.Id)
+            .ToListAsync();
+
+        var ressurser = await _db.Ressurser
+            .Where(r => r.OpprettetAvBrukerId == bruker.Id)
+            .ToListAsync();
+
+        var behovIder = behov.Select(b => b.Id).ToList();
+        var ressursIder = ressurser.Select(r => r.Id).ToList();
+
+        // Bevarer historikken hvis tildelinger er tilknyttet.
+        bool harTildelinger = await _db.Tildelinger.AnyAsync(t =>
+            t.TildeltAvBrukerId == bruker.Id ||
+            behovIder.Contains(t.BehovId) ||
+            ressursIder.Contains(t.RessursId));
+
+        if (harTildelinger)
+        {
+            ModelState.AddModelError(
+                "",
+                "Kontoen har tilknyttede tildelinger og kan ikke " +
+                "slettes automatisk. Kontakt administrator.");
+
+            return View(model);
+        }
+
+        // Samler slettingen i én transaksjon.
+        await using var transaksjon =
+            await _db.Database.BeginTransactionAsync();
+
+        try
+        {
+            // Sletter registreringene fra databasen.
+            _db.Behovsliste.RemoveRange(behov);
+            _db.Ressurser.RemoveRange(ressurser);
+
+            await _db.SaveChangesAsync();
+
+            // Identity sletter kontoen og rollekoblingene.
+            var resultat = await _userManager.DeleteAsync(bruker);
+
+            if (!resultat.Succeeded)
+            {
+                await transaksjon.RollbackAsync();
+
+                ModelState.AddModelError(
+                    "",
+                    "Kunne ikke slette kontoen. Prøv igjen.");
+
+                return View(model);
+            }
+
+            await transaksjon.CommitAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Angrer hvis databasen avviser slettingen.
+            await transaksjon.RollbackAsync();
+
+            ModelState.AddModelError(
+                "",
+                "Slettingen kunne ikke fullføres. Kontoen kan ha " +
+                "fått nye tilknyttede registreringer. Prøv igjen " +
+                "eller kontakt administrator.");
+
+            return View(model);
+        }
+
+        // Logger ut etter fullført sletting.
+        await _signInManager.SignOutAsync();
+
+        TempData["Melding"] =
+            "Kontoen din og tilhørende registreringer er slettet.";
+
+        return RedirectToAction("Index", "Home");
     }
 }

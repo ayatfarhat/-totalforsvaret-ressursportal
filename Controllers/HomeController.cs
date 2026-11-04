@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers;
@@ -18,5 +20,16 @@ public class HomeController : Controller
 
         // Sender ViewModel til View
         return View(viewModel);
+    }
+
+    // Feilsiden. Brukes av UseExceptionHandler("/Home/Error") i Program.cs
+    // når noe uventet går galt i produksjon.
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel
+        {
+            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+        });
     }
 }

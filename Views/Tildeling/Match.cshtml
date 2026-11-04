@@ -1,62 +1,74 @@
 @model Nabohjelp.ViewModels.TildelingViewModel
 
 @{
-    ViewData["Title"] = "Finn ressurs";
+    ViewData["Title"] = "Match ressurs";
 }
 
 <!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<div class="sidetopp">
-    <a class="tilbakelenke" asp-controller="Tildeling" asp-action="Index">&larr; Alle behov</a>
-    <h1>Finn ressurs til behov nr. @Model.BehovId</h1>
-</div>
+<!-- Overskrift -->
+<h1>Match ressurs</h1>
 
-<div class="row g-3 mb-4">
-    <!-- Informasjon om behovet -->
-    <div class="col-lg-5">
-        <div class="panel h-100">
-            <h2>Behovet</h2>
-            <dl class="opplysninger">
-                <dt>Type</dt>
-                <dd>@Visningstekst.Type(Model.BehovType)</dd>
+<!-- Informasjon om behovet -->
+<div class="card mb-4">
+    <div class="card-body">
 
-                <dt>Prioritet</dt>
-                <dd><span class="merke @Visningstekst.PrioritetFarge(Model.Prioritet)">@Visningstekst.Prioritet(Model.Prioritet)</span></dd>
+        <h2 class="h5">
+            Behov #@Model.BehovId
+        </h2>
 
-                <dt>Status</dt>
-                <dd><span class="merke @Visningstekst.StatusFarge(Model.Status)">@Visningstekst.Status(Model.Status)</span></dd>
+        <p>
+            <strong>Type:</strong>
+            @Model.BehovType
+        </p>
 
-                <dt>Beskrivelse</dt>
-                <dd>
-                    @if (string.IsNullOrWhiteSpace(Model.Beskrivelse))
-                    {
-                        <span>Ingen beskrivelse</span>
-                    }
-                    else
-                    {
-                        @Model.Beskrivelse
-                    }
-                </dd>
+        <p>
+            <strong>Prioritet:</strong>
+            @Model.Prioritet
+        </p>
 
-                <dt>Koordinater</dt>
-                <dd>@Model.Latitude.ToString("0.#####"), @Model.Longitude.ToString("0.#####")</dd>
-            </dl>
-        </div>
-    </div>
+        <p>
+            <strong>Status:</strong>
+            @Model.Status
+        </p>
 
-    <!-- Kart over behovets registrerte posisjon -->
-    <div class="col-lg-7">
-        <div id="map" class="kart h-100" style="min-height: 320px;"></div>
+        <p>
+            <strong>Beskrivelse:</strong>
+            @(string.IsNullOrWhiteSpace(Model.Beskrivelse)
+                ? "Ingen beskrivelse"
+                : Model.Beskrivelse)
+        </p>
+
     </div>
 </div>
+
+<!-- Kart over behovets registrerte posisjon -->
+<h2 class="h4">Posisjon</h2>
+
+<div id="map"
+     style="height: 400px; width: 100%;"
+     class="mb-3">
+</div>
+
+<p>
+    <strong>Breddegrad:</strong>
+    @Model.Latitude
+    <br />
+
+    <strong>Lengdegrad:</strong>
+    @Model.Longitude
+</p>
+
+<hr />
 
 <!-- Matchende ressurser -->
-<h2 class="mb-3">Ressurser som passer</h2>
+<h2 class="h4">Matchende ressurser</h2>
 
 @if (TempData["Feil"] != null)
 {
-    <div class="melding melding-feil" role="alert">
+    <div class="alert alert-danger">
         @TempData["Feil"]
     </div>
 }
@@ -64,91 +76,112 @@
 @if (!Model.MatchendeRessurser.Any())
 {
     <!-- Ingen ressurs passer akkurat nå -->
-    <div class="tom-liste">
-        <p>Ingen tilgjengelige ressurser passer til dette behovet akkurat nå.</p>
+    <div class="alert alert-warning">
+        Ingen tilgjengelige ressurser matcher dette behovet.
     </div>
 }
 else
 {
-    <div class="row g-3">
+    <div class="row">
+
         @foreach (var ressurs in Model.MatchendeRessurser)
         {
-            <div class="col-12 col-md-6">
-                <div class="panel h-100 d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                        <h3 class="mb-0">@ressurs.Type</h3>
-                        <span class="merke @Visningstekst.RessursStatusFarge(ressurs.Status)">@ressurs.Status</span>
+            <div class="col-12 col-md-6 mb-3">
+
+                <div class="card h-100">
+                    <div class="card-body">
+
+                        <h3 class="h5">
+                            @ressurs.Type
+                        </h3>
+
+                        <p>
+                            <strong>Posisjon:</strong>
+                            @ressurs.Posisjon
+                        </p>
+
+                        <p>
+                            <strong>Status:</strong>
+                            @ressurs.Status
+                        </p>
+
+                        <p>
+                            <strong>Navn:</strong>
+                            @(string.IsNullOrWhiteSpace(ressurs.Navn)
+                                ? "Ikke oppgitt"
+                                : ressurs.Navn)
+                        </p>
+
+                        <p>
+                            <strong>Match:</strong>
+                            @ressurs.MatchBegrunnelse
+                        </p>
+
+                        <!-- POST-er selve tildelingen -->
+                        <form asp-controller="Tildeling"
+                              asp-action="Tildel"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="behovId"
+                                   value="@Model.BehovId" />
+
+                            <input type="hidden"
+                                   name="ressursId"
+                                   value="@ressurs.RessursId" />
+
+                            <button type="submit"
+                                    class="btn btn-success">
+                                Tildel ressurs
+                            </button>
+
+                        </form>
+
                     </div>
-
-                    <p class="text-muted mb-3">@ressurs.MatchBegrunnelse</p>
-
-                    <dl class="opplysninger mb-3">
-                        <dt>Posisjon</dt>
-                        <dd>@ressurs.Posisjon</dd>
-
-                        <dt>Navn</dt>
-                        <dd>
-                            @if (string.IsNullOrWhiteSpace(ressurs.Navn))
-                            {
-                                <span>Ikke oppgitt</span>
-                            }
-                            else
-                            {
-                                @ressurs.Navn
-                            }
-                        </dd>
-                    </dl>
-
-                    <!-- POST-er selve tildelingen -->
-                    <form asp-controller="Tildeling"
-                          asp-action="Tildel"
-                          method="post"
-                          class="mt-auto">
-
-                        <input type="hidden" name="behovId" value="@Model.BehovId" />
-                        <input type="hidden" name="ressursId" value="@ressurs.RessursId" />
-
-                        <button type="submit" class="btn btn-success">
-                            Tildel denne ressursen
-                        </button>
-                    </form>
                 </div>
+
             </div>
         }
+
     </div>
 }
 
-@section Scripts {
-    <!-- Leaflet JavaScript -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Tilbake til behovslisten -->
+<a asp-controller="Tildeling"
+   asp-action="Index"
+   class="btn btn-outline-secondary mt-3">
+    Tilbake
+</a>
 
-    <script>
-        // Henter behovets koordinater fra ViewModel.
-        const latitude = @Model.Latitude.ToString(
-            System.Globalization.CultureInfo.InvariantCulture);
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        const longitude = @Model.Longitude.ToString(
-            System.Globalization.CultureInfo.InvariantCulture);
+<script>
+    // Henter behovets koordinater fra ViewModel.
+    const latitude = @Model.Latitude.ToString(
+        System.Globalization.CultureInfo.InvariantCulture);
 
-        // Oppretter kartet rundt behovet.
-        const map = L.map('map').setView(
-            [latitude, longitude],
-            13
-        );
+    const longitude = @Model.Longitude.ToString(
+        System.Globalization.CultureInfo.InvariantCulture);
 
-        // Legger til OpenStreetMap.
-        L.tileLayer(
-            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }
-        ).addTo(map);
+    // Oppretter kartet rundt behovet.
+    const map = L.map('map').setView(
+        [latitude, longitude],
+        13
+    );
 
-        // Viser behovet med en markør.
-        L.marker([latitude, longitude])
-            .addTo(map)
-            .bindPopup('Behov nr. @Model.BehovId')
-            .openPopup();
-    </script>
-}
+    // Legger til OpenStreetMap.
+    L.tileLayer(
+        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }
+    ).addTo(map);
+
+    // Viser behovet med en markør.
+    L.marker([latitude, longitude])
+        .addTo(map)
+        .bindPopup('Behov #@Model.BehovId')
+        .openPopup();
+</script>

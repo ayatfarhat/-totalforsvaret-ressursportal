@@ -3,38 +3,39 @@
     ViewData["Title"] = "Registrer deg";
 }
 
-<div class="smal-side">
-    <div class="sidetopp">
-        <h1>Registrer deg</h1>
-        <p class="ingress">Med en konto kan du melde inn behov når du trenger hjelp.</p>
+<div class="auth">
+    <span class="logo-icon logo-icon-large"><partial name="_Logo" /></span>
+    <h1>Registrer deg</h1>
+    <p class="auth-ingress">Nye brukere får rollen Frivillig.</p>
+
+    <div class="auth-flate">
+        <form asp-action="Register" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+
+            <div class="felt">
+                <label asp-for="Epost" class="form-label">E-post</label>
+                <input asp-for="Epost" class="form-control" autocomplete="username" inputmode="email" />
+                <span asp-validation-for="Epost"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="Passord" class="form-label"></label>
+                <input asp-for="Passord" class="form-control" autocomplete="new-password" aria-describedby="passordHjelp" />
+                <div id="passordHjelp" class="form-text">Minst 8 tegn og minst ett tall.</div>
+                <span asp-validation-for="Passord"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="BekreftPassord" class="form-label"></label>
+                <input asp-for="BekreftPassord" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="BekreftPassord"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Opprett konto</button>
+        </form>
     </div>
 
-    <form asp-action="Register" method="post" class="panel">
-        <div asp-validation-summary="ModelOnly"></div>
-
-        <div class="mb-3">
-            <label asp-for="Epost" class="form-label">E-post</label>
-            <input asp-for="Epost" class="form-control" autocomplete="email" />
-            <span asp-validation-for="Epost"></span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Passord" class="form-label"></label>
-            <input asp-for="Passord" class="form-control" autocomplete="new-password" />
-            <div class="form-text">Minst 8 tegn og minst ett tall.</div>
-            <span asp-validation-for="Passord"></span>
-        </div>
-
-        <div class="mb-4">
-            <label asp-for="BekreftPassord" class="form-label"></label>
-            <input asp-for="BekreftPassord" class="form-control" autocomplete="new-password" />
-            <span asp-validation-for="BekreftPassord"></span>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg w-100">Opprett konto</button>
-    </form>
-
-    <p class="mt-3 text-center">Har du allerede konto? <a asp-action="Login">Logg inn</a></p>
+    <p class="auth-bunn">Har du allerede konto? <a asp-action="Login">Logg inn</a></p>
 </div>
 
 @section Scripts {
