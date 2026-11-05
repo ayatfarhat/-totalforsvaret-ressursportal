@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Engelske tekster. "name" er den norske teksten slik den står i koden (T["..."]),
+       og "value" er den engelske oversettelsen. Mangler en tekst her, vises den på norsk. -->
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Tildeling" xml:space="preserve">
+    <value>Assignment</value>
+  </data>
+  <data name="Match ressurs" xml:space="preserve">
+    <value>Match resource</value>
+  </data>
+  <data name="Tildeling fullført" xml:space="preserve">
+    <value>Assignment completed</value>
+  </data>
+  <data name="Registrer en ressurs" xml:space="preserve">
+    <value>Register a resource</value>
+  </data>
+  <data name="Ressurser og behov" xml:space="preserve">
+    <value>Resources and needs</value>
+  </data>
+  <data name="Ressursliste per kommune" xml:space="preserve">
+    <value>Resource list by municipality</value>
+  </data>
+  <data name="Kvittering" xml:space="preserve">
+    <value>Receipt</value>
+  </data>
+  <data name="Slett ressurs" xml:space="preserve">
+    <value>Delete resource</value>
+  </data>
+  <data name="Endre ressurs" xml:space="preserve">
+    <value>Edit resource</value>
+  </data>
+  <data name="Legg til ønsket ressurs" xml:space="preserve">
+    <value>Add requested resource</value>
+  </data>
+  <data name="Ønskede ressurser" xml:space="preserve">
+    <value>Requested resources</value>
+  </data>
+  <data name="Brukere" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Her kan du gi brukere riktig rolle, låse kontoer og hjelpe brukere som har mistet telefonen med 2FA." xml:space="preserve">
+    <value>Here you can give users the right role, lock accounts and help users who have lost the phone they use for 2FA.</value>
+  </data>
+  <data name="Søk på e-post" xml:space="preserve">
+    <value>Search by email</value>
+  </data>
+  <data name="Søk" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Alle brukere" xml:space="preserve">
+    <value>All users</value>
+  </data>
+  <data name="E-post" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Rolle" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Handling" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="deg" xml:space="preserve">
+    <value>you</value>
+  </data>
+  <data name="Rolle for" xml:space="preserve">
+    <value>Role for</value>
+  </data>
+  <data name="Lagre" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="På" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Av" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Låst" xml:space="preserve">
+    <value>Locked</value>
+  </data>
+  <data name="Aktiv" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Lås opp" xml:space="preserve">
+    <value>Unlock</value>
+  </data>
+  <data name="Lås" xml:space="preserve">
+    <value>Lock</value>
+  </data>
+  <data name="Nullstill 2FA" xml:space="preserve">
+    <value>Reset 2FA</value>
+  </data>
+  <data name="Slette brukeren og alle registreringene permanent?" xml:space="preserve">
+    <value>Delete the user and all their registrations permanently?</value>
+  </data>
+  <data name="Slett" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Oversikt" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="Min konto" xml:space="preserve">
+    <value>My account</value>
+  </data>
+  <data name="Logg ut" xml:space="preserve">
+    <value>Log out</value>
+  </data>
+  <data name="Logg inn" xml:space="preserve">
+    <value>Log in</value>
+  </data>
+  <data name="Registrer deg" xml:space="preserve">
+    <value>Sign up</value>
+  </data>
+  <data name="Hopp til innhold" xml:space="preserve">
+    <value>Skip to content</value>
+  </data>
+  <data name="Akutt fare for liv og helse?" xml:space="preserve">
+    <value>Immediate danger to life or health?</value>
+  </data>
+  <data name="Ring først:" xml:space="preserve">
+    <value>Call first:</value>
+  </data>
+  <data name="Brann" xml:space="preserve">
+    <value>Fire</value>
+  </data>
+  <data name="Politi" xml:space="preserve">
+    <value>Police</value>
+  </data>
+  <data name="Ambulanse" xml:space="preserve">
+    <value>Ambulance</value>
+  </data>
+  <data name="Hovedmeny" xml:space="preserve">
+    <value>Main menu</value>
+  </data>
+  <data name="Åpne og lukk meny" xml:space="preserve">
+    <value>Open and close menu</value>
+  </data>
+  <data name="Forside" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Ressurser" xml:space="preserve">
+    <value>Resources</value>
+  </data>
+  <data name="Se mine behov" xml:space="preserve">
+    <value>See my needs</value>
+  </data>
+  <data name="En beredskapsportal som kobler behov under kriser med utstyr, kjøretøy og frivillige som kan stille opp." xml:space="preserve">
+    <value>An emergency portal that connects needs during a crisis with equipment, vehicles and volunteers who can help.</value>
+  </data>
+  <data name="Sider" xml:space="preserve">
+    <value>Pages</value>
+  </data>
+  <data name="Meld behov" xml:space="preserve">
+    <value>Report a need</value>
+  </data>
+  <data name="For nødetater og kriseledelse" xml:space="preserve">
+    <value>For emergency services and crisis management</value>
+  </data>
+  <data name="Personvern" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Studentprosjekt i IS-200, gruppe 15. BeredskapsPortalen erstatter ikke nødnumrene." xml:space="preserve">
+    <value>Student project in IS-200, group 15. BeredskapsPortalen does not replace the emergency numbers.</value>
+  </data>
+  <data name="Velg språk" xml:space="preserve">
+    <value>Choose language</value>
+  </data>
+  <data name="Noe gikk galt" xml:space="preserve">
+    <value>Something went wrong</value>
+  </data>
+  <data name="Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner." xml:space="preserve">
+    <value>Only for emergency services, police and crisis management. Not for private individuals.</value>
+  </data>
+  <data name="Behovskø" xml:space="preserve">
+    <value>Needs queue</value>
+  </data>
+  <data name="Til BeredskapsPortalen" xml:space="preserve">
+    <value>To BeredskapsPortalen</value>
+  </data>
+  <data name="Rett ressurs til rett sted når krisen rammer." xml:space="preserve">
+    <value>The right resource in the right place when a crisis hits.</value>
+  </data>
+  <data name="Strømbrudd, ekstremvær eller evakuering: BeredskapsPortalen samler utstyr, kjøretøy og frivillige på ett sted, slik at kriseledelsen raskt kan sende hjelp dit den trengs." xml:space="preserve">
+    <value>Power cuts, extreme weather or evacuation: BeredskapsPortalen gathers equipment, vehicles and volunteers in one place, so crisis management can quickly send help where it is needed.</value>
+  </data>
+  <data name="Jeg trenger hjelp" xml:space="preserve">
+    <value>I need help</value>
+  </data>
+  <data name="Meld et behov i nærheten av deg" xml:space="preserve">
+    <value>Report a need near you</value>
+  </data>
+  <data name="Jeg kan hjelpe" xml:space="preserve">
+    <value>I can help</value>
+  </data>
+  <data name="Registrer utstyr, kjøretøy eller innsats" xml:space="preserve">
+    <value>Register equipment, vehicles or your time</value>
+  </data>
+  <data name="Er det fare for liv og helse, ring 110, 112 eller 113 først." xml:space="preserve">
+    <value>If life or health is in danger, call 110, 112 or 113 first.</value>
+  </data>
+  <data name="Trenger hjelp" xml:space="preserve">
+    <value>Needs help</value>
+  </data>
+  <data name="Kan hjelpe" xml:space="preserve">
+    <value>Can help</value>
+  </data>
+  <data name="Slik fungerer det" xml:space="preserve">
+    <value>How it works</value>
+  </data>
+  <data name="Velg riktig spor" xml:space="preserve">
+    <value>Choose the right path</value>
+  </data>
+  <data name="Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema." xml:space="preserve">
+    <value>Do you need help, or can you help others? Each path has its own short form.</value>
+  </data>
+  <data name="Fortell hva og hvor" xml:space="preserve">
+    <value>Tell us what and where</value>
+  </data>
+  <data name="Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt." xml:space="preserve">
+    <value>Choose a type, point to the place on the map and add how you can be reached. It takes less than a minute.</value>
+  </data>
+  <data name="Kriseledelsen ser det" xml:space="preserve">
+    <value>Crisis management sees it</value>
+  </data>
+  <data name="Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser." xml:space="preserve">
+    <value>The report appears on the crisis management map right away, and they match needs with resources.</value>
+  </data>
+  <data name="Dette kan du stille med" xml:space="preserve">
+    <value>What you can offer</value>
+  </data>
+  <data name="Gå til Min konto" xml:space="preserve">
+    <value>Go to My account</value>
+  </data>
+  <data name="Mine behov" xml:space="preserve">
+    <value>My needs</value>
+  </data>
+  <data name="Skriv inn kode" xml:space="preserve">
+    <value>Enter code</value>
+  </data>
+  <data name="Åpne autentiseringsappen og skriv inn den 6-sifrede koden." xml:space="preserve">
+    <value>Open the authenticator app and enter the 6-digit code.</value>
+  </data>
+  <data name="Kode fra appen" xml:space="preserve">
+    <value>Code from the app</value>
+  </data>
+  <data name="Her ser du hvordan du er logget inn." xml:space="preserve">
+    <value>Here you can see how you are logged in.</value>
+  </data>
+  <data name="Sikkerhet" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Kontoen din er beskyttet med kode fra autentiseringsapp." xml:space="preserve">
+    <value>Your account is protected with a code from an authenticator app.</value>
+  </data>
+  <data name="Tofaktor-innlogging gir ekstra beskyttelse hvis noen får tak i passordet ditt." xml:space="preserve">
+    <value>Two-factor login gives extra protection if someone gets hold of your password.</value>
+  </data>
+  <data name="Slå av 2FA" xml:space="preserve">
+    <value>Turn off 2FA</value>
+  </data>
+  <data name="Slå på 2FA" xml:space="preserve">
+    <value>Turn on 2FA</value>
+  </data>
+  <data name="Endre passord" xml:space="preserve">
+    <value>Change password</value>
+  </data>
+  <data name="Mine registreringer" xml:space="preserve">
+    <value>My registrations</value>
+  </data>
+  <data name="Her finner du behovene og ressursene du har registrert." xml:space="preserve">
+    <value>Here you find the needs and resources you have registered.</value>
+  </data>
+  <data name="Mine ressurser" xml:space="preserve">
+    <value>My resources</value>
+  </data>
+  <data name="Personvern og dine data" xml:space="preserve">
+    <value>Privacy and your data</value>
+  </data>
+  <data name="Du kan når som helst laste ned alt vi har lagret om deg, eller slette kontoen." xml:space="preserve">
+    <value>You can download everything we store about you, or delete your account, at any time.</value>
+  </data>
+  <data name="Les personvernerklæringen" xml:space="preserve">
+    <value>Read the privacy policy</value>
+  </data>
+  <data name="Last ned mine data" xml:space="preserve">
+    <value>Download my data</value>
+  </data>
+  <data name="Slett konto" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Ingen tilgang" xml:space="preserve">
+    <value>No access</value>
+  </data>
+  <data name="Denne siden viser personopplysninger, så ansatte må logge inn med tofaktor (2FA)." xml:space="preserve">
+    <value>This page shows personal data, so staff must log in with two-factor authentication (2FA).</value>
+  </data>
+  <data name="Slå på 2FA under Min konto. Har du allerede 2FA, logger du ut og inn igjen med koden fra appen." xml:space="preserve">
+    <value>Turn on 2FA under My account. If you already have 2FA, log out and log in again with the code from the app.</value>
+  </data>
+  <data name="Du er logget inn, men kontoen din har ikke tilgang til denne siden." xml:space="preserve">
+    <value>You are logged in, but your account does not have access to this page.</value>
+  </data>
+  <data name="Til forsiden" xml:space="preserve">
+    <value>To the front page</value>
+  </data>
+  <data name="Du må skrive inn passordet du har nå for å velge et nytt." xml:space="preserve">
+    <value>You must enter your current password to choose a new one.</value>
+  </data>
+  <data name="Nåværende passord" xml:space="preserve">
+    <value>Current password</value>
+  </data>
+  <data name="Nytt passord" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="Minst 8 tegn, med stor og liten bokstav, tall og spesialtegn (for eksempel !)." xml:space="preserve">
+    <value>At least 8 characters, with upper and lower case letters, a number and a special character (for example !).</value>
+  </data>
+  <data name="Gjenta nytt passord" xml:space="preserve">
+    <value>Repeat new password</value>
+  </data>
+  <data name="Lagre nytt passord" xml:space="preserve">
+    <value>Save new password</value>
+  </data>
+  <data name="Avbryt" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Nye brukere får rollen Frivillig." xml:space="preserve">
+    <value>New users get the role Frivillig (volunteer).</value>
+  </data>
+  <data name="Passord" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Gjenta passord" xml:space="preserve">
+    <value>Repeat password</value>
+  </data>
+  <data name="Jeg har lest" xml:space="preserve">
+    <value>I have read the</value>
+  </data>
+  <data name="personvernerklæringen" xml:space="preserve">
+    <value>privacy policy</value>
+  </data>
+  <data name="og godtar at e-posten min lagres for å lage kontoen." xml:space="preserve">
+    <value>and agree that my email is stored to create the account.</value>
+  </data>
+  <data name="Opprett konto" xml:space="preserve">
+    <value>Create account</value>
+  </data>
+  <data name="Har du allerede konto?" xml:space="preserve">
+    <value>Already have an account?</value>
+  </data>
+  <data name="Advarsel: Permanent sletting" xml:space="preserve">
+    <value>Warning: Permanent deletion</value>
+  </data>
+  <data name="Hvis du sletter kontoen din, vil alle behov og ressurser du har registrert, også bli slettet permanent." xml:space="preserve">
+    <value>If you delete your account, all needs and resources you have registered will also be permanently deleted.</value>
+  </data>
+  <data name="Handlingen kan ikke angres!" xml:space="preserve">
+    <value>This cannot be undone!</value>
+  </data>
+  <data name="Vil du ta vare på opplysningene først?" xml:space="preserve">
+    <value>Want to keep a copy of your data first?</value>
+  </data>
+  <data name="Skriv inn passordet ditt for å bekrefte" xml:space="preserve">
+    <value>Enter your password to confirm</value>
+  </data>
+  <data name="Ja, slett kontoen min permanent" xml:space="preserve">
+    <value>Yes, delete my account permanently</value>
+  </data>
+  <data name="Du trenger en autentiseringsapp, for eksempel Microsoft Authenticator eller Google Authenticator." xml:space="preserve">
+    <value>You need an authenticator app, for example Microsoft Authenticator or Google Authenticator.</value>
+  </data>
+  <data name="Skann QR-koden i appen." xml:space="preserve">
+    <value>Scan the QR code in the app.</value>
+  </data>
+  <data name="Kan du ikke skanne? Skriv inn nøkkelen i stedet:" xml:space="preserve">
+    <value>Cannot scan? Enter the key instead:</value>
+  </data>
+  <data name="Skriv inn koden som vises i appen." xml:space="preserve">
+    <value>Enter the code shown in the app.</value>
+  </data>
+  <data name="Logg inn for å melde behov eller registrere ressurser." xml:space="preserve">
+    <value>Log in to report needs or register resources.</value>
+  </data>
+  <data name="Har du ikke konto?" xml:space="preserve">
+    <value>No account yet?</value>
+  </data>
+  <data name="Du må godta personvernerklæringen for å lage en konto." xml:space="preserve">
+    <value>You must accept the privacy policy to create an account.</value>
+  </data>
+  <data name="E-posten er allerede registrert" xml:space="preserve">
+    <value>The email is already registered</value>
+  </data>
+  <data name="Kontoen er låst. Prøv igjen senere, eller kontakt administrator." xml:space="preserve">
+    <value>The account is locked. Try again later, or contact an administrator.</value>
+  </data>
+  <data name="Feil e-post eller passord" xml:space="preserve">
+    <value>Wrong email or password</value>
+  </data>
+  <data name="Feil kode" xml:space="preserve">
+    <value>Wrong code</value>
+  </data>
+  <data name="Passordet er endret." xml:space="preserve">
+    <value>Your password has been changed.</value>
+  </data>
+  <data name="Feil kode, prøv igjen" xml:space="preserve">
+    <value>Wrong code, please try again</value>
+  </data>
+  <data name="2FA er slått på!" xml:space="preserve">
+    <value>2FA is turned on!</value>
+  </data>
+  <data name="2FA er slått av." xml:space="preserve">
+    <value>2FA is turned off.</value>
+  </data>
+  <data name="Feil passord." xml:space="preserve">
+    <value>Wrong password.</value>
+  </data>
+  <data name="Kontoen din og tilhørende registreringer er slettet." xml:space="preserve">
+    <value>Your account and its registrations have been deleted.</value>
+  </data>
+  <data name="{0} har nå rollen {1}." xml:space="preserve">
+    <value>{0} now has the role {1}.</value>
+  </data>
+  <data name="{0} er låst." xml:space="preserve">
+    <value>{0} is locked.</value>
+  </data>
+  <data name="{0} er låst opp." xml:space="preserve">
+    <value>{0} is unlocked.</value>
+  </data>
+  <data name="2FA er slått av for {0}." xml:space="preserve">
+    <value>2FA is turned off for {0}.</value>
+  </data>
+  <data name="{0} og tilhørende registreringer er slettet." xml:space="preserve">
+    <value>{0} and their registrations have been deleted.</value>
+  </data>
+  <data name="Du kan ikke endre din egen konto her. Bruk Min konto." xml:space="preserve">
+    <value>You cannot change your own account here. Use My account.</value>
+  </data>
+  <data name="Fant ikke brukeren." xml:space="preserve">
+    <value>The user was not found.</value>
+  </data>
+  <data name="Skriv inn e-post" xml:space="preserve">
+    <value>Enter your email</value>
+  </data>
+  <data name="Ugyldig e-post" xml:space="preserve">
+    <value>Invalid email</value>
+  </data>
+  <data name="Skriv inn passord" xml:space="preserve">
+    <value>Enter your password</value>
+  </data>
+  <data name="Passordet må være minst 8 tegn" xml:space="preserve">
+    <value>The password must be at least 8 characters</value>
+  </data>
+  <data name="Passordet må ha stor og liten bokstav, tall og spesialtegn (for eksempel !)" xml:space="preserve">
+    <value>The password must have upper and lower case letters, a number and a special character (for example !)</value>
+  </data>
+  <data name="Gjenta passordet" xml:space="preserve">
+    <value>Repeat the password</value>
+  </data>
+  <data name="Passordene er ikke like" xml:space="preserve">
+    <value>The passwords do not match</value>
+  </data>
+  <data name="Skriv inn passordet du har nå" xml:space="preserve">
+    <value>Enter your current password</value>
+  </data>
+  <data name="Skriv inn nytt passord" xml:space="preserve">
+    <value>Enter a new password</value>
+  </data>
+  <data name="Skriv inn koden fra appen" xml:space="preserve">
+    <value>Enter the code from the app</value>
+  </data>
+  <data name="Koden er 6 siffer" xml:space="preserve">
+    <value>The code is 6 digits</value>
+  </data>
+  <data name="Du må skrive inn passordet ditt." xml:space="preserve">
+    <value>You must enter your password.</value>
+  </data>
+  <data name="Kontoen har tilknyttede tildelinger og kan ikke slettes automatisk. Kontakt administrator." xml:space="preserve">
+    <value>The account is linked to assignments and cannot be deleted automatically. Contact an administrator.</value>
+  </data>
+  <data name="Kunne ikke slette kontoen. Prøv igjen." xml:space="preserve">
+    <value>Could not delete the account. Please try again.</value>
+  </data>
+  <data name="Slettingen kunne ikke fullføres. Kontoen kan ha fått nye tilknyttede registreringer. Prøv igjen eller kontakt administrator." xml:space="preserve">
+    <value>The deletion could not be completed. The account may have new linked registrations. Try again or contact an administrator.</value>
+  </data>
+  <data name="Passordet er for kort. Det må ha minst 8 tegn." xml:space="preserve">
+    <value>The password is too short. It must have at least 8 characters.</value>
+  </data>
+  <data name="Passordet må ha minst ett tall." xml:space="preserve">
+    <value>The password must have at least one number.</value>
+  </data>
+  <data name="Passordet må ha minst én liten bokstav." xml:space="preserve">
+    <value>The password must have at least one lower case letter.</value>
+  </data>
+  <data name="Passordet må ha minst én stor bokstav." xml:space="preserve">
+    <value>The password must have at least one upper case letter.</value>
+  </data>
+  <data name="Passordet må ha minst ett spesialtegn, for eksempel !" xml:space="preserve">
+    <value>The password must have at least one special character, for example !</value>
+  </data>
+  <data name="Kunne ikke lagre. Prøv igjen." xml:space="preserve">
+    <value>Could not save. Please try again.</value>
+  </data>
+</root>

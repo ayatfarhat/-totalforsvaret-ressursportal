@@ -10,23 +10,22 @@
 
 <section class="hero" aria-labelledby="hero-tittel">
     <div class="hero-tekst">
-        <h1 id="hero-tittel">Rett ressurs til rett sted når krisen rammer.</h1>
+        <h1 id="hero-tittel">@T["Rett ressurs til rett sted når krisen rammer."]</h1>
         <p class="hero-ingress">
-            Strømbrudd, ekstremvær eller evakuering: BeredskapsPortalen samler utstyr, kjøretøy
-            og frivillige på ett sted, slik at kriseledelsen raskt kan sende hjelp dit den trengs.
+            @T["Strømbrudd, ekstremvær eller evakuering: BeredskapsPortalen samler utstyr, kjøretøy og frivillige på ett sted, slik at kriseledelsen raskt kan sende hjelp dit den trengs."]
         </p>
 
         <div class="hero-valg">
             <a class="valg valg-hjelp" asp-controller="Behov" asp-action="Opprett">
-                <strong>Jeg trenger hjelp</strong>
-                <span>Meld et behov i nærheten av deg</span>
+                <strong>@T["Jeg trenger hjelp"]</strong>
+                <span>@T["Meld et behov i nærheten av deg"]</span>
             </a>
             <a class="valg valg-gi" asp-controller="Ressurs" asp-action="Create">
-                <strong>Jeg kan hjelpe</strong>
-                <span>Registrer utstyr, kjøretøy eller innsats</span>
+                <strong>@T["Jeg kan hjelpe"]</strong>
+                <span>@T["Registrer utstyr, kjøretøy eller innsats"]</span>
             </a>
         </div>
-        <p class="hero-merknad">Er det fare for liv og helse, ring 110, 112 eller 113 først.</p>
+        <p class="hero-merknad">@T["Er det fare for liv og helse, ring 110, 112 eller 113 først."]</p>
     </div>
 
     <figure class="hero-bilde">
@@ -103,32 +102,32 @@
             </div>
         </div>
         <figcaption>
-            <span><i style="background:#E5522C"></i>Trenger hjelp</span>
-            <span><i style="background:#4FD39A"></i>Kan hjelpe</span>
+            <span><i style="background:#E5522C"></i>@T["Trenger hjelp"]</span>
+            <span><i style="background:#4FD39A"></i>@T["Kan hjelpe"]</span>
         </figcaption>
     </figure>
 </section>
 
 <section class="seksjon" aria-labelledby="slik-tittel">
-    <h2 id="slik-tittel">Slik fungerer det</h2>
+    <h2 id="slik-tittel">@T["Slik fungerer det"]</h2>
     <ol class="steg">
         <li>
-            <h3>Velg riktig spor</h3>
-            <p>Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema.</p>
+            <h3>@T["Velg riktig spor"]</h3>
+            <p>@T["Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema."]</p>
         </li>
         <li>
-            <h3>Fortell hva og hvor</h3>
-            <p>Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt.</p>
+            <h3>@T["Fortell hva og hvor"]</h3>
+            <p>@T["Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt."]</p>
         </li>
         <li>
-            <h3>Kriseledelsen ser det</h3>
-            <p>Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser.</p>
+            <h3>@T["Kriseledelsen ser det"]</h3>
+            <p>@T["Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser."]</p>
         </li>
     </ol>
 </section>
 
 <section class="seksjon" aria-labelledby="dele-tittel">
-    <h2 id="dele-tittel">Dette kan du stille med</h2>
+    <h2 id="dele-tittel">@T["Dette kan du stille med"]</h2>
     <ul class="deleliste">
         @foreach (var type in Nabohjelp.Models.RessursFormViewModel.Typer)
         {

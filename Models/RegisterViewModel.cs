@@ -23,4 +23,8 @@ public class RegisterViewModel
     [DataType(DataType.Password)]
     [Display(Name = "Gjenta passord")]
     public string BekreftPassord { get; set; } = "";
+
+    // GDPR: brukeren må krysse av for at hen har lest personvernerklæringen.
+    // Sjekkes i AccountController.Register.
+    public bool GodtarPersonvern { get; set; }
 }

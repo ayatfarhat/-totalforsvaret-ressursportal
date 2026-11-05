@@ -1,5 +1,11 @@
 @{
     ViewData["Title"] = "Ingen tilgang";
+
+    // Admin og Kommune som ikke har logget inn med 2FA, får en egen forklaring
+    // når appen krever 2FA for ansatte (Sikkerhet:KrevTofaForAnsatte i appsettings).
+    bool ansattUtenTofa =
+        (User.IsInRole("Admin") || User.IsInRole("Kommune")) &&
+        !User.HasClaim("amr", "mfa");
 }
 
 <div class="melding-side">
@@ -9,7 +15,17 @@
         <path d="M27 33v-6a9 9 0 0 1 18 0v6" fill="none" stroke="#12212D" stroke-width="4" stroke-linecap="round" />
         <circle cx="36" cy="43" r="3" fill="#F4B740" />
     </svg>
-    <h1>Ingen tilgang</h1>
-    <p>Du er logget inn, men kontoen din har ikke tilgang til denne siden.</p>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
+    <h1>@T["Ingen tilgang"]</h1>
+
+    @if (ansattUtenTofa)
+    {
+        <p>@T["Denne siden viser personopplysninger, så ansatte må logge inn med tofaktor (2FA)."]</p>
+        <p>@T["Slå på 2FA under Min konto. Har du allerede 2FA, logger du ut og inn igjen med koden fra appen."]</p>
+        <a asp-controller="Account" asp-action="Index" class="btn btn-primary">@T["Gå til Min konto"]</a>
+    }
+    else
+    {
+        <p>@T["Du er logget inn, men kontoen din har ikke tilgang til denne siden."]</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@T["Til forsiden"]</a>
+    }
 </div>

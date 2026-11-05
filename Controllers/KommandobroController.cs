@@ -13,7 +13,7 @@ namespace Nabohjelp.Controllers
     // Oppgaveteksten nevner "kriseoperatør" som eget rollenavn - avklar med
     // Hassan/gruppa om det skal være en egen rolle, eller om "Kommune" er ment
     // å dekke det samme.
-    [Authorize(Roles = "Admin,Kommune")]
+    [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
     public class KommandobroController : Controller
     {
         private readonly ApplicationDbContext _db;

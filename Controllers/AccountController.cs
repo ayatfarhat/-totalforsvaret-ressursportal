@@ -1,31 +1,32 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Nabohjelp.Data;
+using Microsoft.Extensions.Localization;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.Controllers;
 
-// Håndterer brukerkontoer, innlogging og tofaktor.
+// Håndterer brukerkontoer, innlogging, tofaktor og personvern (GDPR).
 public class AccountController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly ApplicationDbContext _db;
-    private readonly IWebHostEnvironment _miljo;
+    private readonly KontoService _kontoService;
+    private readonly IStringLocalizer<SharedResource> T;
 
-    // Gir tilgang til Identity, databasen og mappen med opplastede bilder.
+    // Gir tilgang til Identity, kontotjenesten og oversettelsene (T["..."]).
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        ApplicationDbContext db,
-        IWebHostEnvironment miljo)
+        KontoService kontoService,
+        IStringLocalizer<SharedResource> localizer)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _db = db;
-        _miljo = miljo;
+        _kontoService = kontoService;
+        T = localizer;
     }
 
     // ---------- REGISTRERING ----------
@@ -42,6 +43,13 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        // GDPR: brukeren må ha lest hvordan opplysningene brukes før kontoen lages.
+        if (!model.GodtarPersonvern)
+        {
+            ModelState.AddModelError(nameof(model.GodtarPersonvern),
+                T["Du må godta personvernerklæringen for å lage en konto."]);
+        }
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -52,10 +60,7 @@ public class AccountController : Controller
 
         if (finnes != null)
         {
-            ModelState.AddModelError(
-                "Epost",
-                "E-posten er allerede registrert");
-
+            ModelState.AddModelError("Epost", T["E-posten er allerede registrert"]);
             return View(model);
         }
 
@@ -66,17 +71,15 @@ public class AccountController : Controller
         };
 
         // Identity lagrer en hash av passordet.
-        var resultat = await _userManager.CreateAsync(
-            bruker,
-            model.Passord);
+        var resultat = await _userManager.CreateAsync(bruker, model.Passord);
 
         if (!resultat.Succeeded)
         {
-            // Identity har egne passordregler. Vi oversetter feilene til norsk,
+            // Identity har egne passordregler. Vi oversetter feilene,
             // slik at brukeren får vite hva som mangler i stedet for en generell melding.
             foreach (var feil in resultat.Errors)
             {
-                ModelState.AddModelError("", OversettFeil(feil.Code));
+                ModelState.AddModelError("", T[OversettFeil(feil.Code)]);
             }
             return View(model);
         }
@@ -84,9 +87,7 @@ public class AccountController : Controller
         // Alle nye brukere får rollen Frivillig.
         await _userManager.AddToRoleAsync(bruker, "Frivillig");
 
-        await _signInManager.SignInAsync(
-            bruker,
-            isPersistent: false);
+        await _signInManager.SignInAsync(bruker, isPersistent: false);
 
         return RedirectToAction("Index", "Home");
     }
@@ -132,19 +133,15 @@ public class AccountController : Controller
             return RedirectToAction("LoginWith2fa", new { returnUrl });
         }
 
+        // Låst etter for mange feil passord, eller låst av administrator.
         if (resultat.IsLockedOut)
         {
-            ModelState.AddModelError(
-                "",
-                "Kontoen er midlertidig låst etter for mange feil.");
-
+            ModelState.AddModelError("", T["Kontoen er låst. Prøv igjen senere, eller kontakt administrator."]);
             return View(model);
         }
 
-        ModelState.AddModelError(
-            "",
-            "Feil e-post eller passord");
-
+        // Samme melding om e-posten eller passordet er feil, så ingen kan finne ut hvem som har konto.
+        ModelState.AddModelError("", T["Feil e-post eller passord"]);
         return View(model);
     }
 
@@ -168,18 +165,23 @@ public class AccountController : Controller
             return View(model);
         }
 
-        var resultat =
-            await _signInManager.TwoFactorAuthenticatorSignInAsync(
-                model.Kode,
-                isPersistent: false,
-                rememberClient: false);
+        var resultat = await _signInManager.TwoFactorAuthenticatorSignInAsync(
+            model.Kode,
+            isPersistent: false,
+            rememberClient: false);
 
         if (resultat.Succeeded)
         {
             return TilbakeEllerForside(returnUrl);
         }
 
-        ModelState.AddModelError("Kode", "Feil kode");
+        if (resultat.IsLockedOut)
+        {
+            ModelState.AddModelError("", T["Kontoen er låst. Prøv igjen senere, eller kontakt administrator."]);
+            return View(model);
+        }
+
+        ModelState.AddModelError("Kode", T["Feil kode"]);
         return View(model);
     }
 
@@ -196,24 +198,7 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    // Bildene ligger i wwwroot/uploads/ressurser og heter ressurs-ID + endelse (for eksempel 12.jpg).
-    private void SlettRessursBilder(IEnumerable<int> ressursIder)
-    {
-        string mappe = Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
-        foreach (int id in ressursIder)
-        {
-            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
-            {
-                string fil = Path.Combine(mappe, id + endelse);
-                if (System.IO.File.Exists(fil))
-                {
-                    System.IO.File.Delete(fil);
-                }
-            }
-        }
-    }
-
-    // Gjør feilkodene fra Identity om til norsk tekst.
+    // Gjør feilkodene fra Identity om til norsk tekst (T[...] oversetter videre til engelsk).
     private static string OversettFeil(string kode)
     {
         switch (kode)
@@ -228,11 +213,13 @@ public class AccountController : Controller
                 return "Passordet må ha minst én stor bokstav.";
             case "PasswordRequiresNonAlphanumeric":
                 return "Passordet må ha minst ett spesialtegn, for eksempel !";
+            case "PasswordMismatch":
+                return "Feil passord.";
             case "DuplicateUserName":
             case "DuplicateEmail":
                 return "E-posten er allerede registrert";
             default:
-                return "Kunne ikke lage brukeren. Prøv igjen.";
+                return "Kunne ikke lagre. Prøv igjen.";
         }
     }
 
@@ -281,7 +268,54 @@ public class AccountController : Controller
         return View(model);
     }
 
-    // ---------- AKTIVERING AV TOFAKTOR ----------
+    // ---------- ENDRE PASSORD ----------
+
+    // Viser skjemaet for nytt passord.
+    [Authorize]
+    [HttpGet]
+    public IActionResult EndrePassord()
+    {
+        return View(new EndrePassordViewModel());
+    }
+
+    // Bytter passord. Krever det gamle passordet, så ingen kan bytte det fra en åpen PC.
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EndrePassord(EndrePassordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var bruker = await _userManager.GetUserAsync(User);
+
+        if (bruker == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        var resultat = await _userManager.ChangePasswordAsync(bruker, model.NaavarendePassord, model.NyttPassord);
+
+        if (!resultat.Succeeded)
+        {
+            foreach (var feil in resultat.Errors)
+            {
+                ModelState.AddModelError("", T[OversettFeil(feil.Code)]);
+            }
+            return View(model);
+        }
+
+        // Nytt passord gir ny "security stamp". Vi logger inn på nytt her,
+        // mens innlogginger på andre enheter blir logget ut.
+        await _signInManager.RefreshSignInAsync(bruker);
+
+        TempData["Melding"] = T["Passordet er endret."].Value;
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ---------- TOFAKTOR ----------
 
     // Henter nøkkelen til autentiseringsappen.
     [Authorize]
@@ -295,15 +329,12 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var nokkel =
-            await _userManager.GetAuthenticatorKeyAsync(bruker);
+        var nokkel = await _userManager.GetAuthenticatorKeyAsync(bruker);
 
         if (nokkel == null)
         {
             await _userManager.ResetAuthenticatorKeyAsync(bruker);
-
-            nokkel =
-                await _userManager.GetAuthenticatorKeyAsync(bruker);
+            nokkel = await _userManager.GetAuthenticatorKeyAsync(bruker);
         }
 
         var model = new TofaViewModel
@@ -332,26 +363,64 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var riktigKode =
-            await _userManager.VerifyTwoFactorTokenAsync(
-                bruker,
-                "Authenticator",
-                model.Kode);
+        var riktigKode = await _userManager.VerifyTwoFactorTokenAsync(bruker, "Authenticator", model.Kode);
 
         if (!riktigKode)
         {
-            ModelState.AddModelError(
-                "Kode",
-                "Feil kode, prøv igjen");
-
+            ModelState.AddModelError("Kode", T["Feil kode, prøv igjen"]);
             return View(model);
         }
 
         await _userManager.SetTwoFactorEnabledAsync(bruker, true);
 
-        TempData["Melding"] = "2FA er slått på!";
+        // Brukeren har nettopp vist en riktig kode, så vi logger inn på nytt
+        // og merker innloggingen som "med 2FA" (amr = mfa). Da slipper Admin og
+        // Kommune å logge ut og inn igjen før de får tilgang til Kommandobroen.
+        await _signInManager.SignInWithClaimsAsync(bruker, isPersistent: false,
+            new[] { new Claim("amr", "mfa") });
+
+        TempData["Melding"] = T["2FA er slått på!"].Value;
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // Slår av tofaktor og lager en ny nøkkel, så den gamle i appen ikke virker lenger.
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeaktiverTofa()
+    {
+        var bruker = await _userManager.GetUserAsync(User);
+
+        if (bruker == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        await _userManager.SetTwoFactorEnabledAsync(bruker, false);
+        await _userManager.ResetAuthenticatorKeyAsync(bruker);
+        await _signInManager.RefreshSignInAsync(bruker);
+
+        TempData["Melding"] = T["2FA er slått av."].Value;
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ---------- PERSONVERN (GDPR) ----------
+
+    // Laster ned alt vi har lagret om brukeren som en JSON-fil (rett til innsyn).
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> LastNedMineData()
+    {
+        var bruker = await _userManager.GetUserAsync(User);
+
+        if (bruker == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        byte[] fil = await _kontoService.LagMineData(bruker);
+        return File(fil, "application/json", "mine-data-beredskapsportalen.json");
     }
 
     // ---------- SLETTING AV KONTO ----------
@@ -364,12 +433,11 @@ public class AccountController : Controller
         return View(new SlettKontoViewModel());
     }
 
-    // Sletter kontoen og brukerens behov og ressurser.
+    // Sletter kontoen og brukerens behov og ressurser (rett til sletting).
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SlettKonto(
-        SlettKontoViewModel model)
+    public async Task<IActionResult> SlettKonto(SlettKontoViewModel model)
     {
         if (!ModelState.IsValid)
         {
@@ -384,99 +452,27 @@ public class AccountController : Controller
         }
 
         // Krever riktig passord før sletting.
-        bool riktigPassord =
-            await _userManager.CheckPasswordAsync(
-                bruker,
-                model.Passord);
+        bool riktigPassord = await _userManager.CheckPasswordAsync(bruker, model.Passord);
 
         if (!riktigPassord)
         {
-            ModelState.AddModelError(
-                "Passord",
-                "Feil passord.");
-
+            ModelState.AddModelError("Passord", T["Feil passord."]);
             return View(model);
         }
 
-        // Finner brukerens behov og ressurser.
-        var behov = await _db.Behovsliste
-            .Where(b => b.OpprettetAvBrukerId == bruker.Id)
-            .ToListAsync();
+        // Selve slettingen skjer i KontoService (samme kode som admin bruker).
+        string? feil = await _kontoService.SlettBrukerOgData(bruker);
 
-        var ressurser = await _db.Ressurser
-            .Where(r => r.OpprettetAvBrukerId == bruker.Id)
-            .ToListAsync();
-
-        var behovIder = behov.Select(b => b.Id).ToList();
-        var ressursIder = ressurser.Select(r => r.Id).ToList();
-
-        // Bevarer historikken hvis tildelinger er tilknyttet.
-        bool harTildelinger = await _db.Tildelinger.AnyAsync(t =>
-            t.TildeltAvBrukerId == bruker.Id ||
-            behovIder.Contains(t.BehovId) ||
-            ressursIder.Contains(t.RessursId));
-
-        if (harTildelinger)
+        if (feil != null)
         {
-            ModelState.AddModelError(
-                "",
-                "Kontoen har tilknyttede tildelinger og kan ikke " +
-                "slettes automatisk. Kontakt administrator.");
-
+            ModelState.AddModelError("", T[feil]);
             return View(model);
         }
-
-        // Samler slettingen i én transaksjon.
-        await using var transaksjon =
-            await _db.Database.BeginTransactionAsync();
-
-        try
-        {
-            // Sletter registreringene fra databasen.
-            _db.Behovsliste.RemoveRange(behov);
-            _db.Ressurser.RemoveRange(ressurser);
-
-            await _db.SaveChangesAsync();
-
-            // Identity sletter kontoen og rollekoblingene.
-            var resultat = await _userManager.DeleteAsync(bruker);
-
-            if (!resultat.Succeeded)
-            {
-                await transaksjon.RollbackAsync();
-
-                ModelState.AddModelError(
-                    "",
-                    "Kunne ikke slette kontoen. Prøv igjen.");
-
-                return View(model);
-            }
-
-            await transaksjon.CommitAsync();
-        }
-        catch (DbUpdateException)
-        {
-            // Angrer hvis databasen avviser slettingen.
-            await transaksjon.RollbackAsync();
-
-            ModelState.AddModelError(
-                "",
-                "Slettingen kunne ikke fullføres. Kontoen kan ha " +
-                "fått nye tilknyttede registreringer. Prøv igjen " +
-                "eller kontakt administrator.");
-
-            return View(model);
-        }
-
-        // Sletter også bildene som hørte til ressursene, så ingenting
-        // fra brukeren blir liggende igjen på serveren.
-        SlettRessursBilder(ressursIder);
 
         // Logger ut etter fullført sletting.
         await _signInManager.SignOutAsync();
 
-        TempData["Melding"] =
-            "Kontoen din og tilhørende registreringer er slettet.";
+        TempData["Melding"] = T["Kontoen din og tilhørende registreringer er slettet."].Value;
 
         return RedirectToAction("Index", "Home");
     }

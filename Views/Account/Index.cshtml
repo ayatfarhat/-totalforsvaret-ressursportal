@@ -5,18 +5,18 @@
 }
 
 <div class="auth auth-bred">
-    <h1>Min konto</h1>
-    <p class="auth-ingress">Her ser du hvordan du er logget inn.</p>
+    <h1>@T["Min konto"]</h1>
+    <p class="auth-ingress">@T["Her ser du hvordan du er logget inn."]</p>
 
     <div class="auth-flate">
         <dl class="konto-rutenett">
             <div>
-                <dt>E-post</dt>
+                <dt>@T["E-post"]</dt>
                 <dd>@Model.Epost</dd>
             </div>
 
             <div>
-                <dt>Rolle</dt>
+                <dt>@T["Rolle"]</dt>
                 <dd>@Model.Rolle</dd>
             </div>
 
@@ -25,69 +25,70 @@
                 <dd>
                     @if (Model.TofaErPa)
                     {
-                        <span class="merke merke-gi">På</span>
+                        <span class="merke merke-gi">@T["På"]</span>
                     }
                     else
                     {
-                        <span class="merke merke-lys">Av</span>
+                        <span class="merke merke-lys">@T["Av"]</span>
                     }
                 </dd>
             </div>
         </dl>
+    </div>
 
-        @if (!Model.TofaErPa)
+    <!-- SIKKERHET -->
+    <div class="auth-flate mt-4">
+        <h2>@T["Sikkerhet"]</h2>
+
+        @if (Model.TofaErPa)
         {
-            <div class="mt-4">
-                <p class="dempet mb-3">
-                    Tofaktor-innlogging gir ekstra beskyttelse
-                    hvis noen får tak i passordet ditt.
-                </p>
-
-                <a asp-action="AktiverTofa"
-                   class="btn btn-primary">
-                    Slå på 2FA
-                </a>
-            </div>
+            <p class="dempet">@T["Kontoen din er beskyttet med kode fra autentiseringsapp."]</p>
         }
+        else
+        {
+            <p class="dempet">@T["Tofaktor-innlogging gir ekstra beskyttelse hvis noen får tak i passordet ditt."]</p>
+        }
+
+        <div class="d-flex gap-3 flex-wrap mt-3">
+            @if (Model.TofaErPa)
+            {
+                <form asp-action="DeaktiverTofa" method="post">
+                    <button type="submit" class="btn btn-outline-secondary">@T["Slå av 2FA"]</button>
+                </form>
+            }
+            else
+            {
+                <a asp-action="AktiverTofa" class="btn btn-primary">@T["Slå på 2FA"]</a>
+            }
+
+            <a asp-action="EndrePassord" class="btn btn-outline-secondary">@T["Endre passord"]</a>
+        </div>
     </div>
 
     <!-- MINE REGISTRERINGER -->
     <div class="auth-flate mt-4">
-        <h2>Mine registreringer</h2>
+        <h2>@T["Mine registreringer"]</h2>
+
+        <p class="dempet">@T["Her finner du behovene og ressursene du har registrert."]</p>
+
+        <div class="d-flex gap-3 flex-wrap mt-3">
+            <a asp-controller="Behov" asp-action="MineBehov" class="btn btn-primary">@T["Mine behov"]</a>
+            <a asp-controller="Ressurs" asp-action="Index" class="btn btn-primary">@T["Mine ressurser"]</a>
+        </div>
+    </div>
+
+    <!-- PERSONVERN (GDPR) -->
+    <div class="auth-flate mt-4">
+        <h2>@T["Personvern og dine data"]</h2>
 
         <p class="dempet">
-            Her finner du behovene og ressursene du har registrert.
+            @T["Du kan når som helst laste ned alt vi har lagret om deg, eller slette kontoen."]
+            <a asp-controller="Home" asp-action="Personvern">@T["Les personvernerklæringen"]</a>
         </p>
 
         <div class="d-flex gap-3 flex-wrap mt-3">
-
-            <a asp-controller="Behov"
-               asp-action="MineBehov"
-               class="btn btn-primary">
-                Mine behov
-            </a>
-
-            <a asp-controller="Ressurs"
-               asp-action="Index"
-               class="btn btn-primary">
-                Mine ressurser
-            </a>
-
+            <a asp-action="LastNedMineData" class="btn btn-outline-secondary">@T["Last ned mine data"]</a>
+            <a asp-action="SlettKonto" class="btn btn-outline-danger">@T["Slett konto"]</a>
         </div>
     </div>
 </div>
-
-<hr />
-
-<h3>Slett brukerkonto</h3>
-
-<p>
-    Hvis du sletter kontoen din, vil alle behov og ressurser
-    du har registrert, også bli slettet permanent.
-</p>
-
-<a asp-controller="Account"
-   asp-action="SlettKonto"
-   class="btn btn-danger">
-    Slett konto
-</a>

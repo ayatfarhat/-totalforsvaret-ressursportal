@@ -1049,3 +1049,29 @@ a[href^="tel:"] { white-space: nowrap; }
     .utskrift-fylke { break-before: auto; }
     a { color: #000; text-decoration: none; }
 }
+
+/* ---------------------------------------------------------------
+   Språkvalg, admin-side og personvern
+   --------------------------------------------------------------- */
+
+/* NO / EN-knappene i menyen */
+.sprakvalg { display: inline-flex; border: 1px solid var(--linje); border-radius: 999px; overflow: hidden; margin: 0 .5rem; }
+.sprakvalg button { border: 0; background: transparent; color: inherit; font-weight: 600; font-size: .85rem; min-width: 44px; min-height: 36px; padding: 0 .6rem; cursor: pointer; }
+.sprakvalg button.valgt { background: var(--natt); color: #fff; }
+.sprakvalg button:focus-visible { outline: 3px solid var(--lys, #F4B740); outline-offset: -3px; }
+.kb .sprakvalg { border-color: #2B4357; }
+.kb .sprakvalg button.valgt { background: #fff; color: var(--natt); }
+
+/* Samtykke ved registrering */
+.samtykke .form-check-label { font-size: .95rem; }
+
+/* Brukerlisten for admin */
+.admin-sok { max-width: 28rem; margin-bottom: 1.5rem; }
+.admin-handling { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.admin-handling form { margin: 0; }
+@media (max-width: 767.98px) { .admin-handling { justify-content: flex-start; } }
+
+/* Personvernerklæringen */
+.personvern { max-width: 46rem; margin: 2rem 0 3rem; }
+.personvern h2 { font-size: 1.35rem; margin-top: 2rem; }
+.personvern li { margin-bottom: .4rem; }
