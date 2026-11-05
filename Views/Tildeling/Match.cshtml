@@ -63,6 +63,27 @@
 <hr />
 
 <!-- Matchende ressurser -->
+<div class="mb-3">
+    <label for="avstandsfilter" class="form-label">
+        <strong>Filtrer etter avstand:</strong>
+    </label>
+
+    <select id="avstandsfilter"
+            class="form-select"
+            style="max-width: 250px;">
+        <option value="alle">Alle avstander</option>
+        <option value="10">Innenfor 10 km</option>
+        <option value="25">Innenfor 25 km</option>
+        <option value="50">Innenfor 50 km</option>
+        <option value="100">Innenfor 100 km</option>
+    </select>
+</div>
+
+<p id="ingenRessurserInnenforAvstand"
+   class="alert alert-warning"
+   hidden>
+    Ingen ressurser finnes innenfor valgt avstand.
+</p>
 <h2 class="h4">Matchende ressurser</h2>
 
 <p class="text-muted">
@@ -105,14 +126,24 @@ else
 
         @foreach (var ressurs in Model.MatchendeRessurser)
         {
-            <div class="col-12 col-md-6 mb-3">
+            <div class="col-12 col-md-6 mb-3 ressurs-kort"
+     data-avstand="@(ressurs.AvstandKm?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")">
 
                 <div class="card h-100">
                     <div class="card-body">
 
                         <h3 class="h5">
-                            @ressurs.Type
-                        </h3>
+    @ressurs.Type
+
+    @if (ressurs.AvstandKm.HasValue &&
+         ressurs.RessursId == Model.MatchendeRessurser
+             .FirstOrDefault(r => r.AvstandKm.HasValue)?.RessursId)
+    {
+        <span class="badge bg-success ms-2">
+            Anbefalt
+        </span>
+    }
+</h3>
 
                         <p>
                             <strong>Posisjon:</strong>
@@ -233,4 +264,32 @@ else
             .bindPopup('Behov #@Model.BehovId')
             .openPopup();
     }
+</script>
+<script>
+    const avstandsfilter = document.getElementById('avstandsfilter');
+    const ressursKort = document.querySelectorAll('.ressurs-kort');
+    const ingenRessurser = document.getElementById('ingenRessurserInnenforAvstand');
+
+    avstandsfilter.addEventListener('change', function () {
+        const valgtAvstand = this.value;
+        let antallSynlige = 0;
+
+        ressursKort.forEach(kort => {
+            const avstandTekst = kort.dataset.avstand;
+            const avstand = Number(avstandTekst);
+
+            const skalVises =
+                valgtAvstand === 'alle' ||
+                (avstandTekst !== '' &&
+                 avstand <= Number(valgtAvstand));
+
+            kort.hidden = !skalVises;
+
+            if (skalVises) {
+                antallSynlige++;
+            }
+        });
+
+        ingenRessurser.hidden = antallSynlige > 0;
+    });
 </script>
