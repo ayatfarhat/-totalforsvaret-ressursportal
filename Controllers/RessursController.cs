@@ -329,7 +329,7 @@ namespace Nabohjelp.Controllers
         // GET: /Ressurs/Utskrift?fylke=Agder&kommune=4202
         // Ressurslisten per kommune, laget for å skrives ut eller lagres som PDF.
         // Kun kriseledelsen (Kommune og Admin) har tilgang.
-        [Authorize(Roles = "Admin,Kommune")]
+        [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
         [HttpGet]
         public async Task<IActionResult> Utskrift(string? fylke, string? kommune)
         {

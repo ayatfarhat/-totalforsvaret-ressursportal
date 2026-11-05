@@ -168,6 +168,83 @@ Navigasjonsmenyen tilpasser seg størrelsen på skjermen. På mindre skjermer vi
 
 Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det tilpasser seg forskjellige skjermstørrelser.
 
+## Innlogging, roller, personvern og språk
+
+Ansvarlig: Hassan.
+
+### Tilgang for de ulike brukerrollene
+
+| Rolle | Hvem | Tilgang |
+|---|---|---|
+| Frivillig | Alle nye brukere | Melde behov, registrere ressurser, se og endre sine egne registreringer |
+| Kommune | Beredskapsansatte | I tillegg: Kommandobro, behovskø, tildeling, ressursliste per kommune, ønskede ressurser |
+| Admin | Systemansvarlig | I tillegg: brukeradministrasjon (`/Admin`) |
+
+Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.cs`. Controllerne bruker `[Authorize(Policy = "Ansatt")]` i stedet for å gjenta rollene. Brukeradministrasjonen bruker policyen `Admin`.
+
+### Autentisering for ulike brukergrupper
+
+- **Frivillige:** e-post og passord. 2FA er frivillig, så terskelen for å hjelpe blir lav.
+- **Kommune og Admin:** ser personopplysninger om andre, så de kan kreves å logge inn med 2FA. Det styres med `Sikkerhet:KrevTofaForAnsatte` i `appsettings.json`. Innstillingen er `true` i produksjon og `false` i utvikling (`appsettings.Development.json`), så testbrukerne kan brukes uten autentiseringsapp. Når kravet er på, sjekker policyen at innloggingen har merket `amr = mfa`, som Identity legger til når brukeren har brukt 2FA.
+- **Felles for alle:** passord lagres som hash, kontoen låses i 5 minutter etter 5 feil passord, innloggings-cookien er `HttpOnly`, og alle skjemaer har `[ValidateAntiForgeryToken]`.
+- Rolleendringer og låsing gjelder innen ett minutt, fordi innloggingen sjekkes mot databasen hvert minutt (`SecurityStampValidatorOptions` i `Program.cs`).
+
+### Administrasjon av brukerkontoer
+
+**Admin (`/Admin`, menyvalget «Brukere»):**
+- Se alle brukere med rolle, 2FA-status og om kontoen er låst. Søk på e-post.
+- Endre rolle (Frivillig, Kommune eller Admin).
+- Låse og låse opp kontoer.
+- Nullstille 2FA for brukere som har mistet telefonen.
+- Slette brukere med tilhørende behov og ressurser.
+
+Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den siste administratoren ikke kan låse seg selv ute.
+
+**Alle brukere (Min konto):**
+- Endre passord (krever nåværende passord).
+- Slå 2FA på og av.
+- Laste ned egne data og slette kontoen.
+
+### Personvern og GDPR
+
+| Krav i GDPR | Slik er det løst |
+|---|---|
+| Informasjon om behandlingen | Personvernerklæring på `/Home/Personvern`, lenket fra bunnen av alle sider |
+| Samtykke | Avkrysning for personvernerklæringen ved registrering |
+| Rett til innsyn og dataportabilitet | «Last ned mine data» på Min konto gir en JSON-fil med alt som er lagret om brukeren |
+| Rett til sletting | «Slett konto» sletter kontoen, behovene, ressursene og bildene |
+| Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager` |
+| Tilgangskontroll | Bare eieren, Kommune og Admin ser kontaktinformasjon |
+| Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. Bare nødvendige cookies brukes |
+
+Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når brukeren sletter seg selv og når admin sletter en bruker. Tildelinger er historikk for kriseledelsen, så en konto med tildelinger må håndteres manuelt av administrator.
+
+### Språkvalg (norsk og engelsk)
+
+- Knappene **NO / EN** i menyen bytter språk. Valget lagres i en cookie i ett år.
+- Tekstene skrives på norsk i koden som `@T["Logg inn"]`. Den engelske teksten ligger i `Resources/SharedResource.en.resx`. Mangler en oversettelse, vises den norske teksten.
+- Bare språket på teksten endres. Tall leses fortsatt med punktum, så koordinatene fra kartet virker på begge språk.
+- Oversatt: meny, bunntekst, forsiden, alle sider for innlogging og konto, brukeradministrasjon, personvern og menyen i Kommandobro. Andre sider oversettes på samme måte ved å legge teksten i `T["..."]` og i resx-filen.
+
+### Testing av innlogging, roller, personvern og språk
+
+Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatisk sletting av kontaktinformasjon og passordreglene ved bytte av passord. Kjør med `dotnet test Nabohjelp.Tests`.
+
+| # | Scenario | Forventet resultat | Resultat |
+|---|---|---|---|
+| H1 | Registrer uten å krysse av for personvern | Feilmelding, ingen konto lages | OK. «Du må godta personvernerklæringen …». Med avkrysning lages kontoen som Frivillig |
+| H2 | Frivillig åpner `/Admin` og `/Kommandobro` | «Ingen tilgang» | OK. Sendes til «Ingen tilgang» for begge |
+| H3 | Admin endrer rolle for en bruker til Kommune | Brukeren får tilgang til Kommandobro innen ett minutt | OK. Kommune-brukeren kom inn på Kommandobro, men ikke på `/Admin`. Ugyldig rolle gir 400 |
+| H4 | Admin låser en bruker | Brukeren kan ikke logge inn. Står som «Låst» i listen | OK. «Låst» i listen og innlogging avvises. Lås opp virker. Fem feil passord låser også kontoen |
+| H5 | Admin prøver å endre sin egen konto | Ikke mulig, ingen knapper på egen rad | OK. Ingen knapper på egen rad |
+| H6 | Bruker endrer passord med feil nåværende passord | «Feil passord.» | OK. «Feil passord.» |
+| H7 | Bruker endrer passord riktig | «Passordet er endret.» og nytt passord virker | OK. Innlogging med nytt passord virker |
+| H8 | «Last ned mine data» | JSON-fil med konto, behov og ressurser | OK. `mine-data-beredskapsportalen.json` med konto, behov og ressurser |
+| H9 | Admin sletter en bruker uten tildelinger | Brukeren og registreringene er borte | OK. Brukeren er slettet og kan ikke logge inn |
+| H10 | Bytt til EN | Menyen, forsiden og kontosidene vises på engelsk. Valget huskes | OK. Meny, forside, innlogging, registrering, Min konto, Brukere og personvern på engelsk. Valget huskes |
+| H11 | Registrer en ressurs med kartet på engelsk | Koordinatene lagres riktig | OK. Lagret som 58.1467 / 7.9956 |
+| H12 | `KrevTofaForAnsatte = true`, Kommune uten 2FA åpner Kommandobro | Forklaring om at 2FA kreves, med lenke til Min konto | Ikke testet ennå (kravet er av i Development) |
+
 ## Testing
 
 Kartfunksjonen er testet manuelt underveis i utviklingen.
@@ -192,7 +269,7 @@ En bruker uten rollen Admin eller Kommune prøver å åpne Kommandobro.
 Brukeren skal ikke få tilgang til siden eller kartet.
 
 **Resultat:**
-Bestått (håndheves av `[Authorize(Roles = "Admin,Kommune")]` på `KommandobroController`).
+Bestått (håndheves av `[Authorize(Policy = "Ansatt")]` på `KommandobroController`, som krever rollen Admin eller Kommune).
 
 ### Test 3 – Velge posisjon ved oppretting av ressurs
 
@@ -275,6 +352,7 @@ KI har blant annet blitt brukt til:
 - Implementering av Leaflet-kart og henting av koordinater.
 - Utvikling av matching- og tildelingslogikk.
 - Oppsett av MariaDB og Entity Framework, og tilkobling til applikasjonen.
+- Brukeradministrasjon, personvern (GDPR), språkvalg og ulike krav til innlogging for frivillige og ansatte.
 
 **Docker, Git og drift**
 - Oppsett av Dockerfile og docker-compose.yml, med forklaring av hvert steg.
@@ -299,6 +377,9 @@ Under utviklingen ble KI blant annet spurt om:
 - "Ett steg om gangen."
 - "Hva gjør kodene..."
 - "Hvorfor må navnet endres?"
+- "Hvordan lager jeg en admin-side der admin kan endre roller, låse og slette brukere i ASP.NET Core Identity?"
+- "Hva krever GDPR av en app som lagrer telefon og e-post, og hvordan kan brukeren laste ned og slette sine egne data?"
+- "Hvordan legger jeg til språkvalg mellom norsk og engelsk uten at desimaltall fra kartet slutter å virke?"
 
 ### Hvordan KI-forslag ble kontrollert
 

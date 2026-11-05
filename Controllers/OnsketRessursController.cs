@@ -34,7 +34,7 @@ namespace Nabohjelp.Controllers
         }
 
         // GET: /OnsketRessurs/Create
-        [Authorize(Roles = "Admin,Kommune")]
+        [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
         [HttpGet]
         public IActionResult Create()
         {
@@ -42,7 +42,7 @@ namespace Nabohjelp.Controllers
         }
 
         // POST: /OnsketRessurs/Create
-        [Authorize(Roles = "Admin,Kommune")]
+        [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(OnsketRessurs model)
@@ -76,7 +76,7 @@ namespace Nabohjelp.Controllers
         }
 
         // POST: /OnsketRessurs/Fjern/3
-        [Authorize(Roles = "Admin,Kommune")]
+        [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Fjern(int id)

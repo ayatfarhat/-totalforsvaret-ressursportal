@@ -1,7 +1,11 @@
 using System.Globalization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Nabohjelp;
 using Nabohjelp.Data;
+using Nabohjelp.Services;
 
 // Tall (som koordinatene fra kartet) skal alltid leses med punktum som
 // desimaltegn, uansett hvilket språk maskinen som kjører appen bruker.
@@ -10,6 +14,9 @@ CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Språkvalg: tekstene på engelsk ligger i mappen Resources.
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // Legger til MVC
 builder.Services.AddControllersWithViews(options =>
@@ -25,7 +32,15 @@ builder.Services.AddControllersWithViews(options =>
     meldinger.SetNonPropertyAttemptedValueIsInvalidAccessor(verdi => $"«{verdi}» er ikke en gyldig verdi.");
     meldinger.SetNonPropertyUnknownValueIsInvalidAccessor(() => "Verdien er ikke gyldig.");
     meldinger.SetNonPropertyValueMustBeANumberAccessor(() => "Feltet må være et tall.");
-});
+})
+    // Gjør at sidene kan bruke @T["..."] for å vise tekst på valgt språk.
+    .AddViewLocalization()
+    // Oversetter også feilmeldingene i ViewModels (for eksempel «Skriv inn e-post»).
+    .AddDataAnnotationsLocalization(options =>
+    {
+        options.DataAnnotationLocalizerProvider = (type, factory) =>
+            factory.Create(typeof(SharedResource));
+    });
 
 // Henter connection string fra appsettings.json eller Docker
 var connectionString =
@@ -40,9 +55,78 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Identity + roller
 builder.Services
-    .AddIdentity<IdentityUser, IdentityRole>()
+    .AddIdentity<IdentityUser, IdentityRole>(options =>
+    {
+        // Låser kontoen i 5 minutter etter 5 feil passord på rad.
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.AllowedForNewUsers = true;
+
+        // Én konto per e-postadresse.
+        options.User.RequireUniqueEmail = true;
+    })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+// Når admin endrer rolle, låser en konto eller sletter en bruker, skal det gjelde
+// nesten med en gang. Standard er at innloggingen sjekkes på nytt hvert 30. minutt.
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromMinutes(1);
+
+    // Ved sjekken lages innloggingen på nytt. Da tar vi med merket for at
+    // brukeren logget inn med 2FA ("amr" = "mfa"), så det ikke forsvinner.
+    options.OnRefreshingPrincipal = context =>
+    {
+        var amr = context.CurrentPrincipal?.FindFirst("amr");
+        if (amr != null && context.NewPrincipal?.Identity is ClaimsIdentity ny && !ny.HasClaim("amr", amr.Value))
+        {
+            ny.AddClaim(new Claim("amr", amr.Value));
+        }
+        return Task.CompletedTask;
+    };
+});
+
+// Innloggings-cookien
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.Cookie.HttpOnly = true;               // JavaScript kan ikke lese cookien
+    options.Cookie.SameSite = SameSiteMode.Lax;   // Beskytter mot falske skjemaer fra andre nettsider
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+});
+
+// Ulike brukergrupper har ulike krav til innlogging.
+// Admin og Kommune har tilgang til Kommandobroen og personopplysninger om andre.
+// Når "KrevTofaForAnsatte" er true i appsettings, må de i tillegg ha logget inn med 2FA.
+// Identity legger til "amr" = "mfa" i innloggingen når brukeren har brukt 2FA.
+bool krevTofa = builder.Configuration.GetValue<bool>("Sikkerhet:KrevTofaForAnsatte");
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Ansatt", policy =>
+    {
+        policy.RequireRole("Admin", "Kommune");
+        if (krevTofa)
+        {
+            policy.RequireClaim("amr", "mfa");
+        }
+    });
+
+    options.AddPolicy("Admin", policy =>
+    {
+        policy.RequireRole("Admin");
+        if (krevTofa)
+        {
+            policy.RequireClaim("amr", "mfa");
+        }
+    });
+});
+
+// Sletting og nedlasting av brukerdata (brukes av AccountController og AdminController).
+builder.Services.AddScoped<KontoService>();
 
 var app = builder.Build();
 
@@ -64,6 +148,14 @@ using (var scope = app.Services.CreateScope())
 // Lager testbrukere etter at databasen og rollene finnes
 await SeedData.LagTestbrukere(app);
 
+// GDPR: fjerner kontaktopplysninger fra gamle, avsluttede behov.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    int dager = app.Configuration.GetValue("Personvern:SlettKontaktinfoEtterDager", 90);
+    await PersonvernOpprydding.FjernGamleKontaktopplysninger(db, dager);
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -75,6 +167,20 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
 
 app.UseHttpsRedirection();
+
+// Språket velges med knappen NO/EN og huskes i en cookie.
+// Bare språket på teksten endres (UICulture). Tall og datoer leses fortsatt
+// med punktum (InvariantCulture), slik at koordinatene fra kartet virker.
+var norsk = new CultureInfo("nb");
+var engelsk = new CultureInfo("en");
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture(CultureInfo.InvariantCulture, norsk),
+    SupportedCultures = new List<CultureInfo> { CultureInfo.InvariantCulture },
+    SupportedUICultures = new List<CultureInfo> { norsk, engelsk },
+    RequestCultureProviders = new List<IRequestCultureProvider> { new CookieRequestCultureProvider() }
+});
+
 app.UseRouting();
 
 app.UseAuthentication();

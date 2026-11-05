@@ -10,7 +10,7 @@ using System.Security.Claims;
 namespace Nabohjelp.Controllers;
 
 // Bare Admin og Kommune kan bruke matching og tildeling.
-[Authorize(Roles = "Admin,Kommune")]
+[Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
 public class TildelingController : Controller
 {
     private readonly ApplicationDbContext _db;

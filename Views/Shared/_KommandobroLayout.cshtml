@@ -1,15 +1,18 @@
 @{
     // Hvilken side vi er på. Brukes til å markere riktig lenke i menyen.
     var side = ViewContext.RouteData.Values["controller"]?.ToString();
+
+    // Tittelen på fanen, oversatt hvis engelsk er valgt.
+    var tittel = ViewData["Title"]?.ToString() ?? "";
 }
 <!DOCTYPE html>
-<html lang="nb">
+<html lang="@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0E1A24" />
 
-    <title>@ViewData["Title"] - Kommandobro</title>
+    <title>@(string.IsNullOrEmpty(tittel) ? "" : T[tittel].Value) - Kommandobro</title>
 
     <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="~/favicon.ico" sizes="any" />
@@ -26,11 +29,11 @@
 </head>
 <body class="kb">
 
-    <a class="hopp-lenke" href="#innhold">Hopp til innhold</a>
+    <a class="hopp-lenke" href="#innhold">@T["Hopp til innhold"]</a>
 
     <header>
         <div class="tilgangsvarsel">
-            <p>Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner.</p>
+            <p>@T["Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner."]</p>
         </div>
 
         <nav class="navbar navbar-expand-md navbar-kommandobro" aria-label="Kommandobro-meny">
@@ -46,7 +49,7 @@
                         data-bs-target="#kbmeny"
                         aria-controls="kbmeny"
                         aria-expanded="false"
-                        aria-label="Åpne og lukk meny">
+                        aria-label="@T["Åpne og lukk meny"]">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -54,24 +57,27 @@
                     <ul class="navbar-nav ms-md-3">
                         <li class="nav-item">
                             <a class="nav-link @(side == "Kommandobro" ? "active" : "")"
-                               asp-controller="Kommandobro" asp-action="Index">Oversikt</a>
+                               asp-controller="Kommandobro" asp-action="Index">@T["Oversikt"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Behov" asp-action="Ko">Behovskø</a>
+                            <a class="nav-link" asp-controller="Behov" asp-action="Ko">@T["Behovskø"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Tildeling" asp-action="Index">Tildeling</a>
+                            <a class="nav-link" asp-controller="Tildeling" asp-action="Index">@T["Tildeling"]</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Til BeredskapsPortalen</a>
+                            <partial name="_SprakValg" />
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">@T["Til BeredskapsPortalen"]</a>
                         </li>
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit" class="btn btn-outline-secondary btn-omriss btn-rad">Logg ut</button>
+                                    <button type="submit" class="btn btn-outline-secondary btn-omriss btn-rad">@T["Logg ut"]</button>
                                 </form>
                             </li>
                         }

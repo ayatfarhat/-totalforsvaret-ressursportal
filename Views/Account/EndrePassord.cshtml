@@ -1,0 +1,43 @@
+@model EndrePassordViewModel
+@{
+    ViewData["Title"] = "Endre passord";
+}
+
+<div class="auth">
+    <h1>@T["Endre passord"]</h1>
+    <p class="auth-ingress">@T["Du må skrive inn passordet du har nå for å velge et nytt."]</p>
+
+    <div class="auth-flate">
+        <form asp-action="EndrePassord" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+
+            <div class="felt">
+                <label asp-for="NaavarendePassord" class="form-label">@T["Nåværende passord"]</label>
+                <input asp-for="NaavarendePassord" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="NaavarendePassord"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="NyttPassord" class="form-label">@T["Nytt passord"]</label>
+                <input asp-for="NyttPassord" class="form-control" autocomplete="new-password" aria-describedby="passordHjelp" />
+                <div id="passordHjelp" class="form-text">@T["Minst 8 tegn, med stor og liten bokstav, tall og spesialtegn (for eksempel !)."]</div>
+                <span asp-validation-for="NyttPassord"></span>
+            </div>
+
+            <div class="felt">
+                <label asp-for="BekreftPassord" class="form-label">@T["Gjenta nytt passord"]</label>
+                <input asp-for="BekreftPassord" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="BekreftPassord"></span>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="submit" class="btn btn-primary">@T["Lagre nytt passord"]</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">@T["Avbryt"]</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

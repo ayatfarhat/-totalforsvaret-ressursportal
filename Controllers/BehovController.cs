@@ -160,7 +160,7 @@ public class BehovController : Controller
     // Kun Admin og Kommune har tilgang.
     // Avsluttede behov (løst, avvist, trukket tilbake) vises ikke.
     [HttpGet]
-    [Authorize(Roles = "Admin,Kommune")]
+    [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
     public async Task<IActionResult> Ko()
     {
         var liste = await _db.Behovsliste
@@ -192,7 +192,7 @@ public class BehovController : Controller
     // Kun Admin og Kommune kan endre status.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Kommune")]
+    [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
     public async Task<IActionResult> EndreStatus(
         int id,
         BehovStatus nyStatus)

@@ -8,32 +8,32 @@
 }
 
 <div class="auth auth-bred">
-    <h1>Slå på 2FA</h1>
-    <p class="auth-ingress">Du trenger en autentiseringsapp, for eksempel Microsoft Authenticator eller Google Authenticator.</p>
+    <h1>@T["Slå på 2FA"]</h1>
+    <p class="auth-ingress">@T["Du trenger en autentiseringsapp, for eksempel Microsoft Authenticator eller Google Authenticator."]</p>
 
     <div class="auth-flate">
         <ol class="tofa-steg">
             <li>
                 <div>
-                    <p><strong>Skann QR-koden i appen.</strong></p>
+                    <p><strong>@T["Skann QR-koden i appen."]</strong></p>
                     <div id="qrkode"></div>
-                    <p class="dempet mt-2 mb-0">Kan du ikke skanne? Skriv inn nøkkelen i stedet: <code>@Model.Nokkel</code></p>
+                    <p class="dempet mt-2 mb-0">@T["Kan du ikke skanne? Skriv inn nøkkelen i stedet:"] <code>@Model.Nokkel</code></p>
                 </div>
             </li>
             <li>
                 <div>
-                    <p><strong>Skriv inn koden som vises i appen.</strong></p>
+                    <p><strong>@T["Skriv inn koden som vises i appen."]</strong></p>
                     <form asp-action="AktiverTofa" method="post" novalidate>
                         @* Nøkkelen sendes med, så den kan vises igjen hvis koden er feil *@
                         <input type="hidden" asp-for="Nokkel" />
 
                         <div class="felt">
-                            <label asp-for="Kode" class="form-label">Kode fra appen</label>
+                            <label asp-for="Kode" class="form-label">@T["Kode fra appen"]</label>
                             <input asp-for="Kode" class="form-control kode-felt" placeholder="123456" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
                             <span asp-validation-for="Kode"></span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Slå på 2FA</button>
+                        <button type="submit" class="btn btn-primary">@T["Slå på 2FA"]</button>
                     </form>
                 </div>
             </li>
