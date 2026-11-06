@@ -27,16 +27,21 @@ public static class Tilgang
         return bruker.IsInRole("Admin") && HarTofaHvisDetKreves(bruker);
     }
 
-    // ID-en til brukeren som er logget inn, eller null hvis ingen er logget inn.
-    public static string? BrukerId(ClaimsPrincipal bruker)
+    // ID-en til brukeren som er logget inn, eller tom tekst hvis ingen er logget inn.
+    public static string BrukerId(ClaimsPrincipal bruker)
     {
-        return bruker.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? id = bruker.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (id == null)
+        {
+            return "";
+        }
+        return id;
     }
 
     // Sjekker om noen er logget inn.
     public static bool ErInnlogget(ClaimsPrincipal bruker)
     {
-        return !string.IsNullOrEmpty(BrukerId(bruker));
+        return BrukerId(bruker) != "";
     }
 
     // E-posten (brukernavnet) til den som er logget inn, eller tom tekst.
@@ -53,8 +58,8 @@ public static class Tilgang
     // Sjekker om brukeren laget registreringen (behovet eller ressursen).
     public static bool ErEier(ClaimsPrincipal bruker, string? eierId)
     {
-        string? brukerId = BrukerId(bruker);
-        if (string.IsNullOrEmpty(brukerId))
+        string brukerId = BrukerId(bruker);
+        if (brukerId == "")
         {
             return false;
         }

@@ -45,14 +45,9 @@ public static class BehovStatusflyt
         return NesteStatuser(fra).Contains(til);
     }
 
-    // Den som meldte behovet kan trekke det tilbake så lenge ingen ressurs er tildelt.
-    public static bool KanTrekkesTilbake(BehovStatus status)
-    {
-        return status == BehovStatus.New || status == BehovStatus.UnderReview;
-    }
-
-    // Et behov kan endres (type, hast, posisjon, beskrivelse, kontaktinfo) så lenge
-    // ingen ressurs er tildelt. Etter tildeling har kommunen planlagt ut fra det som står.
+    // Et behov kan endres (type, hast, posisjon, beskrivelse, kontaktinfo) eller trekkes
+    // tilbake så lenge ingen ressurs er tildelt. Etter tildeling har kommunen planlagt
+    // ut fra det som står.
     public static bool KanRedigeres(BehovStatus status)
     {
         return status == BehovStatus.New || status == BehovStatus.UnderReview;

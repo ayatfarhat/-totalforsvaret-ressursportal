@@ -8,6 +8,8 @@ using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers
 {
+    // Alle sidene krever innlogging. Utskriften krever i tillegg Admin eller Kommune.
+    [Authorize]
     public class RessursController : Controller
     {
         private readonly ApplicationDbContext _db;
@@ -24,7 +26,6 @@ namespace Nabohjelp.Controllers
 
         // Frivillige ser egne ressurser.
         // Admin og Kommune ser alle.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -34,16 +35,10 @@ namespace Nabohjelp.Controllers
 
             bool erKoordinator = Tilgang.ErAnsatt(User);
 
+            // Frivillige ser bare sine egne ressurser.
             if (!erKoordinator)
             {
-                string? brukerId = Tilgang.BrukerId(User);
-
-                if (string.IsNullOrEmpty(brukerId))
-                {
-                    return Challenge();
-                }
-
-                // Frivillige ser bare sine egne ressurser.
+                string brukerId = Tilgang.BrukerId(User);
                 sporring = sporring.Where(r => r.OpprettetAvBrukerId == brukerId);
             }
 
@@ -52,22 +47,15 @@ namespace Nabohjelp.Controllers
                 .OrderByDescending(r => r.OpprettetTid)
                 .ToListAsync();
 
-            var modeller = new List<RessursFormViewModel>();
-            foreach (Ressurs ressurs in ressurser)
-            {
-                modeller.Add(TilViewModel(ressurs));
-            }
-
             // Antall ønskede ressurser vises i en egen boks på siden.
             ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
             ViewBag.ErKoordinator = erKoordinator;
 
-            return View(modeller);
+            return View(TilViewModeller(ressurser));
         }
 
         // Viser skjemaet for innloggede brukere.
         // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt.
-        [Authorize]
         [HttpGet]
         public IActionResult Create(string? type)
         {
@@ -82,20 +70,12 @@ namespace Nabohjelp.Controllers
         }
 
         // Lagrer en ressurs med innlogget bruker som eier.
-        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             RessursFormViewModel model,
             IFormFile? bildefil)
         {
-            string? brukerId = Tilgang.BrukerId(User);
-
-            if (string.IsNullOrEmpty(brukerId))
-            {
-                return Challenge();
-            }
-
             // Bilde-adressen settes bare av oss, aldri av det som kommer fra skjemaet.
             model.BildeSti = null;
 
@@ -111,7 +91,7 @@ namespace Nabohjelp.Controllers
             {
                 Status = "Tilgjengelig",
                 OpprettetTid = DateTime.UtcNow,
-                OpprettetAvBrukerId = brukerId
+                OpprettetAvBrukerId = Tilgang.BrukerId(User)
             };
             model.KopierTil(ressurs);
 
@@ -131,7 +111,6 @@ namespace Nabohjelp.Controllers
         }
 
         // Bare eieren, Admin og Kommune får se kvitteringen.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Confirmation(int id)
         {
@@ -152,7 +131,6 @@ namespace Nabohjelp.Controllers
 
         // GET: /Ressurs/Edit/5
         // Eieren, Kommune og Admin kan endre en ressurs.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -173,7 +151,6 @@ namespace Nabohjelp.Controllers
 
         // POST: /Ressurs/Edit/5
         // Bare feltene fra skjemaet endres. Status og eier settes aldri fra skjemaet.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
@@ -228,7 +205,6 @@ namespace Nabohjelp.Controllers
 
         // GET: /Ressurs/Delete/5
         // Viser hva som slettes, og ber brukeren bekrefte.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -251,7 +227,6 @@ namespace Nabohjelp.Controllers
         }
 
         // POST: /Ressurs/Delete/5
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -295,13 +270,7 @@ namespace Nabohjelp.Controllers
         {
             List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking().ToListAsync();
 
-            var skjemaer = new List<RessursFormViewModel>();
-            foreach (Ressurs ressurs in ressurser)
-            {
-                skjemaer.Add(TilViewModel(ressurs));
-            }
-
-            RessursUtskriftViewModel modell = RessursUtskriftViewModel.Lag(skjemaer, fylke, kommune, DateTime.Now);
+            RessursUtskriftViewModel modell = RessursUtskriftViewModel.Lag(TilViewModeller(ressurser), fylke, kommune, DateTime.Now);
 
             return View(modell);
         }
@@ -389,6 +358,16 @@ namespace Nabohjelp.Controllers
         {
             string? bildeSti = Ressursbilder.Finn(_miljo.WebRootPath, ressurs.Id);
             return RessursFormViewModel.FraRessurs(ressurs, bildeSti);
+        }
+
+        private List<RessursFormViewModel> TilViewModeller(List<Ressurs> ressurser)
+        {
+            var modeller = new List<RessursFormViewModel>();
+            foreach (Ressurs ressurs in ressurser)
+            {
+                modeller.Add(TilViewModel(ressurs));
+            }
+            return modeller;
         }
     }
 }

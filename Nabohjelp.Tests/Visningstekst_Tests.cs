@@ -1,96 +1,39 @@
 using Nabohjelp.Models;
 using Xunit;
 
-// TRENGER Å FIKSE PÅ KOMMENTARER I DENNE FILEN!!!
-
 namespace Nabohjelp.Tests;
 
+// Tester for teksten og fargene som vises for behov (Models/Visningstekst.cs).
+// Enhetstestene har ikke oversettelsene, så tekstene kommer på norsk.
 public class VisningstekstTests
 {
-    // ==================
-    // ----- Status -----
-    // ==================
-    [Fact]
-    public void Status_NyttBehov_GirNy()
+    [Theory]
+    [InlineData(BehovStatus.New, "Ny", "")]
+    [InlineData(BehovStatus.UnderReview, "Under vurdering", "merke-lys")]
+    [InlineData(BehovStatus.Assigned, "Tildelt", "merke-gi")]
+    [InlineData(BehovStatus.Resolved, "Løst", "merke-gi")]
+    [InlineData(BehovStatus.Rejected, "Avvist", "merke-hjelp")]
+    [InlineData(BehovStatus.Withdrawn, "Trukket tilbake", "")]
+    public void Status_GirTekstOgFarge(BehovStatus status, string tekst, string farge)
     {
-        // Kaller metoden som skal testes.
-        var tekst = Visningstekst.Status(BehovStatus.New);
+        Assert.Equal(tekst, Visningstekst.Status(status));
+        Assert.Equal(farge, Visningstekst.StatusFarge(status));
+    }
 
-        // Sjekker at resultatet er som forventet.
-        Assert.Equal("Ny", tekst);
+    [Theory]
+    [InlineData(BehovType.Generator, null, "Aggregat")]
+    [InlineData(BehovType.Annet, null, "Annet")]
+    [InlineData(BehovType.Annet, " vannlekkasje ", "Annet: vannlekkasje")]   // det brukeren skrev
+    [InlineData(BehovType.Transport, "ignoreres", "Transport")]              // teksten gjelder bare «Annet»
+    public void Type_GirTekst(BehovType type, string? annetType, string forventet)
+    {
+        Assert.Equal(forventet, Visningstekst.Type(type, annetType));
     }
 
     [Fact]
-    public void Status_UnderVurdering_GirUnderVurdering()
+    public void Prioritet_GirAkuttEllerPlanlagt()
     {
-        var tekst = Visningstekst.Status(BehovStatus.UnderReview);
-        Assert.Equal("Under vurdering", tekst);
-    }
-
-    [Fact]
-    public void Status_Tildelt_GirTildelt()
-    {
-        var tekst = Visningstekst.Status(BehovStatus.Assigned);
-        Assert.Equal("Tildelt", tekst);
-    }
-
-    [Fact]
-    public void Status_Lost_GirLost()
-    {
-        var tekst = Visningstekst.Status(BehovStatus.Resolved);
-        Assert.Equal("Løst", tekst);
-    }
-
-    // ==================
-    // ----- Behov -----
-    // ==================
-
-    [Fact]
-    public void Type_Generator_GirAggregat()
-    {
-        var tekst = Visningstekst.Type(BehovType.Generator);
-        Assert.Equal("Aggregat", tekst);
-    }
-
-    [Fact]
-    public void Type_Annet_GirAnnet()
-    {
-        var tekst = Visningstekst.Type(BehovType.Annet);
-        Assert.Equal("Annet", tekst);
-    }
-
-    // =====================
-    // ----- Prioritet -----
-    // =====================
-
-    [Fact]
-    public void Prioritet_Urgent_GirAkutt()
-    {
-        var tekst = Visningstekst.Prioritet(BehovPrioritet.Urgent);
-        Assert.Equal("Akutt", tekst);
-    }
-
-    [Fact]
-    public void Prioritet_Planned_GirPlanlagt()
-    {
-        var tekst = Visningstekst.Prioritet(BehovPrioritet.Planned);
-        Assert.Equal("Planlagt", tekst);
-    }
-
-    [Fact]
-    public void Type_Annet_ViserTekstenBrukerenSkrev()
-    {
-        Assert.Equal("Annet: vannlekkasje", Visningstekst.Type(BehovType.Annet, " vannlekkasje "));
-        Assert.Equal("Annet", Visningstekst.Type(BehovType.Annet, null));
-        Assert.Equal("Transport", Visningstekst.Type(BehovType.Transport, "ignoreres"));
-    }
-
-    [Fact]
-    public void StatusFarge_GirRiktigMerke()
-    {
-        Assert.Equal("merke-lys", Visningstekst.StatusFarge(BehovStatus.UnderReview));
-        Assert.Equal("merke-gi", Visningstekst.StatusFarge(BehovStatus.Resolved));
-        Assert.Equal("merke-hjelp", Visningstekst.StatusFarge(BehovStatus.Rejected));
-        Assert.Equal("", Visningstekst.StatusFarge(BehovStatus.New));
+        Assert.Equal("Akutt", Visningstekst.Prioritet(BehovPrioritet.Urgent));
+        Assert.Equal("Planlagt", Visningstekst.Prioritet(BehovPrioritet.Planned));
     }
 }

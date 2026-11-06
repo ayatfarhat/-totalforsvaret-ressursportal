@@ -94,13 +94,7 @@ public class TildelingController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Tildel(int behovId, int ressursId)
     {
-        string? brukerId = Tilgang.BrukerId(User);
-
-        if (string.IsNullOrEmpty(brukerId))
-        {
-            return Challenge();
-        }
-
+        string brukerId = Tilgang.BrukerId(User);
         Behov? behov = await _db.Behovsliste.FindAsync(behovId);
         Ressurs? ressurs = await _db.Ressurser.FindAsync(ressursId);
 

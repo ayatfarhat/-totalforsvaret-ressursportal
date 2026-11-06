@@ -11,7 +11,7 @@ public static class Sikkerhet
     public const string Innlogging = "Innlogging";
 
     // Hvor mange forsøk samme IP-adresse får per minutt.
-    public const int MaksForsokPerMinutt = 10;
+    private const int MaksForsokPerMinutt = 10;
 
     // Begrenser hvor mange ganger samme IP-adresse kan prøve å logge inn, registrere seg
     // eller bruke en invitasjon. Det gjør det mye tregere å gjette passord eller koder.
@@ -54,7 +54,7 @@ public static class Sikkerhet
     // Bare fra oss selv og de få stedene vi bruker: Leaflet fra unpkg, QR-koden fra cdnjs
     // og kartbildene fra OpenStreetMap. 'unsafe-inline' trengs fordi noen sider har små
     // skript og stiler direkte i HTML-en.
-    public const string InnholdsRegler =
+    private const string InnholdsRegler =
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
         "style-src 'self' 'unsafe-inline' https://unpkg.com; " +

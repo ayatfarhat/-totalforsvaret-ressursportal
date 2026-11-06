@@ -201,7 +201,7 @@ a:hover { color: var(--gi-mork); }
     --bs-btn-hover-color: #fff;
     --bs-btn-active-bg: var(--hjelp-mork); --bs-btn-active-border-color: var(--hjelp-mork);
 }
-.btn-outline-secondary, .btn-outline-primary {
+.btn-outline-secondary {
     --bs-btn-color: var(--natt);        --bs-btn-border-color: var(--natt);
     --bs-btn-hover-bg: var(--natt);      --bs-btn-hover-border-color: var(--natt);
     --bs-btn-hover-color: #fff;

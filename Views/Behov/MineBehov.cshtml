@@ -96,7 +96,7 @@ else
                     <div class="behov-handling">
                         <a asp-controller="Behov" asp-action="Rediger" asp-route-id="@behov.Id" class="btn btn-sm btn-outline-secondary"
                            aria-label="@T["Endre behovet {0}, meldt {1}", Visningstekst.Type(behov.Type, behov.AnnetType), behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")]">@T["Endre"]</a>
-                        @if (erEgen && BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+                        @if (erEgen && BehovStatusflyt.KanRedigeres(behov.Status))
                         {
                             <form asp-controller="Behov" asp-action="TrekkTilbake" asp-route-id="@behov.Id" method="post"
                                   onsubmit="return confirm('@T["Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det."]');">

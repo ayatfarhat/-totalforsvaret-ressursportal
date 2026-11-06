@@ -26,7 +26,6 @@ public class BehovController : Controller
     // Alle innloggede roller kan melde behov (Admin, Kommune og Frivillig).
     // E-posten fra kontoen fylles inn som kontaktinfo, men kan endres.
     [HttpGet]
-    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public IActionResult Opprett()
     {
         var skjema = new BehovViewModel();
@@ -44,7 +43,6 @@ public class BehovController : Controller
     // POST: /Behov/Opprett
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Opprett(BehovViewModel vm)
     {
         if (!ModelState.IsValid)
@@ -81,16 +79,8 @@ public class BehovController : Controller
     // Frivillige ser bare egne behov.
     // Admin og Kommune ser alle behov.
     [HttpGet]
-    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> MineBehov()
     {
-        string? brukerId = Tilgang.BrukerId(User);
-
-        if (string.IsNullOrEmpty(brukerId))
-        {
-            return Challenge();
-        }
-
         // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
         // b => ... betyr «for hvert behov b»: Where velger behov, OrderByDescending sorterer.
         IQueryable<Behov> sporring = _db.Behovsliste.AsNoTracking();
@@ -98,6 +88,7 @@ public class BehovController : Controller
         // Frivillige ser bare sine egne behov.
         if (!Tilgang.ErAnsatt(User))
         {
+            string brukerId = Tilgang.BrukerId(User);
             sporring = sporring.Where(b => b.OpprettetAvBrukerId == brukerId);
         }
 
@@ -112,7 +103,6 @@ public class BehovController : Controller
     // GET: /Behov/Rediger/5
     // Den som meldte behovet, Kommune og Admin kan endre det så lenge det ikke er tildelt.
     [HttpGet]
-    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Rediger(int id)
     {
         Behov? behov = await _db.Behovsliste.FindAsync(id);
@@ -140,7 +130,6 @@ public class BehovController : Controller
     // Status, tidspunkt og eier endres aldri fra skjemaet.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Rediger(int id, BehovViewModel vm)
     {
         Behov? behov = await _db.Behovsliste.FindAsync(id);
@@ -206,7 +195,6 @@ public class BehovController : Controller
     // Den som meldte behovet kan trekke det tilbake, så lenge det ikke er tildelt.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> TrekkTilbake(int id)
     {
         Behov? behov = await _db.Behovsliste.FindAsync(id);
@@ -222,7 +210,7 @@ public class BehovController : Controller
             return Forbid();
         }
 
-        if (!BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+        if (!BehovStatusflyt.KanRedigeres(behov.Status))
         {
             TempData["Feil"] = Oversetter.Tekst(
                 "Behovet er «{0}» og kan ikke trekkes tilbake. Kontakt kommunen hvis du ikke trenger hjelpen lenger.",

@@ -5,13 +5,10 @@ using Xunit;
 
 namespace Nabohjelp.Tests;
 
-// Tester for språkvalget (alle tekster har en engelsk oversettelse)
-// og for sikkerhetsinnstillingene i Services/Sikkerhet.cs.
-public class SprakOgSikkerhetTests
+// Tester for språkvalget: alle tekster har en engelsk oversettelse.
+// (Sikkerhetshodene og fartsgrensen testes i Systemtester.cs, mot appen som kjører.)
+public class OversettelseTests
 {
-    // ===================
-    // ----- Språk -----
-    // ===================
     [Fact]
     public void Oversetter_UtenOversettelser_GirNorskTekstMedVerdier()
     {
@@ -77,23 +74,5 @@ public class SprakOgSikkerhetTests
         }
 
         throw new DirectoryNotFoundException("Fant ikke Nabohjelp.csproj.");
-    }
-
-    // =========================
-    // ----- Sikkerhet -----
-    // =========================
-    [Fact]
-    public void Innholdsregler_StopperInnrammingOgPlugins()
-    {
-        // Siden kan ikke vises inne i en annen nettside, og gamle plugins (Flash o.l.) er stengt.
-        Assert.Contains("frame-ancestors 'none'", Sikkerhet.InnholdsRegler);
-        Assert.Contains("object-src 'none'", Sikkerhet.InnholdsRegler);
-        Assert.Contains("form-action 'self'", Sikkerhet.InnholdsRegler);
-    }
-
-    [Fact]
-    public void Fartsgrense_Er10ForsokPerMinutt()
-    {
-        Assert.Equal(10, Sikkerhet.MaksForsokPerMinutt);
     }
 }
