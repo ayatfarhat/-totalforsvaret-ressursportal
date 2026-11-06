@@ -151,6 +151,7 @@ Kode som brukes av flere controllere, ligger i `Services/`:
 | `Tilgang.cs` | Én regel for hvem som er ansatt (Admin/Kommune, med 2FA når det kreves). Brukes av policyene, controllerne og sidene. |
 | `Avstandsberegning.cs` | Luftlinjeavstand mellom behov og ressurs (Haversine-formelen). |
 | `KontoService.cs` | Sletter en konto med data, og lager «Last ned mine data» (GDPR). |
+| `Ressursbilder.cs` | Sjekker, lagrer, finner og sletter bildene til ressursene (`wwwroot/uploads/ressurser`). Brukes av RessursController og KontoService. |
 | `PersonvernOpprydding.cs` | Fjerner kontaktinfo fra gamle, avsluttede behov ved oppstart (GDPR). |
 
 ### Filene på toppnivå

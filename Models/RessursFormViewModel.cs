@@ -217,6 +217,49 @@ namespace Nabohjelp.Models
             Telefon = lagret;
         }
 
+        // Lager skjemaet fra en ressurs i databasen (til visning og redigering).
+        // bildeSti finner controlleren med Ressursbilder.Finn, siden bildet ligger på disken.
+        public static RessursFormViewModel FraRessurs(Ressurs ressurs, string? bildeSti)
+        {
+            var skjema = new RessursFormViewModel
+            {
+                Id = ressurs.Id,
+                OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
+                Type = ressurs.Type,
+                Posisjon = ressurs.Posisjon,
+                Kommunenummer = ressurs.Kommunenummer,
+                Breddegrad = ressurs.Breddegrad,
+                Lengdegrad = ressurs.Lengdegrad,
+                TilgjengeligFra = ressurs.TilgjengeligFra,
+                Beskrivelse = ressurs.Beskrivelse,
+                Navn = ressurs.Navn,
+                Status = ressurs.Status,
+                BildeSti = bildeSti
+            };
+
+            // Telefonen er lagret som «+47 12345678». Vi deler den opp igjen
+            // i landskode og nummer, slik at skjemaet viser dem hver for seg.
+            skjema.LesTelefonFraLagring(ressurs.Telefon);
+
+            return skjema;
+        }
+
+        // Kopierer feltene brukeren kan fylle ut, over til ressursen i databasen.
+        // Brukes både ved registrering og redigering. Status, eier og ID settes
+        // aldri herfra, så brukeren kan ikke endre dem gjennom skjemaet.
+        public void KopierTil(Ressurs ressurs)
+        {
+            ressurs.Type = Type;
+            ressurs.Posisjon = Posisjon;
+            ressurs.Kommunenummer = Kommunenummer;
+            ressurs.Breddegrad = Breddegrad;
+            ressurs.Lengdegrad = Lengdegrad;
+            ressurs.TilgjengeligFra = TilgjengeligFra;
+            ressurs.Beskrivelse = Beskrivelse;
+            ressurs.Navn = Navn;
+            ressurs.Telefon = TelefonForLagring();
+        }
+
         public string VisKommune()
         {
             return Kommuner.VisNavn(Kommunenummer);

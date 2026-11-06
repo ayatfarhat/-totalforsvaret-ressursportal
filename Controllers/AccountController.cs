@@ -9,6 +9,11 @@ using Nabohjelp.Services;
 namespace Nabohjelp.Controllers;
 
 // Håndterer brukerkontoer, innlogging, tofaktor og personvern (GDPR).
+//
+// Det meste av arbeidet gjøres av ASP.NET Core Identity:
+//   UserManager   – lager, finner, endrer og sletter brukere (passord, roller, 2FA-nøkkel).
+//   SignInManager – logger brukere inn og ut (lager og fjerner innloggingskaken).
+// Controlleren sjekker skjemaene, kaller Identity og viser riktig side eller feilmelding.
 public class AccountController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
@@ -16,7 +21,8 @@ public class AccountController : Controller
     private readonly KontoService _kontoService;
     private readonly IStringLocalizer<SharedResource> T;
 
-    // Gir tilgang til Identity, kontotjenesten og oversettelsene (T["..."]).
+    // Gir tilgang til Identity, kontotjenesten (sletting og nedlasting av data)
+    // og oversettelsene (T["..."]).
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
@@ -31,14 +37,15 @@ public class AccountController : Controller
 
     // ---------- REGISTRERING ----------
 
-    // Viser registreringsskjemaet.
+    // GET: /Account/Register
     [HttpGet]
     public IActionResult Register()
     {
         return View();
     }
 
-    // Oppretter en ny bruker.
+    // POST: /Account/Register
+    // Oppretter en ny bruker med rollen Frivillig og logger hen inn.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
@@ -70,7 +77,7 @@ public class AccountController : Controller
             Email = model.Epost
         };
 
-        // Identity lagrer en hash av passordet.
+        // Identity lagrer bare en hash av passordet, aldri selve passordet.
         var resultat = await _userManager.CreateAsync(bruker, model.Passord);
 
         if (!resultat.Succeeded)
@@ -94,7 +101,7 @@ public class AccountController : Controller
 
     // ---------- INNLOGGING ----------
 
-    // GET: /Account/Login  -> viser skjemaet
+    // GET: /Account/Login
     // returnUrl er siden brukeren prøvde å åpne før hen ble sendt til innlogging.
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
@@ -103,6 +110,7 @@ public class AccountController : Controller
         return View();
     }
 
+    // POST: /Account/Login
     // Kontrollerer e-post og passord.
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -115,6 +123,8 @@ public class AccountController : Controller
             return View(model);
         }
 
+        // isPersistent: false   – brukeren logges ut når nettleseren lukkes.
+        // lockoutOnFailure: true – kontoen låses en stund etter flere feil passord.
         var resultat = await _signInManager.PasswordSignInAsync(
             model.Epost,
             model.Passord,
@@ -126,10 +136,9 @@ public class AccountController : Controller
             return TilbakeEllerForside(returnUrl);
         }
 
-        // Ber om kode hvis tofaktor er aktivert.
+        // Riktig passord, men brukeren har slått på 2FA og må skrive inn koden fra appen.
         if (resultat.RequiresTwoFactor)
         {
-            // Riktig passord, men brukeren har 2FA og må skrive inn kode
             return RedirectToAction("LoginWith2fa", new { returnUrl });
         }
 
@@ -145,7 +154,8 @@ public class AccountController : Controller
         return View(model);
     }
 
-    // Viser skjemaet for tofaktorkode.
+    // GET: /Account/LoginWith2fa
+    // Viser skjemaet for koden fra autentiseringsappen.
     [HttpGet]
     public IActionResult LoginWith2fa(string? returnUrl = null)
     {
@@ -153,7 +163,9 @@ public class AccountController : Controller
         return View();
     }
 
-    // Kontrollerer koden fra autentiseringsappen.
+    // POST: /Account/LoginWith2fa
+    // Kontrollerer koden fra autentiseringsappen. Identity husker fra forrige steg
+    // hvem som skrev riktig passord, så her trengs bare koden.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LoginWith2fa(TofaViewModel model, string? returnUrl = null)
@@ -198,7 +210,8 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    // Gjør feilkodene fra Identity om til norsk tekst (T[...] oversetter videre til engelsk).
+    // Identity gir feil som engelske koder (for eksempel «PasswordTooShort»).
+    // Her blir de til norsk tekst. T[...] oversetter videre hvis engelsk er valgt.
     private static string OversettFeil(string kode)
     {
         switch (kode)
@@ -225,7 +238,8 @@ public class AccountController : Controller
 
     // ---------- UTLOGGING ----------
 
-    // Logger ut brukeren.
+    // POST: /Account/Logout
+    // Utlogging er POST (ikke en vanlig lenke), så en annen nettside ikke kan logge brukeren ut.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
@@ -235,7 +249,9 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    // Vises når brukeren mangler tilgang.
+    // GET: /Account/AccessDenied
+    // Hit sendes brukeren når hen er logget inn, men mangler tilgang
+    // (feil rolle, eller Kommune/Admin uten 2FA når det kreves).
     [HttpGet]
     public IActionResult AccessDenied()
     {
@@ -244,11 +260,15 @@ public class AccountController : Controller
 
     // ---------- MIN KONTO ----------
 
+    // GET: /Account
     // Viser e-post, roller og tofaktorstatus.
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        // Henter brukeren fra databasen ut fra innloggingskaken.
+        // Den kan være null hvis kontoen er slettet mens brukeren fortsatt var innlogget.
+        // Samme sjekk står i alle handlingene under.
         var bruker = await _userManager.GetUserAsync(User);
 
         if (bruker == null)
@@ -270,7 +290,7 @@ public class AccountController : Controller
 
     // ---------- ENDRE PASSORD ----------
 
-    // Viser skjemaet for nytt passord.
+    // GET: /Account/EndrePassord
     [Authorize]
     [HttpGet]
     public IActionResult EndrePassord()
@@ -278,6 +298,7 @@ public class AccountController : Controller
         return View(new EndrePassordViewModel());
     }
 
+    // POST: /Account/EndrePassord
     // Bytter passord. Krever det gamle passordet, så ingen kan bytte det fra en åpen PC.
     [Authorize]
     [HttpPost]
@@ -307,8 +328,8 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Nytt passord gir ny "security stamp". Vi logger inn på nytt her,
-        // mens innlogginger på andre enheter blir logget ut.
+        // Når passordet byttes, blir brukeren etter hvert logget ut på andre enheter.
+        // Her på denne enheten fornyer vi innloggingen, så brukeren slipper å logge inn igjen.
         await _signInManager.RefreshSignInAsync(bruker);
 
         TempData["Melding"] = T["Passordet er endret."].Value;
@@ -317,7 +338,9 @@ public class AccountController : Controller
 
     // ---------- TOFAKTOR ----------
 
-    // Henter nøkkelen til autentiseringsappen.
+    // GET: /Account/AktiverTofa
+    // Viser nøkkelen (og QR-koden) som brukeren legger inn i autentiseringsappen.
+    // Appen bruker nøkkelen til å lage en ny sekssifret kode hvert 30. sekund.
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> AktiverTofa()
@@ -331,6 +354,7 @@ public class AccountController : Controller
 
         var nokkel = await _userManager.GetAuthenticatorKeyAsync(bruker);
 
+        // Første gang finnes ingen nøkkel, så vi lager en.
         if (nokkel == null)
         {
             await _userManager.ResetAuthenticatorKeyAsync(bruker);
@@ -345,7 +369,8 @@ public class AccountController : Controller
         return View(model);
     }
 
-    // Kontrollerer koden før tofaktor aktiveres.
+    // POST: /Account/AktiverTofa
+    // Slår på 2FA bare hvis koden fra appen stemmer, så vi vet at appen er satt opp riktig.
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -384,6 +409,7 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // POST: /Account/DeaktiverTofa
     // Slår av tofaktor og lager en ny nøkkel, så den gamle i appen ikke virker lenger.
     [Authorize]
     [HttpPost]
@@ -407,6 +433,7 @@ public class AccountController : Controller
 
     // ---------- PERSONVERN (GDPR) ----------
 
+    // GET: /Account/LastNedMineData
     // Laster ned alt vi har lagret om brukeren som en JSON-fil (rett til innsyn).
     [Authorize]
     [HttpGet]
@@ -425,7 +452,7 @@ public class AccountController : Controller
 
     // ---------- SLETTING AV KONTO ----------
 
-    // Viser skjemaet for kontosletting.
+    // GET: /Account/SlettKonto
     [Authorize]
     [HttpGet]
     public IActionResult SlettKonto()
@@ -433,6 +460,7 @@ public class AccountController : Controller
         return View(new SlettKontoViewModel());
     }
 
+    // POST: /Account/SlettKonto
     // Sletter kontoen og brukerens behov og ressurser (rett til sletting).
     [Authorize]
     [HttpPost]
