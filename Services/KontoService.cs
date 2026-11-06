@@ -145,20 +145,12 @@ public class KontoService
         return JsonSerializer.SerializeToUtf8Bytes(data, valg);
     }
 
-    // Bildene ligger i wwwroot/uploads/ressurser og heter ressurs-ID + endelse (for eksempel 12.jpg).
+    // Sletter bildene til ressursene (se Services/Ressursbilder.cs).
     private void SlettRessursBilder(IEnumerable<int> ressursIder)
     {
-        string mappe = Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
         foreach (int id in ressursIder)
         {
-            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
-            {
-                string fil = Path.Combine(mappe, id + endelse);
-                if (File.Exists(fil))
-                {
-                    File.Delete(fil);
-                }
-            }
+            Ressursbilder.Slett(_miljo.WebRootPath, id);
         }
     }
 }

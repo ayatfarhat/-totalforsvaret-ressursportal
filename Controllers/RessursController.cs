@@ -13,12 +13,8 @@ namespace Nabohjelp.Controllers
     {
         private readonly ApplicationDbContext _db;
 
-        // Gir oss mappen wwwroot, der opplastede bilder lagres.
+        // Gir oss mappen wwwroot, der opplastede bilder lagres (se Services/Ressursbilder.cs).
         private readonly IWebHostEnvironment _miljo;
-
-        // Regler for bildene som kan lastes opp.
-        private static readonly string[] _tillatteBildeendelser = { ".jpg", ".jpeg", ".png", ".webp" };
-        private const long MaksBildeStorrelse = 5 * 1024 * 1024; // 5 MB
 
         // Gir tilgang til databasen og til mappen for bilder.
         public RessursController(ApplicationDbContext db, IWebHostEnvironment miljo)
@@ -107,33 +103,23 @@ namespace Nabohjelp.Controllers
                 return View(model);
             }
 
-            // Kopierer skjemadata til databasemodellen.
-            // Landskoden lagres sammen med nummeret, for eksempel «+47 12345678».
+            // Status, tidspunkt og eier settes her. Resten kommer fra skjemaet.
             var ressurs = new Ressurs
             {
-                Type = model.Type,
-                Posisjon = model.Posisjon,
-                Kommunenummer = model.Kommunenummer,
-                Breddegrad = model.Breddegrad,
-                Lengdegrad = model.Lengdegrad,
-                TilgjengeligFra = model.TilgjengeligFra,
-                Beskrivelse = model.Beskrivelse,
-                Navn = model.Navn,
-                Telefon = model.TelefonForLagring(),
                 Status = "Tilgjengelig",
                 OpprettetTid = DateTime.UtcNow,
                 OpprettetAvBrukerId = brukerId
             };
+            model.KopierTil(ressurs);
 
             // Databasen genererer ressursens ID.
             _db.Ressurser.Add(ressurs);
             await _db.SaveChangesAsync();
 
-            // Bildet lagres med ressursens ID som filnavn (for eksempel 12.jpg),
-            // så vi trenger ingen egen kolonne i databasen for det.
+            // Bildet lagres med ressursens ID som filnavn, så det må skje etter lagringen.
             if (bildefil != null && bildefil.Length > 0)
             {
-                LagreBilde(bildefil, ressurs.Id);
+                Ressursbilder.Lagre(_miljo.WebRootPath, bildefil, ressurs.Id);
             }
 
             return RedirectToAction(
@@ -229,31 +215,22 @@ namespace Nabohjelp.Controllers
                 // for feltene brukeren ikke kan endre.
                 model.Id = ressurs.Id;
                 model.Status = ressurs.Status;
-                model.BildeSti = FinnBilde(ressurs.Id);
+                model.BildeSti = Ressursbilder.Finn(_miljo.WebRootPath, ressurs.Id);
                 return View(model);
             }
 
-            ressurs.Type = model.Type;
-            ressurs.Posisjon = model.Posisjon;
-            ressurs.Kommunenummer = model.Kommunenummer;
-            ressurs.Breddegrad = model.Breddegrad;
-            ressurs.Lengdegrad = model.Lengdegrad;
-            ressurs.TilgjengeligFra = model.TilgjengeligFra;
-            ressurs.Beskrivelse = model.Beskrivelse;
-            ressurs.Navn = model.Navn;
-            ressurs.Telefon = model.TelefonForLagring();
-
+            model.KopierTil(ressurs);
             await _db.SaveChangesAsync();
 
             // Nytt bilde erstatter det gamle. Uten nytt bilde kan det gamle fjernes.
             if (bildefil != null && bildefil.Length > 0)
             {
-                SlettBilde(ressurs.Id);
-                LagreBilde(bildefil, ressurs.Id);
+                Ressursbilder.Slett(_miljo.WebRootPath, ressurs.Id);
+                Ressursbilder.Lagre(_miljo.WebRootPath, bildefil, ressurs.Id);
             }
             else if (model.FjernBilde)
             {
-                SlettBilde(ressurs.Id);
+                Ressursbilder.Slett(_miljo.WebRootPath, ressurs.Id);
             }
 
             TempData["Melding"] = "Endringene er lagret.";
@@ -317,7 +294,7 @@ namespace Nabohjelp.Controllers
             _db.Ressurser.Remove(ressurs);
             await _db.SaveChangesAsync();
 
-            SlettBilde(id);
+            Ressursbilder.Slett(_miljo.WebRootPath, id);
 
             TempData["Melding"] = "Ressursen er slettet.";
             return RedirectToAction(nameof(Index));
@@ -405,7 +382,7 @@ namespace Nabohjelp.Controllers
             // Sjekker bildet (valgfritt) før noe lagres.
             if (bildefil != null && bildefil.Length > 0)
             {
-                string? bildeFeil = SjekkBilde(bildefil);
+                string? bildeFeil = Ressursbilder.Sjekk(bildefil);
                 if (bildeFeil != null)
                 {
                     ModelState.AddModelError("Bilde", bildeFeil);
@@ -432,153 +409,11 @@ namespace Nabohjelp.Controllers
             return Math.Abs((a.Value - b.Value).TotalMinutes) < 1;
         }
 
-        // Gjør databasedata klare for visningene.
-        private RessursFormViewModel TilViewModel(
-            Ressurs ressurs)
+        // Gjør en ressurs fra databasen klar for visningene, med bildet hvis det finnes.
+        private RessursFormViewModel TilViewModel(Ressurs ressurs)
         {
-            var modell = new RessursFormViewModel
-            {
-                Id = ressurs.Id,
-                OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
-                Type = ressurs.Type,
-                Posisjon = ressurs.Posisjon,
-                Kommunenummer = ressurs.Kommunenummer,
-                Breddegrad = ressurs.Breddegrad,
-                Lengdegrad = ressurs.Lengdegrad,
-                TilgjengeligFra = ressurs.TilgjengeligFra,
-                Beskrivelse = ressurs.Beskrivelse,
-                Navn = ressurs.Navn,
-                Status = ressurs.Status,
-                BildeSti = FinnBilde(ressurs.Id)
-            };
-
-            // Telefonen er lagret som «+47 12345678». Vi deler den opp igjen
-            // i landskode og nummer, slik at visningen blir riktig.
-            modell.LesTelefonFraLagring(ressurs.Telefon);
-
-            return modell;
-        }
-
-        // Sjekker at filen er et bilde vi tillater. Gir en feilmelding, eller null hvis OK.
-        private static string? SjekkBilde(IFormFile fil)
-        {
-            if (fil.Length > MaksBildeStorrelse)
-            {
-                return "Bildet er for stort. Maks størrelse er 5 MB.";
-            }
-
-            string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
-            if (!_tillatteBildeendelser.Contains(endelse))
-            {
-                return "Bildet må være JPG, PNG eller WebP.";
-            }
-
-            if (!fil.ContentType.StartsWith("image/"))
-            {
-                return "Filen er ikke et bilde.";
-            }
-
-            // Filtypen og Content-Type kommer fra nettleseren og kan være falske.
-            // Derfor ser vi også på de første bytene i selve filen.
-            if (!ErEkteBilde(fil, endelse))
-            {
-                return "Filen ser ikke ut som et ekte bilde.";
-            }
-
-            return null;
-        }
-
-        // Sjekker «signaturen» (de første bytene) i filen:
-        //   JPEG begynner med FF D8 FF, PNG med 89 50 4E 47,
-        //   WebP med «RIFF» og så «WEBP» fra byte 8.
-        private static bool ErEkteBilde(IFormFile fil, string endelse)
-        {
-            byte[] start = new byte[12];
-            int lest;
-            using (var strom = fil.OpenReadStream())
-            {
-                lest = strom.Read(start, 0, start.Length);
-            }
-
-            if (lest < 12)
-            {
-                return false;
-            }
-
-            if (endelse == ".jpg" || endelse == ".jpeg")
-            {
-                return start[0] == 0xFF && start[1] == 0xD8 && start[2] == 0xFF;
-            }
-
-            if (endelse == ".png")
-            {
-                return start[0] == 0x89 && start[1] == 0x50 && start[2] == 0x4E && start[3] == 0x47;
-            }
-
-            if (endelse == ".webp")
-            {
-                return start[0] == 'R' && start[1] == 'I' && start[2] == 'F' && start[3] == 'F'
-                    && start[8] == 'W' && start[9] == 'E' && start[10] == 'B' && start[11] == 'P';
-            }
-
-            return false;
-        }
-
-        // Mappen der bildene ligger: wwwroot/uploads/ressurser
-        private string BildeMappe()
-        {
-            return Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
-        }
-
-        // Lagrer bildet som «ressurs-ID + filendelse», for eksempel 12.jpg.
-        // Vi bruker ikke filnavnet brukeren sendte, slik at ingen kan
-        // overskrive andre filer eller lage rare filnavn.
-        private void LagreBilde(IFormFile fil, int ressursId)
-        {
-            string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
-            if (endelse == ".jpeg")
-            {
-                endelse = ".jpg";
-            }
-
-            string mappe = BildeMappe();
-            Directory.CreateDirectory(mappe);
-
-            string fullSti = Path.Combine(mappe, ressursId + endelse);
-            using (var strom = new FileStream(fullSti, FileMode.Create))
-            {
-                fil.CopyTo(strom);
-            }
-        }
-
-        // Finner bildet til en ressurs, hvis det finnes. Gir nettadressen
-        // (for eksempel /uploads/ressurser/12.jpg), eller null.
-        private string? FinnBilde(int ressursId)
-        {
-            string mappe = BildeMappe();
-            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
-            {
-                if (System.IO.File.Exists(Path.Combine(mappe, ressursId + endelse)))
-                {
-                    return "/uploads/ressurser/" + ressursId + endelse;
-                }
-            }
-
-            return null;
-        }
-
-        // Sletter bildet til en ressurs (alle filendelser), hvis det finnes.
-        private void SlettBilde(int ressursId)
-        {
-            string mappe = BildeMappe();
-            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
-            {
-                string sti = Path.Combine(mappe, ressursId + endelse);
-                if (System.IO.File.Exists(sti))
-                {
-                    System.IO.File.Delete(sti);
-                }
-            }
+            string? bildeSti = Ressursbilder.Finn(_miljo.WebRootPath, ressurs.Id);
+            return RessursFormViewModel.FraRessurs(ressurs, bildeSti);
         }
     }
 }
