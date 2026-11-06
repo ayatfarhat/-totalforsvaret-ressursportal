@@ -19,5 +19,5 @@ wwwroot/uploads/
 .DS_Store
 Thumbs.db
 
-# Lokale filer fra Claude (deles ikke)
+# Lokale filer som ikke skal deles
 Claude outputs/
