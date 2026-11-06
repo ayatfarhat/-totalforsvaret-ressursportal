@@ -66,40 +66,38 @@ namespace Nabohjelp.Controllers
         {
             var punkt = new KartPunkt
             {
-                Tittel = T["Behov: {0}", Visningstekst.Type(behov.Type)],
+                Slag = T["Aktivt behov"],
+                Tittel = Visningstekst.Type(behov.Type, behov.AnnetType),
                 Breddegrad = behov.Latitude,
                 Lengdegrad = behov.Longitude,
-                Farge = "planlagt"
+                Farge = "planlagt",
+                Undertekst = T["Meldt {0}", behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")],
+                Beskrivelse = Forkort(behov.Beskrivelse)
             };
 
+            string prioritetFarge = "merke-lys";
             if (behov.Prioritet == BehovPrioritet.Urgent)
             {
                 punkt.Farge = "hjelp";
+                prioritetFarge = "merke-hjelp";
             }
 
-            // Når typen er «Annet», står det brukeren skrev i en egen linje.
-            if (behov.Type == BehovType.Annet)
-            {
-                punkt.LeggTilLinje(T["Hva"], behov.AnnetType);
-            }
+            punkt.Merker.Add(new KartMerke { Tekst = Visningstekst.Prioritet(behov.Prioritet), Farge = prioritetFarge });
+            punkt.Merker.Add(new KartMerke { Tekst = Visningstekst.Status(behov.Status), Farge = Visningstekst.StatusFarge(behov.Status) });
 
-            punkt.LeggTilLinje(T["Prioritet"], Visningstekst.Prioritet(behov.Prioritet));
-            punkt.LeggTilLinje(T["Status"], Visningstekst.Status(behov.Status));
-            punkt.LeggTilLinje(T["Meldt"], behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm"));
-            punkt.LeggTilLinje(T["Beskrivelse"], Forkort(behov.Beskrivelse));
-            punkt.LeggTilLinje(T["Telefon"], behov.KontaktTelefon);
-            punkt.LeggTilLinje(T["E-post"], behov.KontaktEpost);
+            LeggTilKontakt(punkt, behov.KontaktTelefon, behov.KontaktEpost);
 
             // Nærmeste ledige ressurs som passer, i luftlinje (se Services/Ressursmatching.cs).
             NaermesteRessurs? naermeste = Ressursmatching.FinnNaermeste(behov, ressurser);
             if (naermeste != null)
             {
-                punkt.LeggTilLinje(T["Nærmeste ressurs"], T["{0}, {1} km unna",
-                    T[naermeste.Ressurs.Type], naermeste.AvstandKm.ToString("0.0")]);
+                punkt.Fremhevet = T["Nærmeste ressurs: {0}, {1} km unna",
+                    T[naermeste.Ressurs.Type], naermeste.AvstandKm.ToString("0.0")];
+                punkt.FremhevetErFunnet = true;
             }
             else
             {
-                punkt.LeggTilLinje(T["Nærmeste ressurs"], T["Ingen ledig ressurs som passer"]);
+                punkt.Fremhevet = T["Ingen ledig ressurs som passer"];
             }
 
             punkt.Lenker.Add(new KartLenke
@@ -125,8 +123,11 @@ namespace Nabohjelp.Controllers
         {
             var punkt = new KartPunkt
             {
-                Tittel = T["Ressurs: {0}", T[ressurs.Type]],
-                Farge = "opptatt"
+                Slag = T["Ressurs"],
+                Tittel = T[ressurs.Type],
+                Farge = "opptatt",
+                Undertekst = Kommuner.VisNavn(ressurs.Kommunenummer) + " · " + ressurs.Posisjon,
+                Beskrivelse = Forkort(ressurs.Beskrivelse)
             };
 
             // Bare ressurser med posisjon kommer hit (se Index), så verdiene finnes.
@@ -142,19 +143,14 @@ namespace Nabohjelp.Controllers
                 punkt.Farge = "gi";
             }
 
-            punkt.LeggTilLinje(T["Status"], T[ressurs.Status]);
-            if (!string.IsNullOrEmpty(ressurs.Kommunenummer))
-            {
-                punkt.LeggTilLinje(T["Kommune"], Kommuner.VisNavn(ressurs.Kommunenummer));
-            }
-            punkt.LeggTilLinje(T["Posisjon"], ressurs.Posisjon);
+            punkt.Merker.Add(new KartMerke { Tekst = T[ressurs.Status], Farge = Visningstekst.RessursStatusFarge(ressurs.Status) });
+
             if (ressurs.TilgjengeligFra != null)
             {
-                punkt.LeggTilLinje(T["Tilgjengelig fra"], ressurs.TilgjengeligFra.Value.ToString("dd.MM.yyyy HH:mm"));
+                punkt.LeggTilLinje(T["Fra"], ressurs.TilgjengeligFra.Value.ToString("dd.MM.yyyy HH:mm"));
             }
-            punkt.LeggTilLinje(T["Beskrivelse"], Forkort(ressurs.Beskrivelse));
             punkt.LeggTilLinje(T["Navn"], ressurs.Navn);
-            punkt.LeggTilLinje(T["Telefon"], ressurs.Telefon);
+            LeggTilKontakt(punkt, ressurs.Telefon, null);
 
             punkt.Lenker.Add(new KartLenke
             {
@@ -163,6 +159,20 @@ namespace Nabohjelp.Controllers
             });
 
             return punkt;
+        }
+
+        // Telefon og e-post blir lenker, så man kan ringe eller skrive rett fra kartet.
+        private void LeggTilKontakt(KartPunkt punkt, string? telefon, string? epost)
+        {
+            if (!string.IsNullOrWhiteSpace(telefon))
+            {
+                // tel:-lenker skal ikke ha mellomrom.
+                punkt.LeggTilLinje(T["Telefon"], telefon, "tel:" + telefon.Replace(" ", ""));
+            }
+            if (!string.IsNullOrWhiteSpace(epost))
+            {
+                punkt.LeggTilLinje(T["E-post"], epost, "mailto:" + epost);
+            }
         }
 
         // Kutter lange beskrivelser, så boksen på kartet ikke blir for stor.

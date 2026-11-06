@@ -28,28 +28,13 @@ public class RessursbilderTests
     // ----- Sjekk av opplasting -----
     // ===============================
     [Fact]
-    public void Sjekk_EkteJpg_ErGodkjent()
-    {
-        var fil = LagFil(JpegStart, "aggregat.jpg", "image/jpeg");
-
-        Assert.Null(Ressursbilder.Sjekk(fil));
-    }
-
-    [Fact]
-    public void Sjekk_TekstfilMedJpgNavn_BlirAvvist()
+    public void Sjekk_GodtarBareEkteBilder()
     {
         byte[] tekst = System.Text.Encoding.UTF8.GetBytes("dette er ikke et bilde");
-        var fil = LagFil(tekst, "falsk.jpg", "image/jpeg");
 
-        Assert.Equal("Filen ser ikke ut som et ekte bilde.", Ressursbilder.Sjekk(fil));
-    }
-
-    [Fact]
-    public void Sjekk_GifFil_BlirAvvist()
-    {
-        var fil = LagFil(JpegStart, "bilde.gif", "image/gif");
-
-        Assert.Equal("Bildet må være JPG, PNG eller WebP.", Ressursbilder.Sjekk(fil));
+        Assert.Null(Ressursbilder.Sjekk(LagFil(JpegStart, "aggregat.jpg", "image/jpeg")));
+        Assert.Equal("Filen ser ikke ut som et ekte bilde.", Ressursbilder.Sjekk(LagFil(tekst, "falsk.jpg", "image/jpeg")));
+        Assert.Equal("Bildet må være JPG, PNG eller WebP.", Ressursbilder.Sjekk(LagFil(JpegStart, "bilde.gif", "image/gif")));
     }
 
     // ===================================

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Nabohjelp.Models;
@@ -21,13 +20,7 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         // Koden som vises på siden, så feilen kan finnes igjen i loggen.
-        string requestId = HttpContext.TraceIdentifier;
-        if (Activity.Current != null && Activity.Current.Id != null)
-        {
-            requestId = Activity.Current.Id;
-        }
-
-        return View(new ErrorViewModel { RequestId = requestId });
+        return View(new ErrorViewModel { RequestId = HttpContext.TraceIdentifier });
     }
 
     // Side for feilkoder (for eksempel 404). Brukes av
