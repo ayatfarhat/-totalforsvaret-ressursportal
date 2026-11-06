@@ -192,9 +192,9 @@ Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for
 2. `KommandobroController` henter ressurser med registrert posisjon og aktive behov (ikke løst, avvist eller trukket tilbake) fra databasen.
 3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
 4. Fargen viser hva punktet er: rødt er et akutt behov, gult et planlagt behov, grønt en ledig ressurs og grått en ressurs som er tildelt.
-5. Et klikk på et punkt åpner en boks med alt om det:
-   - **Behov:** type, prioritet, status, når det ble meldt, beskrivelse, telefon og e-post, og nærmeste ledige ressurs som passer, med avstand i luftlinje (`Services/Ressursmatching.cs`). Knappene «Finn ressurs» og «Endre» går rett til tildeling og redigering.
-   - **Ressurs:** type, status, kommune, adresse, tilgjengelig fra, beskrivelse, navn og telefon, med knappen «Endre».
+5. Et klikk på et punkt åpner en boks med alt om det. Øverst står typen og fargede merker for prioritet og status, og under det når behovet ble meldt (eller kommune og adresse for en ressurs). Beskrivelsen står i en egen grå boks, og telefon og e-post er lenker man kan ringe eller skrive til.
+   - **Behov:** nederst står nærmeste ledige ressurs som passer, med avstand i luftlinje (`Services/Ressursmatching.cs`), i en grønn boks. Knappene «Finn ressurs» og «Endre» går rett til tildeling og redigering.
+   - **Ressurs:** tilgjengelig fra, navn og telefon, med knappen «Endre».
 6. Avstandsfilteret over kartet viser bare punktene innenfor valgt avstand fra et sted man klikker på.
 
 Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.

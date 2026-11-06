@@ -921,9 +921,6 @@
   <data name="Hjullaster" xml:space="preserve">
     <value>Wheel loader</value>
   </data>
-  <data name="Hva" xml:space="preserve">
-    <value>What</value>
-  </data>
   <data name="Hva kan du stille med?" xml:space="preserve">
     <value>What can you offer?</value>
   </data>
@@ -1172,9 +1169,6 @@
   </data>
   <data name="Meld nytt behov" xml:space="preserve">
     <value>Report a new need</value>
-  </data>
-  <data name="Meldt" xml:space="preserve">
-    <value>Reported</value>
   </data>
   <data name="Meldt {0}" xml:space="preserve">
     <value>Reported {0}</value>
@@ -1695,19 +1689,13 @@
   <data name="{0} kommuner." xml:space="preserve">
     <value>{0} municipalities.</value>
   </data>
-  <data name="Behov: {0}" xml:space="preserve">
-    <value>Need: {0}</value>
-  </data>
-  <data name="Ressurs: {0}" xml:space="preserve">
-    <value>Resource: {0}</value>
-  </data>
-  <data name="Nærmeste ressurs" xml:space="preserve">
-    <value>Nearest resource</value>
-  </data>
-  <data name="{0}, {1} km unna" xml:space="preserve">
-    <value>{0}, {1} km away</value>
-  </data>
   <data name="Ingen ledig ressurs som passer" xml:space="preserve">
     <value>No available resource that fits</value>
+  </data>
+  <data name="Nærmeste ressurs: {0}, {1} km unna" xml:space="preserve">
+    <value>Nearest resource: {0}, {1} km away</value>
+  </data>
+  <data name="Fra" xml:space="preserve">
+    <value>From</value>
   </data>
 </root>

@@ -941,11 +941,26 @@ body.kb {
 .kb-tegnforklaring .farge-opptatt { background: var(--kantlinje); }
 
 /* Boksen som vises når man trykker på en prikk (lages i kart.js). */
-.kart-info { min-width: 13rem; font-size: .9rem; }
-.kart-info-tittel { display: block; font-size: 1rem; margin-bottom: .4rem; }
-.kart-info dl { display: grid; grid-template-columns: auto 1fr; gap: .15rem .6rem; margin: 0 0 .6rem; }
+.kart-info { font-size: .9rem; line-height: 1.4; }
+.kart-info-slag { display: block; color: var(--dempet); font-size: .8rem; font-weight: 600; }
+.kart-info-tittel { display: block; font-family: var(--font-visning); font-size: 1.15rem; line-height: 1.25; margin-bottom: .45rem; padding-right: 1rem; }
+.kart-info-merker { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .5rem; }
+.kart-info-merker .merke { font-size: .8rem; }
+.kb .leaflet-popup-content p.kart-info-under { margin: 0 0 .6rem; color: var(--dempet); font-size: .85rem; }
+.kb .leaflet-popup-content p.kart-info-beskrivelse {
+    margin: 0 0 .6rem; padding: .5rem .65rem; border-radius: 6px;
+    background: var(--bakgrunn); white-space: pre-line; overflow-wrap: anywhere;
+    max-height: 7.5rem; overflow-y: auto;
+}
+.kart-info dl { display: grid; grid-template-columns: 4.5rem 1fr; gap: .2rem .6rem; margin: 0 0 .6rem; }
 .kart-info dt { font-weight: 600; color: var(--dempet); }
-.kart-info dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.kart-info dd { margin: 0; overflow-wrap: anywhere; }
+.kart-info dd a { color: var(--natt); }
+.kb .leaflet-popup-content p.kart-info-fremhevet {
+    margin: 0 0 .7rem; padding: .45rem .65rem; border-radius: 6px;
+    background: var(--bakgrunn); color: var(--dempet); font-weight: 600;
+}
+.kb .leaflet-popup-content p.kart-info-fremhevet.funnet { background: var(--gi-lys); color: var(--gi-mork); }
 .kart-info-knapper { display: flex; flex-wrap: wrap; gap: .4rem; }
 .kb .kart-info-knapper a,
 .kart-info-knapper a {
@@ -1109,9 +1124,14 @@ a[href^="tel:"] { white-space: nowrap; }
 .invitasjon-skjema h2 { font-size: 1.15rem; margin: 0 0 1rem; }
 .invitasjon-felt { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
 .invitasjon-felt > div { min-width: 10rem; }
-.admin-handling { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
-.admin-handling form { margin: 0; }
-@media (max-width: 767.98px) { .admin-handling { justify-content: flex-start; } }
+/* Knappene ligger i en div inne i cellen. Cellen selv må være en vanlig
+   tabellcelle (ikke display: flex), ellers havner den utenfor tabellraden. */
+.admin-knapper { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.admin-knapper form { margin: 0; }
+/* Rollevalg og «Lagre» på én rad. Listen er bred nok til at navnet ikke havner under pilen. */
+.admin-rolle { display: flex; flex-wrap: wrap; gap: .5rem; }
+.admin-rolle select { width: auto; min-width: 10rem; }
+@media (max-width: 767.98px) { .admin-knapper { justify-content: flex-start; } }
 
 /* Personvernerklæringen */
 .personvern { max-width: 46rem; margin: 2rem 0 3rem; }

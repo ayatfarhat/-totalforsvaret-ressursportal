@@ -170,7 +170,9 @@ function startKartvisning(element) {
 // ---------- 3. Oversikt for Kommandobro ----------
 
 // ressurser og behov er lister med punkter fra KommandobroController:
-// { Tittel, Breddegrad, Lengdegrad, Farge, Linjer: [{ Etikett, Verdi }], Lenker: [{ Tekst, Adresse }] }
+// { Slag, Tittel, Breddegrad, Lengdegrad, Farge, Merker, Undertekst, Beskrivelse,
+//   Linjer: [{ Etikett, Verdi, Lenke }], Fremhevet, FremhevetErFunnet, Lenker: [{ Tekst, Adresse }] }
+// (se ViewModels/MapViewModel.cs)
 function visOversikt(elementId, ressurser, behov) {
     var element = document.getElementById(elementId);
 
@@ -196,35 +198,70 @@ function visOversikt(elementId, ressurser, behov) {
         var boks = document.createElement('div');
         boks.className = 'kart-info';
 
-        var tittel = document.createElement('strong');
-        tittel.className = 'kart-info-tittel';
-        tittel.textContent = punkt.Tittel;
-        boks.appendChild(tittel);
+        // Øverst: «Aktivt behov» eller «Ressurs», og så tittelen.
+        leggTilTekst(boks, 'span', 'kart-info-slag', punkt.Slag);
+        leggTilTekst(boks, 'strong', 'kart-info-tittel', punkt.Tittel);
 
-        var liste = document.createElement('dl');
-        punkt.Linjer.forEach(function (linje) {
-            var etikett = document.createElement('dt');
-            etikett.textContent = linje.Etikett;
-            var verdi = document.createElement('dd');
-            verdi.textContent = linje.Verdi;
-            liste.appendChild(etikett);
-            liste.appendChild(verdi);
-        });
-        boks.appendChild(liste);
+        // Merkene, for eksempel «Akutt» og «Ny».
+        if (punkt.Merker.length > 0) {
+            var merker = document.createElement('div');
+            merker.className = 'kart-info-merker';
+            punkt.Merker.forEach(function (merke) {
+                leggTilTekst(merker, 'span', 'merke ' + merke.Farge, merke.Tekst);
+            });
+            boks.appendChild(merker);
+        }
+
+        leggTilTekst(boks, 'p', 'kart-info-under', punkt.Undertekst);
+        leggTilTekst(boks, 'p', 'kart-info-beskrivelse', punkt.Beskrivelse);
+
+        // Telefon, e-post og annet: etikett til venstre, verdi til høyre.
+        if (punkt.Linjer.length > 0) {
+            var liste = document.createElement('dl');
+            punkt.Linjer.forEach(function (linje) {
+                leggTilTekst(liste, 'dt', '', linje.Etikett);
+                var verdi = document.createElement('dd');
+                if (linje.Lenke) {
+                    leggTilTekst(verdi, 'a', '', linje.Verdi).href = linje.Lenke;
+                } else {
+                    verdi.textContent = linje.Verdi;
+                }
+                liste.appendChild(verdi);
+            });
+            boks.appendChild(liste);
+        }
+
+        // Nærmeste ressurs: grønn boks hvis en ble funnet, ellers grå.
+        if (punkt.Fremhevet) {
+            var klasse = punkt.FremhevetErFunnet ? 'kart-info-fremhevet funnet' : 'kart-info-fremhevet';
+            leggTilTekst(boks, 'p', klasse, punkt.Fremhevet);
+        }
 
         if (punkt.Lenker.length > 0) {
             var knapper = document.createElement('div');
             knapper.className = 'kart-info-knapper';
             punkt.Lenker.forEach(function (lenke) {
-                var a = document.createElement('a');
-                a.href = lenke.Adresse;
-                a.textContent = lenke.Tekst;
-                knapper.appendChild(a);
+                leggTilTekst(knapper, 'a', '', lenke.Tekst).href = lenke.Adresse;
             });
             boks.appendChild(knapper);
         }
 
         return boks;
+    }
+
+    // Lager et element med tekst og legger det til i forelder. Tom tekst hoppes over.
+    // Gir elementet tilbake, så vi for eksempel kan sette href på en lenke.
+    function leggTilTekst(forelder, tagg, klasse, tekst) {
+        var element = document.createElement(tagg);
+        if (!tekst) {
+            return element;
+        }
+        if (klasse) {
+            element.className = klasse;
+        }
+        element.textContent = tekst;
+        forelder.appendChild(element);
+        return element;
     }
 
     function leggTilNaler(liste) {
@@ -249,7 +286,7 @@ function visOversikt(elementId, ressurser, behov) {
             }).addTo(kart);
 
             // Plass til venstre, så boksen ikke havner under knappene for zoom (+/−).
-            nal.bindPopup(lagInfoboks(punkt), { maxWidth: 300, autoPanPaddingTopLeft: [60, 20] });
+            nal.bindPopup(lagInfoboks(punkt), { minWidth: 250, maxWidth: 320, autoPanPaddingTopLeft: [60, 20] });
 
             alleMarkorer.push({
                 markor: nal,

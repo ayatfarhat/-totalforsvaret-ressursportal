@@ -61,7 +61,7 @@
                         else
                         {
                             @* Eget lite skjema for å bytte rolle *@
-                            <form asp-action="EndreRolle" method="post" class="d-flex gap-2">
+                            <form asp-action="EndreRolle" method="post" class="admin-rolle">
                                 <input type="hidden" name="id" value="@bruker.Id" />
                                 <select name="rolle" class="form-select form-select-sm" aria-label="@T["Rolle for"] @bruker.Epost">
                                     @foreach (var rolle in RoleInitializer.Roller)
@@ -96,10 +96,11 @@
                         }
                     </td>
 
-                    <td data-label="" class="admin-handling">
+                    <td data-label="">
                         @if (!bruker.ErMeg)
                         {
-                            if (bruker.ErLaast)
+                            <div class="admin-knapper">
+                            @if (bruker.ErLaast)
                             {
                                 <form asp-action="LaasOpp" method="post">
                                     <input type="hidden" name="id" value="@bruker.Id" />
@@ -114,7 +115,7 @@
                                 </form>
                             }
 
-                            if (bruker.TofaErPa)
+                            @if (bruker.TofaErPa)
                             {
                                 <form asp-action="NullstillTofa" method="post">
                                     <input type="hidden" name="id" value="@bruker.Id" />
@@ -128,6 +129,7 @@
                                 <input type="hidden" name="id" value="@bruker.Id" />
                                 <button type="submit" class="btn btn-sm btn-outline-danger">@T["Slett"]</button>
                             </form>
+                            </div>
                         }
                     </td>
                 </tr>
