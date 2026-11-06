@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
+using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers
 {

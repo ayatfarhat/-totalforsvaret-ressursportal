@@ -142,6 +142,8 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
 | Forside, personvern og språkvalg | `HomeController` | `Views/Home/` | – |
 
+`Models/` inneholder det som lagres i databasen (`Behov`, `Ressurs`, `Tildeling`, `OnsketRessurs`) og regler som hører til dem (`BehovStatusflyt`, `Kommuner`, `Visningstekst`). `ViewModels/` inneholder klassene som bare brukes til å vise sider og ta imot skjemaer, slik at brukeren aldri sender inn felt som eier, status eller ID direkte til databasen.
+
 Database-tilgangen går gjennom `ApplicationDbContext` i `Data/`, sammen med `SeedData.cs` (testbrukere) og `RoleInitializer.cs` (roller). Selve databasestrukturen styres av migrasjonsfilene i `Migrations/`.
 
 Kode som brukes av flere controllere, ligger i `Services/`:

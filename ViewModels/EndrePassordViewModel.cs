@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Data fra skjemaet "Endre passord" på Min konto.
 public class EndrePassordViewModel

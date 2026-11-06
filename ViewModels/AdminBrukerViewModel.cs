@@ -1,4 +1,4 @@
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Én rad i brukerlisten på admin-siden.
 public class AdminBrukerViewModel
