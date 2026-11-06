@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Data fra innloggingsskjemaet
 public class LoginViewModel

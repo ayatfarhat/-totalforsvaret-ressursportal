@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Brukes både når man slår på 2FA og når man logger inn med 2FA
 public class TofaViewModel

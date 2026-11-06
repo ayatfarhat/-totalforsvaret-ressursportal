@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Nabohjelp.Models;
+using Nabohjelp.ViewModels;
 using Nabohjelp.Services;
 using Xunit;
 

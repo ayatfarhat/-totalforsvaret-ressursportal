@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Nabohjelp.Models;
+using Nabohjelp.ViewModels;
 using Nabohjelp.Services;
 using Xunit;
 

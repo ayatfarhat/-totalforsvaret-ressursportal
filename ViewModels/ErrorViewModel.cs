@@ -1,4 +1,4 @@
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 public class ErrorViewModel
 {

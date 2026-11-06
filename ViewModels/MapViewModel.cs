@@ -1,4 +1,4 @@
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Alt kartet trenger for å vise oversikten: to lister med punkter,
 // én for ressurser og én for behov.

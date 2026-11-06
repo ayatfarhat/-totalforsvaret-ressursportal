@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Nabohjelp.Models;
 
-namespace Nabohjelp.Models
+namespace Nabohjelp.ViewModels
 {
     public class RessursFormViewModel
     {

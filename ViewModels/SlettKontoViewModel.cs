@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 public class SlettKontoViewModel
 {

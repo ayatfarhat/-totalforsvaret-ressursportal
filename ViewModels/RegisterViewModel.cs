@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Data fra registreringsskjemaet
 public class RegisterViewModel

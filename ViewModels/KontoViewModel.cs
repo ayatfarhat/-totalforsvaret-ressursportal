@@ -1,4 +1,4 @@
-namespace Nabohjelp.Models;
+namespace Nabohjelp.ViewModels;
 
 // Det som vises på "Min konto"
 public class KontoViewModel

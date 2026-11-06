@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
+using Nabohjelp.ViewModels;
 using Nabohjelp.Services;
 
 namespace Nabohjelp.Controllers;
