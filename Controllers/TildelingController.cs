@@ -5,7 +5,6 @@ using Nabohjelp.Data;
 using Nabohjelp.Models;
 using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
-using System.Security.Claims;
 
 namespace Nabohjelp.Controllers;
 
@@ -26,7 +25,8 @@ public class TildelingController : Controller
     public async Task<IActionResult> Index()
     {
         // Avsluttede behov kan ikke få flere ressurser.
-        var behov = await _db.Behovsliste
+        // Akutte først (Urgent = 0), deretter de eldste først.
+        List<Behov> behov = await _db.Behovsliste
             .Where(b => b.Status != BehovStatus.Resolved &&
                         b.Status != BehovStatus.Rejected &&
                         b.Status != BehovStatus.Withdrawn)
@@ -42,7 +42,7 @@ public class TildelingController : Controller
     [HttpGet]
     public async Task<IActionResult> Match(int id)
     {
-        var behov = await _db.Behovsliste.FindAsync(id);
+        Behov? behov = await _db.Behovsliste.FindAsync(id);
 
         if (behov == null)
         {
@@ -52,30 +52,37 @@ public class TildelingController : Controller
         // Et avsluttet behov (for eksempel via en gammel lenke) skal ikke vise tildel-knapper.
         if (BehovStatusflyt.ErAvsluttet(behov.Status))
         {
-            TempData["Feil"] = $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
+            TempData["Feil"] = Oversetter.Tekst("Behovet er «{0}» og kan ikke få flere ressurser.", Visningstekst.Status(behov.Status));
             return RedirectToAction(nameof(Index));
         }
 
         // Henter bare tilgjengelige ressurser fra databasen.
-        var ressurser = await _db.Ressurser
+        List<Ressurs> ressurser = await _db.Ressurser
             .AsNoTracking()
             .Where(r => r.Status == "Tilgjengelig")
             .ToListAsync();
 
-        // Beholder ressursene som passer til behovstypen, og sorterer på avstand.
-        // Ressurser uten kjent avstand kommer sist.
-        var matchende = ressurser
-            .Where(r => PasserTilBehov(behov.Type, r.Type))
-            .Select(r => LagMatchendeRessurs(behov, r))
-            .OrderBy(r => r.AvstandKm ?? double.MaxValue)
-            .ThenBy(r => r.Type)
-            .ToList();
-
-        // Den naermeste ressursen med kjent avstand er anbefalt.
-        var naermeste = matchende.FirstOrDefault(r => r.AvstandKm != null);
-        if (naermeste != null)
+        // Beholder ressursene som passer til behovstypen.
+        var matchende = new List<MatchendeRessursViewModel>();
+        foreach (Ressurs ressurs in ressurser)
         {
-            naermeste.ErAnbefalt = true;
+            if (Ressursmatching.PasserTilBehov(behov.Type, ressurs.Type))
+            {
+                matchende.Add(LagMatchendeRessurs(behov, ressurs));
+            }
+        }
+
+        // Nærmeste først (se SammenlignAvstand nederst).
+        matchende.Sort(SammenlignAvstand);
+
+        // Den nærmeste ressursen med kjent avstand er anbefalt.
+        foreach (MatchendeRessursViewModel ressurs in matchende)
+        {
+            if (ressurs.AvstandKm != null)
+            {
+                ressurs.ErAnbefalt = true;
+                break;
+            }
         }
 
         return View(LagViewModel(behov, matchende));
@@ -87,15 +94,15 @@ public class TildelingController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Tildel(int behovId, int ressursId)
     {
-        var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? brukerId = Tilgang.BrukerId(User);
 
         if (string.IsNullOrEmpty(brukerId))
         {
             return Challenge();
         }
 
-        var behov = await _db.Behovsliste.FindAsync(behovId);
-        var ressurs = await _db.Ressurser.FindAsync(ressursId);
+        Behov? behov = await _db.Behovsliste.FindAsync(behovId);
+        Ressurs? ressurs = await _db.Ressurser.FindAsync(ressursId);
 
         if (behov == null || ressurs == null)
         {
@@ -105,47 +112,45 @@ public class TildelingController : Controller
         // Avsluttede behov kan ikke få nye tildelinger.
         if (BehovStatusflyt.ErAvsluttet(behov.Status))
         {
-            TempData["Feil"] =
-                $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
+            TempData["Feil"] = Oversetter.Tekst("Behovet er «{0}» og kan ikke få flere ressurser.", Visningstekst.Status(behov.Status));
 
             return RedirectToAction(nameof(Index));
         }
 
         // Kontrollerer at ressurstypen passer til behovet.
-        if (!PasserTilBehov(behov.Type, ressurs.Type))
+        if (!Ressursmatching.PasserTilBehov(behov.Type, ressurs.Type))
         {
-            TempData["Feil"] = "Ressursen passer ikke til dette behovet.";
+            TempData["Feil"] = Oversetter.Tekst("Ressursen passer ikke til dette behovet.");
 
             return RedirectToAction(
                 nameof(Match),
                 new { id = behovId });
         }
 
-        // Transaksjon sørger for at endringene lagres samlet.
-        await using var transaksjon =
-            await _db.Database.BeginTransactionAsync();
+        // En transaksjon gjør at alle endringene under lagres samlet, eller ingen av dem.
+        // «await using» lukker transaksjonen automatisk til slutt i metoden.
+        await using var transaksjon = await _db.Database.BeginTransactionAsync();
 
-        // Oppdaterer ressursen bare dersom den fortsatt er tilgjengelig.
-        // Dette hindrer at to forespørsler tildeler samme ressurs samtidig.
-        var antallEndret = await _db.Ressurser
-            .Where(r => r.Id == ressursId &&
-                        r.Status == "Tilgjengelig")
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(r => r.Status, "Tildelt"));
+        // Setter ressursen til «Tildelt» direkte i databasen, men bare hvis den
+        // fortsatt er «Tilgjengelig». Hvis to fra kriseledelsen trykker «Tildel» på
+        // samme ressurs samtidig, får bare den første det til (antallEndret blir 1).
+        int antallEndret = await _db.Ressurser
+            .Where(r => r.Id == ressursId && r.Status == "Tilgjengelig")
+            .ExecuteUpdateAsync(oppdatering => oppdatering.SetProperty(r => r.Status, "Tildelt"));
 
         if (antallEndret == 0)
         {
             await transaksjon.RollbackAsync();
 
             TempData["Feil"] =
-                "Ressursen er ikke lenger tilgjengelig.";
+                Oversetter.Tekst("Ressursen er ikke lenger tilgjengelig.");
 
             return RedirectToAction(
                 nameof(Match),
                 new { id = behovId });
         }
 
-        var tidspunkt = DateTime.UtcNow;
+        DateTime tidspunkt = DateTime.UtcNow;
 
         // Oppdaterer behovets status.
         behov.Status = BehovStatus.Assigned;
@@ -178,15 +183,16 @@ public class TildelingController : Controller
     [HttpGet]
     public async Task<IActionResult> Resultat(int behovId, int ressursId)
     {
-        var behov = await _db.Behovsliste.FindAsync(behovId);
-        var ressurs = await _db.Ressurser.FindAsync(ressursId);
+        Behov? behov = await _db.Behovsliste.FindAsync(behovId);
+        Ressurs? ressurs = await _db.Ressurser.FindAsync(ressursId);
 
         if (behov == null || ressurs == null)
         {
             return NotFound();
         }
 
-        var tildelt = new List<MatchendeRessursViewModel> { LagMatchendeRessurs(behov, ressurs) };
+        var tildelt = new List<MatchendeRessursViewModel>();
+        tildelt.Add(LagMatchendeRessurs(behov, ressurs));
         return View(LagViewModel(behov, tildelt));
     }
 
@@ -225,41 +231,28 @@ public class TildelingController : Controller
         };
     }
 
-    // Bestemmer hvilke ressurstyper som passer til behovstypen.
-    private static bool PasserTilBehov(
-        BehovType behovType,
-        string ressursType)
+    // Bestemmer rekkefølgen i lista: kortest avstand først. Ressurser uten kjent
+    // avstand (uten posisjon) kommer sist. Er avstanden lik, sorteres de på type.
+    // Gir et negativt tall hvis a skal stå før b, og et positivt hvis b skal stå før a.
+    private static int SammenlignAvstand(MatchendeRessursViewModel a, MatchendeRessursViewModel b)
     {
-        return behovType switch
+        double avstandA = double.MaxValue;
+        if (a.AvstandKm != null)
         {
-            BehovType.Drone =>
-                ressursType == "Drone og droneoperatør",
+            avstandA = a.AvstandKm.Value;
+        }
 
-            BehovType.Generator =>
-                ressursType == "Aggregat",
+        double avstandB = double.MaxValue;
+        if (b.AvstandKm != null)
+        {
+            avstandB = b.AvstandKm.Value;
+        }
 
-            BehovType.Transport =>
-                ressursType is
-                    "ATV" or
-                    "Traktor" or
-                    "Snøskuter" or
-                    "Lastebil" or
-                    "Båt",
-
-            BehovType.Evakuering =>
-                ressursType is
-                    "Mannskap/frivillige" or
-                    "ATV" or
-                    "Snøskuter" or
-                    "Lastebil" or
-                    "Båt" or
-                    "Lokaler",
-
-            // Behovstypen «Annet» kan matches med alle ressurstyper.
-            BehovType.Annet => true,
-
-            _ => false
-        };
+        if (avstandA != avstandB)
+        {
+            return avstandA.CompareTo(avstandB);
+        }
+        return string.Compare(a.Type, b.Type);
     }
 
     // Lager en forklaring på hvorfor ressursen matcher behovet.
@@ -269,9 +262,14 @@ public class TildelingController : Controller
     {
         if (behovType == BehovType.Annet)
         {
-            return $"Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{ressursType}».";
+            return Oversetter.Tekst(
+                "Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{0}».",
+                Oversetter.Tekst(ressursType));
         }
 
-        return $"Ressurstypen «{ressursType}» passer til behovstypen «{Visningstekst.Type(behovType)}».";
+        return Oversetter.Tekst(
+            "Ressurstypen «{0}» passer til behovstypen «{1}».",
+            Oversetter.Tekst(ressursType),
+            Visningstekst.Type(behovType));
     }
 }

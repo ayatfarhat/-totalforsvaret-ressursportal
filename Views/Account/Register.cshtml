@@ -1,6 +1,6 @@
 @model RegisterViewModel
 @{
-    ViewData["Title"] = "Registrer deg";
+    ViewData["Title"] = T["Registrer deg"];
 }
 
 <div class="auth">
@@ -9,7 +9,7 @@
     <p class="auth-ingress">@T["Nye brukere får rollen Frivillig."]</p>
 
     <div class="auth-flate">
-        <form asp-action="Register" method="post" novalidate>
+        <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
             <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
             <div class="felt">
@@ -44,7 +44,7 @@
         </form>
     </div>
 
-    <p class="auth-bunn">@T["Har du allerede konto?"] <a asp-action="Login">@T["Logg inn"]</a></p>
+    <p class="auth-bunn">@T["Har du allerede konto?"] <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">@T["Logg inn"]</a></p>
 </div>
 
 @section Scripts {

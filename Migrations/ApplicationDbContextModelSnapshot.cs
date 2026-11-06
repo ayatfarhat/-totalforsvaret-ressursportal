@@ -270,6 +270,48 @@ namespace Nabohjelp.Migrations
                     b.ToTable("Behovsliste");
                 });
 
+            modelBuilder.Entity("Nabohjelp.Models.Invitasjon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BruktAvEpost")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTime?>("BruktTid")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("KodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("OpprettetAvBrukerId")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("OpprettetTid")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Rolle")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("UtloperTid")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KodeHash")
+                        .IsUnique();
+
+                    b.ToTable("Invitasjoner");
+                });
+
             modelBuilder.Entity("Nabohjelp.Models.OnsketRessurs", b =>
                 {
                     b.Property<int>("Id")

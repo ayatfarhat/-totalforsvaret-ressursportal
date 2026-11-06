@@ -1,17 +1,17 @@
 @model RessursFormViewModel
 
 @{
-    ViewData["Title"] = "Slett ressurs";
+    ViewData["Title"] = T["Slett ressurs"];
 
     // Satt av controlleren hvis ressursen ikke kan slettes (tildelt eller brukt før).
     string? sperre = ViewBag.Sperre as string;
 }
 
 <div class="side-topp">
-    <h1>Slett ressurs</h1>
+    <h1>@T["Slett ressurs"]</h1>
     @if (sperre == null)
     {
-        <p class="ingress">Sjekk at dette er riktig ressurs. Slettingen kan ikke angres.</p>
+        <p class="ingress">@T["Sjekk at dette er riktig ressurs. Slettingen kan ikke angres."]</p>
     }
 </div>
 
@@ -21,17 +21,17 @@
 }
 
 <section class="sammendrag-boks slett-boks" aria-labelledby="slett-tittel">
-    <h2 id="slett-tittel">@Model.Type</h2>
+    <h2 id="slett-tittel">@T[Model.Type]</h2>
     <dl class="sammendrag">
-        <div><dt>Kommune</dt><dd>@Model.VisKommune()</dd></div>
-        <div><dt>Posisjon</dt><dd>@Model.Posisjon</dd></div>
-        <div><dt>Tilgjengelig fra</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
-        <div><dt>Beskrivelse</dt><dd>@Model.VisBeskrivelse()</dd></div>
+        <div><dt>@T["Kommune"]</dt><dd>@Model.VisKommune()</dd></div>
+        <div><dt>@T["Posisjon"]</dt><dd>@Model.Posisjon</dd></div>
+        <div><dt>@T["Tilgjengelig fra"]</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
+        <div><dt>@T["Beskrivelse"]</dt><dd>@Model.VisBeskrivelse()</dd></div>
         @if (!string.IsNullOrEmpty(Model.BildeSti))
         {
-            <div><dt>Bilde</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="Bilde av ressursen: @Model.Type" /></dd></div>
+            <div><dt>@T["Bilde"]</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Bilde av ressursen: {0}", T[Model.Type]]" /></dd></div>
         }
-        <div><dt>Status</dt><dd><span class="merke @Visningstekst.RessursStatusFarge(Model.Status)">@Model.Status</span></dd></div>
+        <div><dt>@T["Status"]</dt><dd><span class="merke @Visningstekst.RessursStatusFarge(Model.Status)">@T[Model.Status]</span></dd></div>
     </dl>
 </section>
 
@@ -39,9 +39,9 @@
     @if (sperre == null)
     {
         <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
-            <button type="submit" class="btn btn-danger btn-lg">Slett ressursen</button>
+            <button type="submit" class="btn btn-danger btn-lg">@T["Slett ressursen"]</button>
         </form>
     }
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-lg">Endre i stedet</a>
-    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Avbryt</a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-lg">@T["Endre i stedet"]</a>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">@T["Avbryt"]</a>
 </div>

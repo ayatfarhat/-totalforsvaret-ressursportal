@@ -1,9 +1,9 @@
 @model TofaViewModel
 @{
-    ViewData["Title"] = "Slå på 2FA";
+    ViewData["Title"] = T["Slå på 2FA"];
 
     // Teksten som gjøres om til QR-kode. Autentiseringsappen forstår dette formatet.
-    var qrTekst = "otpauth://totp/BeredskapsPortalen:" + Uri.EscapeDataString(User.Identity?.Name ?? "")
+    string qrTekst = "otpauth://totp/BeredskapsPortalen:" + Uri.EscapeDataString(Tilgang.Epost(User))
                   + "?secret=" + Uri.EscapeDataString(Model.Nokkel) + "&issuer=BeredskapsPortalen";
 }
 
@@ -43,7 +43,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8My0mA==" crossorigin="anonymous"></script>
     <script>
         // Hvis QR-biblioteket ikke ble lastet, kan brukeren skrive inn nøkkelen under i stedet.
         if (typeof QRCode !== "undefined") {

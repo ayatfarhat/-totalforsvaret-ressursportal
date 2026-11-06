@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers
@@ -26,7 +27,7 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var onskede = await _db.OnskedeRessurser
+            List<OnsketRessurs> onskede = await _db.OnskedeRessurser
                 .AsNoTracking()
                 .OrderByDescending(o => o.Opprettet)
                 .ToListAsync();
@@ -51,7 +52,7 @@ namespace Nabohjelp.Controllers
             // Typen må være en av de vanlige ressurstypene.
             if (!RessursFormViewModel.Typer.Contains(model.Type))
             {
-                ModelState.AddModelError("Type", "Du må velge type ressurs.");
+                ModelState.AddModelError("Type", Oversetter.Tekst("Du må velge type ressurs."));
             }
 
             if (!ModelState.IsValid)
@@ -72,7 +73,7 @@ namespace Nabohjelp.Controllers
             _db.OnskedeRessurser.Add(onsket);
             await _db.SaveChangesAsync();
 
-            TempData["Melding"] = "Ønsket ressurs er lagt til.";
+            TempData["Melding"] = Oversetter.Tekst("Ønsket ressurs er lagt til.");
             return RedirectToAction(nameof(Index));
         }
 
@@ -82,7 +83,7 @@ namespace Nabohjelp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Fjern(int id)
         {
-            var onsket = await _db.OnskedeRessurser.FindAsync(id);
+            OnsketRessurs? onsket = await _db.OnskedeRessurser.FindAsync(id);
 
             // Er den allerede fjernet (for eksempel av en kollega), gjør vi ingenting.
             if (onsket != null)
@@ -91,7 +92,7 @@ namespace Nabohjelp.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            TempData["Melding"] = "Ønsket ressurs er fjernet.";
+            TempData["Melding"] = Oversetter.Tekst("Ønsket ressurs er fjernet.");
             return RedirectToAction(nameof(Index));
         }
     }

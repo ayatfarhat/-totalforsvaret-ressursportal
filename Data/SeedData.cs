@@ -8,9 +8,10 @@ public static class SeedData
 {
     public static async Task LagTestbrukere(WebApplication app)
     {
-        using var scope = app.Services.CreateScope();
-
-        var userManager =
+        // Henter UserManager (Identity sin klasse for brukere) fra appens tjenester.
+        // «using» rydder opp etter oss når metoden er ferdig.
+        using IServiceScope scope = app.Services.CreateScope();
+        UserManager<IdentityUser> userManager =
             scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
         await LagBruker(
@@ -41,21 +42,21 @@ public static class SeedData
         string passord,
         string rolle)
     {
-        var bruker = await userManager.FindByEmailAsync(epost);
+        // Finnes brukeren fra før (appen er startet før), gjør vi ingenting.
+        IdentityUser? finnes = await userManager.FindByEmailAsync(epost);
 
-        if (bruker != null)
+        if (finnes != null)
         {
             return;
         }
 
-        bruker = new IdentityUser
+        var bruker = new IdentityUser
         {
             UserName = epost,
             Email = epost
         };
 
-        var resultat =
-            await userManager.CreateAsync(bruker, passord);
+        IdentityResult resultat = await userManager.CreateAsync(bruker, passord);
 
         if (resultat.Succeeded)
         {

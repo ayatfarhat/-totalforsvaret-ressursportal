@@ -1,7 +1,7 @@
 @using Nabohjelp.Models
 @model List<Nabohjelp.ViewModels.BehovKoItem>
 @{
-    ViewData["Title"] = "Behovskø";
+    ViewData["Title"] = T["Behovskø"];
 }
 
 @functions {
@@ -23,8 +23,8 @@
 }
 
 <div class="side-topp">
-    <h1>Behovskø</h1>
-    <p class="ingress">Aktive behov, med de akutte først.</p>
+    <h1>@T["Behovskø"]</h1>
+    <p class="ingress">@T["Aktive behov, med de akutte først."]</p>
 </div>
 
 @if (TempData["Feil"] is string feil)
@@ -32,17 +32,17 @@
     <div class="alert alert-danger" role="alert">@feil</div>
 }
 
-@if (!Model.Any())
+@if (Model.Count == 0)
 {
     <div class="tom-tilstand">
-        <h3>Ingen aktive behov</h3>
-        <p>Nye behov som meldes inn, dukker opp her.</p>
+        <h3>@T["Ingen aktive behov"]</h3>
+        <p>@T["Nye behov som meldes inn, dukker opp her."]</p>
     </div>
 }
 else
 {
     <div class="liste-topp">
-        <h2>Aktive behov</h2>
+        <h2>@T["Aktive behov"]</h2>
         <span class="antall">@Model.Count</span>
     </div>
 
@@ -50,34 +50,34 @@ else
         <table class="table stablet align-middle">
             <thead>
                 <tr>
-                    <th scope="col">Type</th>
-                    <th scope="col">Prioritet</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Beskrivelse</th>
-                    <th scope="col">Registrert</th>
-                    <th scope="col">Kontakt</th>
-                    <th scope="col"><span class="visually-hidden">Handling</span></th>
+                    <th scope="col">@T["Type"]</th>
+                    <th scope="col">@T["Prioritet"]</th>
+                    <th scope="col">@T["Status"]</th>
+                    <th scope="col">@T["Beskrivelse"]</th>
+                    <th scope="col">@T["Registrert"]</th>
+                    <th scope="col">@T["Kontakt"]</th>
+                    <th scope="col"><span class="visually-hidden">@T["Handling"]</span></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var b in Model)
                 {
                     <tr class="@(b.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
-                        <td data-label="Type"><strong>@Visningstekst.Type(b.Type, b.AnnetType)</strong></td>
-                        <td data-label="Prioritet">
+                        <td data-label="@T["Type"]"><strong>@Visningstekst.Type(b.Type, b.AnnetType)</strong></td>
+                        <td data-label="@T["Prioritet"]">
                             @if (b.Prioritet == BehovPrioritet.Urgent)
                             {
-                                <span class="merke merke-hjelp">Akutt</span>
+                                <span class="merke merke-hjelp">@T["Akutt"]</span>
                             }
                             else
                             {
-                                <span class="merke">Planlagt</span>
+                                <span class="merke">@T["Planlagt"]</span>
                             }
                         </td>
-                        <td data-label="Status"><span class="merke @Visningstekst.StatusFarge(b.Status)">@Visningstekst.Status(b.Status)</span></td>
-                        <td data-label="Beskrivelse"><span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</span></td>
-                        <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
-                        <td data-label="Kontakt">
+                        <td data-label="@T["Status"]"><span class="merke @Visningstekst.StatusFarge(b.Status)">@Visningstekst.Status(b.Status)</span></td>
+                        <td data-label="@T["Beskrivelse"]"><span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? T["Ingen beskrivelse"] : b.Beskrivelse)</span></td>
+                        <td data-label="@T["Registrert"]">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td data-label="@T["Kontakt"]">
                             <span class="kontakt-liste">
                                 @if (!string.IsNullOrWhiteSpace(b.KontaktTelefon))
                                 {
@@ -96,13 +96,13 @@ else
                                     <form asp-action="EndreStatus" method="post">
                                         <input type="hidden" name="id" value="@b.Id" />
                                         <input type="hidden" name="nyStatus" value="@neste" />
-                                        <button type="submit" class="@KnappKlasse(neste)">@KnappTekst(neste)</button>
+                                        <button type="submit" class="@KnappKlasse(neste)">@T[KnappTekst(neste)]</button>
                                     </form>
                                 }
                                 @if (BehovStatusflyt.KanRedigeres(b.Status))
                                 {
                                     <a asp-action="Rediger" asp-route-id="@b.Id" class="btn btn-sm btn-link ko-endre"
-                                       aria-label="Endre behovet @Visningstekst.Type(b.Type, b.AnnetType), registrert @b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")">Endre</a>
+                                       aria-label="@T["Endre behovet {0}, registrert {1}", Visningstekst.Type(b.Type, b.AnnetType), b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")]">@T["Endre"]</a>
                                 }
                             </div>
                         </td>

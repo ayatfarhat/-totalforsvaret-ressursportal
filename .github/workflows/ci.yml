@@ -1,4 +1,4 @@
-﻿name: Bygg og test
+name: Bygg og test
 
 on:
   pull_request:
@@ -19,5 +19,48 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Bygg og kjør testene
-        run: dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj
+      # Enhetstestene. Systemtestene kjøres i jobben under, der appen er startet.
+      - name: Bygg og kjør enhetstestene
+        run: dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtest&Kategori!=Fartsgrense"
+
+  # Systemtest: starter hele appen og MariaDB med Docker, slik den kjøres i drift,
+  # og tester den gjennom vanlige forespørsler (se Nabohjelp.Tests/Systemtester.cs).
+  # Jobben sjekker også at Docker-oppsettet og migrasjonene virker.
+  systemtest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hent koden
+        uses: actions/checkout@v4
+
+      - name: Sett opp .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Start appen og databasen med Docker
+        run: docker compose up -d --build
+
+      - name: Vent til appen svarer
+        run: |
+          for forsok in $(seq 1 60); do
+            if curl -sf http://localhost:8080/ > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo "Appen startet ikke innen to minutter."
+          exit 1
+
+      - name: Kjør systemtestene
+        env:
+          SYSTEMTEST_URL: http://localhost:8080
+        run: dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori=Systemtest"
+
+      # Til slutt, fordi testen bruker opp innloggingsforsøkene i ett minutt.
+      - name: Test fartsgrensen for innlogging
+        env:
+          SYSTEMTEST_URL: http://localhost:8080
+        run: dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori=Fartsgrense"
+
+      - name: Vis loggen fra appen hvis noe feilet
+        if: failure()
+        run: docker compose logs web

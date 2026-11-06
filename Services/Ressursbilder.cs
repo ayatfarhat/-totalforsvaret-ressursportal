@@ -60,7 +60,7 @@ public static class Ressursbilder
         Directory.CreateDirectory(mappe);
 
         string fullSti = Path.Combine(mappe, ressursId + endelse);
-        using (var strom = new FileStream(fullSti, FileMode.Create))
+        using (FileStream strom = new FileStream(fullSti, FileMode.Create))
         {
             fil.CopyTo(strom);
         }
@@ -107,7 +107,8 @@ public static class Ressursbilder
     {
         byte[] start = new byte[12];
         int lest;
-        using (var strom = fil.OpenReadStream())
+        // «using» lukker filen igjen når blokken er ferdig.
+        using (Stream strom = fil.OpenReadStream())
         {
             lest = strom.Read(start, 0, start.Length);
         }

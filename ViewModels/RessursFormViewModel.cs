@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.ViewModels
 {
@@ -37,7 +38,7 @@ namespace Nabohjelp.ViewModels
 
         public string? OpprettetAvBrukerId { get; set; }
 
-        // Landskoden velges i en egen nedtrekksliste (standard er +47).
+        // Landskoden velges i en egen nedtrekksliste (se Models/Land.cs). Standard er +47.
         public string Landskode { get; set; } = "+47";
 
         // Selve nummeret skrives uten landskode, bare tall (mellomrom er greit).
@@ -56,7 +57,7 @@ namespace Nabohjelp.ViewModels
         public string Status { get; set; } = "Ny";
 
         // Fast liste over ressurstyper — brukes i dropdown-menyen
-        public static readonly List<string> Typer = new()
+        public static readonly List<string> Typer = new List<string>
         {
             "Drone og droneoperatør",
             "ATV",
@@ -75,44 +76,31 @@ namespace Nabohjelp.ViewModels
             "Annet"
         };
 
-        // Landskoder som kan velges. Første i listen er standard.
-        public static readonly List<(string Kode, string Land)> Landskoder = new()
-        {
-            ("+47", "Norge"),
-            ("+46", "Sverige"),
-            ("+45", "Danmark"),
-            ("+358", "Finland"),
-            ("+354", "Island"),
-            ("+44", "Storbritannia"),
-            ("+49", "Tyskland"),
-            ("+48", "Polen")
-        };
-
         // Forslag til beskrivelse som fylles ut automatisk når brukeren velger type.
-        // Brukeren kan fritt endre teksten etterpå.
+        // Brukeren kan fritt endre teksten etterpå. Hver linje oversettes for seg.
         public static string HentForslag(string type)
         {
             switch (type)
             {
                 case "Drone og droneoperatør":
-                    return "Modell:\nRekkevidde og flytid:\nDroneførerbevis (ja/nei):";
+                    return Oversetter.Linjer("Modell:", "Rekkevidde og flytid:", "Droneførerbevis (ja/nei):");
                 case "Mannskap/frivillige":
-                    return "Ferdigheter:\nAntall personer:\nHvor mange timer kan dere bidra:";
+                    return Oversetter.Linjer("Ferdigheter:", "Antall personer:", "Hvor mange timer kan dere bidra:");
                 case "Sand/grus":
-                    return "Mengde (m3 eller tonn):\nHvordan kan det hentes:";
+                    return Oversetter.Linjer("Mengde (m3 eller tonn):", "Hvordan kan det hentes:");
                 case "Lokaler":
-                    return "Antall plasser:\nStrøm og vann (ja/nei):\nTilgang for rullestol (ja/nei):";
+                    return Oversetter.Linjer("Antall plasser:", "Strøm og vann (ja/nei):", "Tilgang for rullestol (ja/nei):");
                 case "Aggregat":
-                    return "Effekt (kW):\nDrivstoff:\nFølger det med kabler (ja/nei):";
+                    return Oversetter.Linjer("Effekt (kW):", "Drivstoff:", "Følger det med kabler (ja/nei):");
                 case "Sambandsutstyr":
-                    return "Type utstyr:\nRekkevidde:\nAntall:";
+                    return Oversetter.Linjer("Type utstyr:", "Rekkevidde:", "Antall:");
                 case "Båt":
-                    return "Type og lengde:\nAntall personer den tar:\nHar du båtførerbevis (ja/nei):";
+                    return Oversetter.Linjer("Type og lengde:", "Antall personer den tar:", "Har du båtførerbevis (ja/nei):");
                 case "Annet":
                     return "";
                 default:
                     // Gjelder kjøretøy og maskiner (ATV, traktor, lastebil osv.)
-                    return "Modell og størrelse:\nTilstand:\nKan du kjøre den selv (ja/nei):";
+                    return Oversetter.Linjer("Modell og størrelse:", "Tilstand:", "Kan du kjøre den selv (ja/nei):");
             }
         }
 
@@ -124,13 +112,13 @@ namespace Nabohjelp.ViewModels
             return TilgjengeligFra == null || TilgjengeligFra >= DateTime.Now.AddMinutes(-1);
         }
 
-        // Disse metodene lager tekst som er enkel å vise i View-ene,
-        // slik at View-ene slipper ?./??/ternary-uttrykk.
+        // Disse metodene lager tekst som er enkel å vise i sidene,
+        // slik at sidene slipper egne if-setninger for tomme felt.
         public string VisTilgjengeligFra()
         {
             if (TilgjengeligFra == null)
             {
-                return "Ikke oppgitt";
+                return Oversetter.Tekst("Ikke oppgitt");
             }
             return TilgjengeligFra.Value.ToString("dd.MM.yyyy HH:mm");
         }
@@ -139,7 +127,7 @@ namespace Nabohjelp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(Beskrivelse))
             {
-                return "Ingen";
+                return Oversetter.Tekst("Ingen");
             }
             return Beskrivelse;
         }
@@ -148,7 +136,7 @@ namespace Nabohjelp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(Navn))
             {
-                return "Ikke oppgitt";
+                return Oversetter.Tekst("Ikke oppgitt");
             }
             return Navn;
         }
@@ -157,7 +145,7 @@ namespace Nabohjelp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(Telefon))
             {
-                return "Ikke oppgitt";
+                return Oversetter.Tekst("Ikke oppgitt");
             }
             if (string.IsNullOrEmpty(Landskode))
             {
@@ -196,7 +184,7 @@ namespace Nabohjelp.ViewModels
             }
 
             lagret = lagret.Trim();
-            foreach (var land in Landskoder)
+            foreach (Land land in Land.Alle)
             {
                 if (lagret.StartsWith(land.Kode + " "))
                 {
@@ -270,9 +258,10 @@ namespace Nabohjelp.ViewModels
         {
             if (Breddegrad == null || Lengdegrad == null)
             {
-                return "Ikke valgt på kart";
+                return Oversetter.Tekst("Ikke valgt på kart");
             }
-            return $"{Breddegrad:0.#####}, {Lengdegrad:0.#####}";
+            // Viser opptil fem desimaler, for eksempel «58.34051, 8.59342».
+            return Breddegrad.Value.ToString("0.#####") + ", " + Lengdegrad.Value.ToString("0.#####");
         }
     }
 }

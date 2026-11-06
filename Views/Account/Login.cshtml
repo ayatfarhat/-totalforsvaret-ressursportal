@@ -1,6 +1,6 @@
 @model LoginViewModel
 @{
-    ViewData["Title"] = "Logg inn";
+    ViewData["Title"] = T["Logg inn"];
 }
 
 <div class="auth">
@@ -28,7 +28,7 @@
         </form>
     </div>
 
-    <p class="auth-bunn">@T["Har du ikke konto?"] <a asp-action="Register">@T["Registrer deg"]</a></p>
+    <p class="auth-bunn">@T["Har du ikke konto?"] <a asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]">@T["Registrer deg"]</a></p>
 </div>
 
 @section Scripts {

@@ -2,34 +2,34 @@
 @using Nabohjelp.Models
 
 @{
-    ViewData["Title"] = "Ressursliste per kommune";
+    ViewData["Title"] = T["Ressursliste per kommune"];
     string? forrigeFylke = null;
 }
 
 <div class="side-topp utskrift-skjul">
-    <h1>Ressursliste per kommune</h1>
-    <p class="ingress">Velg fylke eller kommune, og skriv ut listen eller lagre den som PDF. Listen viser alle registrerte ressurser, også de som er tildelt.</p>
+    <h1>@T["Ressursliste per kommune"]</h1>
+    <p class="ingress">@T["Velg fylke eller kommune, og skriv ut listen eller lagre den som PDF. Listen viser alle registrerte ressurser, også de som er tildelt."]</p>
 </div>
 
 <form method="get" asp-action="Utskrift" class="utskrift-filter utskrift-skjul">
     <div class="felt">
-        <label for="fylke" class="form-label">Fylke</label>
+        <label for="fylke" class="form-label">@T["Fylke"]</label>
         <select id="fylke" name="fylke" class="form-select">
-            <option value="">Alle fylker</option>
-            @foreach (var fylke in Kommuner.Fylker)
+            <option value="">@T["Alle fylker"]</option>
+            @foreach (string fylke in Kommuner.Fylker)
             {
                 <option value="@fylke" selected="@(fylke == Model.ValgtFylke && Model.ValgtKommune == null)">@fylke</option>
             }
         </select>
     </div>
     <div class="felt">
-        <label for="kommune" class="form-label">Kommune <span class="valgfritt">(går foran fylket)</span></label>
+        <label for="kommune" class="form-label">@T["Kommune"] <span class="valgfritt">@T["(går foran fylket)"]</span></label>
         <select id="kommune" name="kommune" class="form-select">
-            <option value="">Alle kommuner</option>
-            @foreach (var fylke in Kommuner.Fylker)
+            <option value="">@T["Alle kommuner"]</option>
+            @foreach (string fylke in Kommuner.Fylker)
             {
                 <optgroup label="@fylke">
-                    @foreach (var kommune in Kommuner.Alle.Where(k => k.Fylke == fylke))
+                    @foreach (Kommune kommune in Kommuner.IFylke(fylke))
                     {
                         <option value="@kommune.Nummer" selected="@(kommune.Nummer == Model.ValgtKommune)">@kommune.Navn</option>
                     }
@@ -38,23 +38,23 @@
         </select>
     </div>
     <div class="utskrift-knapper">
-        <button type="submit" class="btn btn-outline-secondary">Vis liste</button>
-        <button type="button" id="skrivUt" class="btn btn-success">Skriv ut</button>
+        <button type="submit" class="btn btn-outline-secondary">@T["Vis liste"]</button>
+        <button type="button" id="skrivUt" class="btn btn-success">@T["Skriv ut"]</button>
     </div>
 </form>
 
 <section class="utskrift" aria-labelledby="utskrift-tittel">
     <div class="utskrift-hode">
-        <h2 id="utskrift-tittel">Ressurser: @Model.VisOmrade()</h2>
-        <p>BeredskapsPortalen, laget @Model.Laget.ToString("dd.MM.yyyy 'kl.' HH:mm"). @Model.Antall @(Model.Antall == 1 ? "ressurs" : "ressurser") i @Model.Grupper.Count @(Model.Grupper.Count == 1 ? "kommune" : "kommuner").</p>
+        <h2 id="utskrift-tittel">@T["Ressurser"]: @Model.VisOmrade()</h2>
+        <p>@T["BeredskapsPortalen, laget {0}.", Model.Laget.ToString("dd.MM.yyyy HH:mm")] @T[Model.Antall == 1 ? "1 ressurs" : "{0} ressurser", Model.Antall] @T["fordelt på"] @T[Model.Grupper.Count == 1 ? "1 kommune." : "{0} kommuner.", Model.Grupper.Count]</p>
     </div>
 
-    @if (!Model.Grupper.Any())
+    @if (Model.Grupper.Count == 0)
     {
         <div class="tom-tilstand">
-            <h3>Ingen ressurser i @Model.VisOmrade()</h3>
-            <p>Velg et annet fylke eller en annen kommune, eller vis hele landet.</p>
-            <a class="btn btn-outline-secondary" asp-action="Utskrift">Vis hele landet</a>
+            <h3>@T["Ingen ressurser i {0}", Model.VisOmrade()]</h3>
+            <p>@T["Velg et annet fylke eller en annen kommune, eller vis hele landet."]</p>
+            <a class="btn btn-outline-secondary" asp-action="Utskrift">@T["Vis hele landet"]</a>
         </div>
     }
 
@@ -72,21 +72,21 @@
             <table class="table utskrift-tabell">
                 <thead>
                     <tr>
-                        <th scope="col">Type</th>
-                        <th scope="col">Adresse</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Tilgjengelig fra</th>
-                        <th scope="col">Kontakt</th>
-                        <th scope="col">Beskrivelse</th>
+                        <th scope="col">@T["Type"]</th>
+                        <th scope="col">@T["Adresse"]</th>
+                        <th scope="col">@T["Status"]</th>
+                        <th scope="col">@T["Tilgjengelig fra"]</th>
+                        <th scope="col">@T["Kontakt"]</th>
+                        <th scope="col">@T["Beskrivelse"]</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var ressurs in gruppe.Ressurser)
                     {
                         <tr>
-                            <td><strong>@ressurs.Type</strong></td>
+                            <td><strong>@T[ressurs.Type]</strong></td>
                             <td>@ressurs.Posisjon</td>
-                            <td>@ressurs.Status</td>
+                            <td>@T[ressurs.Status]</td>
                             <td>@ressurs.VisTilgjengeligFra()</td>
                             <td>
                                 @ressurs.VisNavn()<br />

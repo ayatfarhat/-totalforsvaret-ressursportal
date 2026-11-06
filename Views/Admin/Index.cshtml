@@ -2,12 +2,13 @@
 @using Nabohjelp.Data
 
 @{
-    ViewData["Title"] = "Brukere";
+    ViewData["Title"] = T["Brukere"];
 }
 
 <div class="side-topp">
     <h1>@T["Brukere"]</h1>
     <p class="ingress">@T["Her kan du gi brukere riktig rolle, låse kontoer og hjelpe brukere som har mistet telefonen med 2FA."]</p>
+    <a asp-action="Invitasjoner" class="btn btn-outline-secondary">@T["Invitasjonslenker"]</a>
 </div>
 
 @if (TempData["Feil"] is string feil)
@@ -55,7 +56,7 @@
                     <td data-label="@T["Rolle"]">
                         @if (bruker.ErMeg)
                         {
-                            <text>@bruker.Rolle</text>
+                            <text>@T[bruker.Rolle]</text>
                         }
                         else
                         {
@@ -65,7 +66,7 @@
                                 <select name="rolle" class="form-select form-select-sm" aria-label="@T["Rolle for"] @bruker.Epost">
                                     @foreach (var rolle in RoleInitializer.Roller)
                                     {
-                                        <option value="@rolle" selected="@(rolle == bruker.Rolle)">@rolle</option>
+                                        <option value="@rolle" selected="@(rolle == bruker.Rolle)">@T[rolle]</option>
                                     }
                                 </select>
                                 <button type="submit" class="btn btn-sm btn-outline-secondary">@T["Lagre"]</button>
@@ -73,7 +74,7 @@
                         }
                     </td>
 
-                    <td data-label="2FA">
+                    <td data-label="@T["2FA"]">
                         @if (bruker.TofaErPa)
                         {
                             <span class="merke merke-gi">@T["På"]</span>

@@ -20,10 +20,14 @@ public class HomeController : Controller
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
-        return View(new ErrorViewModel
+        // Koden som vises på siden, så feilen kan finnes igjen i loggen.
+        string requestId = HttpContext.TraceIdentifier;
+        if (Activity.Current != null && Activity.Current.Id != null)
         {
-            RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
-        });
+            requestId = Activity.Current.Id;
+        }
+
+        return View(new ErrorViewModel { RequestId = requestId });
     }
 
     // Side for feilkoder (for eksempel 404). Brukes av

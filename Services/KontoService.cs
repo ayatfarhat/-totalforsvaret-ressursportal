@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.Data;
+using Nabohjelp.Models;
 
 namespace Nabohjelp.Services;
 
@@ -26,16 +27,27 @@ public class KontoService
     // Returnerer null hvis alt gikk bra, ellers en feilmelding.
     public async Task<string?> SlettBrukerOgData(IdentityUser bruker)
     {
-        var behov = await _db.Behovsliste
+        // Behovene og ressursene brukeren har registrert (b => ... betyr «for hvert behov b»).
+        List<Behov> behov = await _db.Behovsliste
             .Where(b => b.OpprettetAvBrukerId == bruker.Id)
             .ToListAsync();
 
-        var ressurser = await _db.Ressurser
+        List<Ressurs> ressurser = await _db.Ressurser
             .Where(r => r.OpprettetAvBrukerId == bruker.Id)
             .ToListAsync();
 
-        var behovIder = behov.Select(b => b.Id).ToList();
-        var ressursIder = ressurser.Select(r => r.Id).ToList();
+        // ID-ene, så vi kan sjekke tildelingene og slette bildene.
+        var behovIder = new List<int>();
+        foreach (Behov b in behov)
+        {
+            behovIder.Add(b.Id);
+        }
+
+        var ressursIder = new List<int>();
+        foreach (Ressurs r in ressurser)
+        {
+            ressursIder.Add(r.Id);
+        }
 
         // Tildelinger er historikk for kriseledelsen og skal ikke forsvinne automatisk.
         bool harTildelinger = await _db.Tildelinger.AnyAsync(t =>
@@ -49,6 +61,7 @@ public class KontoService
         }
 
         // Alt slettes i én transaksjon: enten blir alt slettet, eller ingenting.
+        // «await using» lukker transaksjonen automatisk til slutt i metoden.
         await using var transaksjon = await _db.Database.BeginTransactionAsync();
 
         try
@@ -58,7 +71,7 @@ public class KontoService
             await _db.SaveChangesAsync();
 
             // Identity sletter kontoen og rollekoblingene.
-            var resultat = await _userManager.DeleteAsync(bruker);
+            IdentityResult resultat = await _userManager.DeleteAsync(bruker);
             if (!resultat.Succeeded)
             {
                 await transaksjon.RollbackAsync();
@@ -81,29 +94,24 @@ public class KontoService
     // Lager en JSON-fil med alt vi har lagret om brukeren (GDPR: rett til innsyn og dataportabilitet).
     public async Task<byte[]> LagMineData(IdentityUser bruker)
     {
-        var roller = await _userManager.GetRolesAsync(bruker);
+        IList<string> roller = await _userManager.GetRolesAsync(bruker);
 
-        var behov = await _db.Behovsliste
+        List<Behov> behov = await _db.Behovsliste
             .Where(b => b.OpprettetAvBrukerId == bruker.Id)
             .OrderBy(b => b.OpprettetTid)
             .ToListAsync();
 
-        var ressurser = await _db.Ressurser
+        List<Ressurs> ressurser = await _db.Ressurser
             .Where(r => r.OpprettetAvBrukerId == bruker.Id)
             .OrderBy(r => r.OpprettetTid)
             .ToListAsync();
 
-        var data = new
+        // new { ... } lager et objekt uten egen klasse. Vi bruker det bare til å
+        // bestemme hvilke felt som kommer med i JSON-filen, og hva de heter.
+        var behovIFilen = new List<object>();
+        foreach (Behov b in behov)
         {
-            LastetNed = DateTime.UtcNow,
-            Konto = new
-            {
-                Epost = bruker.Email,
-                Roller = roller,
-                TofaErPa = bruker.TwoFactorEnabled
-                // Passordet lagres bare som en hash og tas derfor ikke med.
-            },
-            Behov = behov.Select(b => new
+            behovIFilen.Add(new
             {
                 b.Id,
                 Type = b.Type.ToString(),
@@ -117,8 +125,13 @@ public class KontoService
                 b.KontaktEpost,
                 b.OpprettetTid,
                 b.SistEndretTid
-            }),
-            Ressurser = ressurser.Select(r => new
+            });
+        }
+
+        var ressurserIFilen = new List<object>();
+        foreach (Ressurs r in ressurser)
+        {
+            ressurserIFilen.Add(new
             {
                 r.Id,
                 r.Type,
@@ -132,7 +145,21 @@ public class KontoService
                 r.Telefon,
                 r.Status,
                 r.OpprettetTid
-            })
+            });
+        }
+
+        var data = new
+        {
+            LastetNed = DateTime.UtcNow,
+            Konto = new
+            {
+                Epost = bruker.Email,
+                Roller = roller,
+                TofaErPa = bruker.TwoFactorEnabled
+                // Passordet lagres bare som en hash og tas derfor ikke med.
+            },
+            Behov = behovIFilen,
+            Ressurser = ressurserIFilen
         };
 
         var valg = new JsonSerializerOptions
