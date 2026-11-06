@@ -83,6 +83,7 @@ Når appen kjører i utviklingsmodus (`Development`, som Docker og `dotnet run` 
 | admin@test.no | Admin123! | Admin |
 | kommune@test.no | Kommune123! | Kommune |
 | privatperson@test.no | Privat123! | Frivillig |
+
 Tilgangsstyringen i appen bruker rollene `Admin`, `Kommune` og `Frivillig`.
 
 ### Docker-oppsett
@@ -445,7 +446,7 @@ KI har ikke blitt brukt som erstatning for testing av løsningen. Forslag til ko
 Følgende KI-verktøy har blitt brukt:
 
 - ChatGPT
-- Claude 
+- Claude
 
 ### Bruksområder
 
@@ -505,3 +506,53 @@ Under utviklingen ble forslagene:
 Et eksempel var overføring av koordinater fra kartet. Kartet viste riktige koordinater, men resultatsiden viste først `0`. Network-verktøyet i nettleseren ble brukt for å kontrollere at koordinatene faktisk ble sendt med POST. Deretter ble problemet isolert til behandlingen av dataene i ASP.NET Core, og implementasjonen ble justert og testet på nytt.
 
 I databasearbeidet fungerte ikke alle forslag med en gang. Flere løsninger måtte gjøres om, og feilmeldinger ble feilsøkt steg for steg før databasen fungerte i Docker.
+
+
+### Brukervennlighetstest
+Vi har gjennomført en innledende brukervennlighetstest av tidligere nabohjelp, nå BeredskapsPortalen for å undersøke hvor enkelt det er for en ny bruker å navigere applikasjonen og gjennomføre essensielle oppgaver.
+
+Målet med testen var å identifisere eventuelle utfordringer i brukergrensesnittet og samle konkrete tilbakemeldinger som kan brukes til videreutvikling.
+
+Dette er den første brukervennlighetstesten. Vi planlegger å teste systemet med flere ulike målgrupper etter hvert.
+
+Testperson var en mann i 30 årene, testtypen var moderat brukervennlighetstest og det samledet tidsbruket for alle oppgavene var ca. 7 minutter.
+
+Testpersonen fikk tre oppgaver som skulle gjennomføres i applikasjonen på en bærbar datamaskin. Oppgavene ble presentert uten en forhåndsforklaring.
+
+Oppgave 1: Registrere en ny brukerkonto - Resultat: Fullført.
+
+Oppgave 2: Strømmen er borte hjemme, og du trenger en aggregat. Registrer behovet. - Resultat: Fullført, men med utfordringer.
+
+Oppgave 3: Du har en tilhenger du ønsker å låne bort. Registrer ressursen. -
+Resultat: Fullført.
+
+Samlet resultat: Testperson fullførte alle tre oppgaver på omtrent 7 miutter.
+
+Vurdering av brukervennlighet:
+Testperson ble bedt om å vurdere applikasjonen på en skala fra 1 til 5. (1= svært vanskelig, 5= svært enkelt)
+
+Spørsmål:
+Hvor enkelt oppleves systemet å bruke?
+Svar: 4
+
+Hvor mye hjelp ville du hatt behov for?
+Svar: 1
+
+Generelle spørsmål etter testen:
+1. Hvilken oppgave var vanskeligst?
+
+Svar: Legge inn ressurs var mest krevende, prosessen krevde mer informasjon og hadde flere steg, testperson fikk også en feilmelding grunnet tiden som ble lagt inn var i "fortid".
+
+2. Var det noen knapper eller begreper du ikke forstod?
+
+Svar: Ikke underveis i testen, men når testperson skulle se over sine registreringer, syntes vedkommende at det var vanskelig å skille mellom "Mine Behov" og "Mine Ressurser" og mente at de burde skilles mer tydelig med farge.
+
+3. Var det tydelig når en registrering var fullført?
+
+Svar: Ja, det var tydelig og vedkommende fikk en kvittering med oppsummering.
+
+4. Hva ville du forbedret i applikasjonen?
+
+Svar: En egen knapp på forsiden der mine registreringer står tydelig, da vedkommende brukt litt tid på å finne frem til den i etterkant av testen. Testperson mente også at kommandobro burde ha en oversikt over alle tilgjengelige ressurser på lik linje som registrerte behov.
+
+Resultatet av denne brukervennlighetstesten er foreløpige og baser på kun én testperson. Flere tester med ulike målgrupper vil være nødvendig for å vurdere hvor representative funnene er.
