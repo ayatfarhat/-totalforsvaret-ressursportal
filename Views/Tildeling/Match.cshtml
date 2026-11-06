@@ -1,295 +1,150 @@
 @model Nabohjelp.ViewModels.TildelingViewModel
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Match ressurs";
+
+    // Koordinatene skrives med punktum, slik kartet (kart.js) forventer.
+    string bredde = Model.Latitude.ToString(CultureInfo.InvariantCulture);
+    string lengde = Model.Longitude.ToString(CultureInfo.InvariantCulture);
 }
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+@section Head {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+}
 
-<h1>Match ressurs</h1>
+<div class="side-topp">
+    <h1>Match ressurs</h1>
+    <p class="ingress">Velg en ressurs som passer til behovet.</p>
+</div>
+
+@if (TempData["Feil"] is string feil)
+{
+    <div class="alert alert-danger" role="alert">@feil</div>
+}
 
 <!-- Informasjon om behovet -->
 <div class="card mb-4">
     <div class="card-body">
-
-        <h2 class="h5">
-            Behov #@Model.BehovId
-        </h2>
-
-        <p>
-            <strong>Type:</strong>
-            @Nabohjelp.Models.Visningstekst.Type(Model.BehovType)
-        </p>
-
-        <p>
-            <strong>Prioritet:</strong>
-            @Nabohjelp.Models.Visningstekst.Prioritet(Model.Prioritet)
-        </p>
-
-        <p>
-            <strong>Status:</strong>
-            @Nabohjelp.Models.Visningstekst.Status(Model.Status)
-        </p>
-
+        <h2 class="h5">Behov #@Model.BehovId</h2>
+        <p><strong>Type:</strong> @Visningstekst.Type(Model.BehovType, Model.AnnetType)</p>
+        <p><strong>Prioritet:</strong> @Visningstekst.Prioritet(Model.Prioritet)</p>
+        <p><strong>Status:</strong> @Visningstekst.Status(Model.Status)</p>
         <p>
             <strong>Beskrivelse:</strong>
-            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(Model.Beskrivelse)
-                ? "Ingen beskrivelse"
-                : Model.Beskrivelse)</span>
+            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(Model.Beskrivelse) ? "Ingen beskrivelse" : Model.Beskrivelse)</span>
         </p>
-
     </div>
 </div>
 
-<!-- Kart over behovets registrerte posisjon -->
+<!-- Kart over behovets posisjon (tegnes av kart.js) -->
 <h2 class="h4">Posisjon</h2>
-
-<div id="map"
-     style="height: 400px; width: 100%;"
-     class="mb-3">
-</div>
-
-<p>
-    <strong>Breddegrad:</strong>
-    @Model.Latitude
-    <br />
-
-    <strong>Lengdegrad:</strong>
-    @Model.Longitude
-</p>
+<div class="kart-boks mb-2"
+     data-kartvisning
+     data-bredde="@bredde"
+     data-lengde="@lengde"
+     data-nal="hjelp"
+     role="img"
+     aria-label="Kart som viser hvor behovet er"></div>
+<p>@bredde, @lengde</p>
 
 <hr />
 
-<!-- Matchende ressurser -->
-<div class="mb-3">
-    <label for="avstandsfilter" class="form-label">
-        <strong>Filtrer etter avstand:</strong>
-    </label>
-
-    <select id="avstandsfilter"
-            class="form-select"
-            style="max-width: 250px;">
-        <option value="alle">Alle avstander</option>
-        <option value="10">Innenfor 10 km</option>
-        <option value="25">Innenfor 25 km</option>
-        <option value="50">Innenfor 50 km</option>
-        <option value="100">Innenfor 100 km</option>
-    </select>
-</div>
-
-<p id="ingenRessurserInnenforAvstand"
-   class="alert alert-warning"
-   hidden>
-    Ingen ressurser finnes innenfor valgt avstand.
-</p>
 <h2 class="h4">Matchende ressurser</h2>
+<p class="text-muted">Nærmeste ressurs vises først. Avstanden er luftlinje, ikke kjøreavstand.</p>
 
-<p class="text-muted">
-    Ressursene vises med avstand til behovet.
-    Avstanden er beregnet i luftlinje, ikke som kjøreavstand.
-</p>
-
-@if (TempData["Feil"] != null)
+@if (!Model.MatchendeRessurser.Any())
 {
-    <div class="alert alert-danger">
-        @TempData["Feil"]
-    </div>
-}
-
-@if (Nabohjelp.Models.BehovStatusflyt.ErAvsluttet(Model.Status))
-{
-    <!-- Avsluttede behov kan ikke få flere ressurser -->
-    <div class="alert alert-info">
-        Dette behovet er «@Nabohjelp.Models.Visningstekst.Status(Model.Status)»
-        og kan ikke få flere ressurser.
-    </div>
-}
-else if (!Model.MatchendeRessurser.Any())
-{
-    <div class="alert alert-warning">
-        Ingen tilgjengelige ressurser matcher dette behovet.
-    </div>
+    <div class="alert alert-warning">Ingen tilgjengelige ressurser matcher dette behovet.</div>
 }
 else
 {
-    @if (Model.Status == Nabohjelp.Models.BehovStatus.Assigned)
+    @if (Model.Status == BehovStatus.Assigned)
     {
         <div class="alert alert-info">
-            Dette behovet har allerede fått minst én ressurs.
-            Du kan tildele flere tilgjengelige ressurser ved behov.
+            Dette behovet har allerede fått minst én ressurs. Du kan tildele flere hvis det trengs.
         </div>
     }
 
-    <div class="row">
+    <!-- Filteret skjuler kort som ligger lenger unna enn valgt avstand (se skriptet nederst). -->
+    <div class="mb-3">
+        <label for="avstandsfilter" class="form-label"><strong>Filtrer etter avstand:</strong></label>
+        <select id="avstandsfilter" class="form-select" style="max-width: 250px;">
+            <option value="alle">Alle avstander</option>
+            <option value="10">Innenfor 10 km</option>
+            <option value="25">Innenfor 25 km</option>
+            <option value="50">Innenfor 50 km</option>
+            <option value="100">Innenfor 100 km</option>
+        </select>
+    </div>
 
+    <p id="ingenInnenforAvstand" class="alert alert-warning" hidden>
+        Ingen ressurser finnes innenfor valgt avstand.
+    </p>
+
+    <div class="row">
         @foreach (var ressurs in Model.MatchendeRessurser)
         {
-            <div class="col-12 col-md-6 mb-3 ressurs-kort"
-     data-avstand="@(ressurs.AvstandKm?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")">
+            // Tom avstand betyr at ressursen mangler posisjon.
+            string avstand = ressurs.AvstandKm?.ToString(CultureInfo.InvariantCulture) ?? "";
 
+            <div class="col-12 col-md-6 mb-3 ressurs-kort" data-avstand="@avstand">
                 <div class="card h-100">
                     <div class="card-body">
-
                         <h3 class="h5">
-    @ressurs.Type
+                            @ressurs.Type
+                            @if (ressurs.ErAnbefalt)
+                            {
+                                <span class="badge bg-success ms-2">Anbefalt</span>
+                            }
+                        </h3>
 
-    @if (ressurs.AvstandKm.HasValue &&
-         ressurs.RessursId == Model.MatchendeRessurser
-             .FirstOrDefault(r => r.AvstandKm.HasValue)?.RessursId)
-    {
-        <span class="badge bg-success ms-2">
-            Anbefalt
-        </span>
-    }
-</h3>
+                        <p><strong>Posisjon:</strong> @ressurs.Posisjon</p>
+                        <p><strong>Avstand:</strong> @(ressurs.AvstandKm.HasValue ? ressurs.AvstandKm.Value.ToString("F1") + " km" : "Avstand ukjent")</p>
+                        <p><strong>Status:</strong> @ressurs.Status</p>
+                        <p><strong>Navn:</strong> @(string.IsNullOrWhiteSpace(ressurs.Navn) ? "Ikke oppgitt" : ressurs.Navn)</p>
+                        <p><strong>Match:</strong> @ressurs.MatchBegrunnelse</p>
 
-                        <p>
-                            <strong>Posisjon:</strong>
-                            @ressurs.Posisjon
-                        </p>
-
-                        <p>
-                            <strong>Avstand:</strong>
-                            @(ressurs.AvstandKm.HasValue
-                                ? $"{ressurs.AvstandKm.Value:F1} km"
-                                : "Avstand ukjent")
-                        </p>
-
-                        <p>
-                            <strong>Status:</strong>
-                            @ressurs.Status
-                        </p>
-
-                        <p>
-                            <strong>Navn:</strong>
-                            @(string.IsNullOrWhiteSpace(ressurs.Navn)
-                                ? "Ikke oppgitt"
-                                : ressurs.Navn)
-                        </p>
-
-                        <p>
-                            <strong>Match:</strong>
-                            @ressurs.MatchBegrunnelse
-                        </p>
-
-                        <!-- Sender tildelingen til controlleren -->
-                        <form asp-controller="Tildeling"
-                              asp-action="Tildel"
-                              method="post">
-
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden"
-                                   name="behovId"
-                                   value="@Model.BehovId" />
-
-                            <input type="hidden"
-                                   name="ressursId"
-                                   value="@ressurs.RessursId" />
-
-                            <button type="submit"
-                                    class="btn btn-success">
-                                Tildel ressurs
-                            </button>
-
+                        <form asp-action="Tildel" method="post">
+                            <input type="hidden" name="behovId" value="@Model.BehovId" />
+                            <input type="hidden" name="ressursId" value="@ressurs.RessursId" />
+                            <button type="submit" class="btn btn-success">Tildel ressurs</button>
                         </form>
-
                     </div>
                 </div>
-
             </div>
         }
-
     </div>
 }
 
-<!-- Tilbake til behovslisten -->
-<a asp-controller="Tildeling"
-   asp-action="Index"
-   class="btn btn-outline-secondary mt-3">
-    Tilbake
-</a>
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">Tilbake</a>
 
-<!-- Leaflet JavaScript -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/kart.js" asp-append-version="true"></script>
+    <script>
+        // Avstandsfilter: viser bare kortene som ligger innenfor valgt avstand.
+        const filter = document.getElementById('avstandsfilter');
+        const kortene = document.querySelectorAll('.ressurs-kort');
+        const ingenTreff = document.getElementById('ingenInnenforAvstand');
 
-<script>
-    // Henter behovets koordinater fra ViewModel.
-    const latitude = @Model.Latitude.ToString(
-        System.Globalization.CultureInfo.InvariantCulture);
+        if (filter) {
+            filter.addEventListener('change', function () {
+                let antallSynlige = 0;
 
-    const longitude = @Model.Longitude.ToString(
-        System.Globalization.CultureInfo.InvariantCulture);
+                kortene.forEach(function (kort) {
+                    const avstand = kort.dataset.avstand;
+                    const vis = filter.value === 'alle' ||
+                        (avstand !== '' && Number(avstand) <= Number(filter.value));
 
-    const kartElement = document.getElementById('map');
+                    kort.hidden = !vis;
+                    if (vis) {
+                        antallSynlige++;
+                    }
+                });
 
-    // Kontrollerer at koordinatene er gyldige.
-    const gyldigPosisjon =
-        Number.isFinite(latitude) &&
-        Number.isFinite(longitude) &&
-        latitude >= -90 &&
-        latitude <= 90 &&
-        longitude >= -180 &&
-        longitude <= 180 &&
-        !(latitude === 0 && longitude === 0);
-
-    // Skjuler kartet dersom Leaflet mangler
-    // eller behovet ikke har gyldige koordinater.
-    if (typeof L === 'undefined' || !gyldigPosisjon) {
-
-        kartElement.hidden = true;
-
-    } else {
-
-        // Oppretter kartet rundt behovet.
-        const map = L.map('map').setView(
-            [latitude, longitude],
-            13
-        );
-
-        // Legger til OpenStreetMap.
-        L.tileLayer(
-            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }
-        ).addTo(map);
-
-        // Viser behovet med en markør.
-        L.marker([latitude, longitude])
-            .addTo(map)
-            .bindPopup('Behov #@Model.BehovId')
-            .openPopup();
-    }
-</script>
-<script>
-    const avstandsfilter = document.getElementById('avstandsfilter');
-    const ressursKort = document.querySelectorAll('.ressurs-kort');
-    const ingenRessurser = document.getElementById('ingenRessurserInnenforAvstand');
-
-    avstandsfilter.addEventListener('change', function () {
-        const valgtAvstand = this.value;
-        let antallSynlige = 0;
-
-        ressursKort.forEach(kort => {
-            const avstandTekst = kort.dataset.avstand;
-            const avstand = Number(avstandTekst);
-
-            const skalVises =
-                valgtAvstand === 'alle' ||
-                (avstandTekst !== '' &&
-                 avstand <= Number(valgtAvstand));
-
-            kort.hidden = !skalVises;
-
-            if (skalVises) {
-                antallSynlige++;
-            }
-        });
-
-        ingenRessurser.hidden = antallSynlige > 0;
-    });
-</script>
+                ingenTreff.hidden = antallSynlige > 0;
+            });
+        }
+    </script>
+}

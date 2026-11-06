@@ -148,15 +148,19 @@ function startKartvelger(element) {
 // ---------- 2. Visning av ett punkt ----------
 
 function startKartvisning(element) {
-    if (typeof L === 'undefined') {
+    var breddegrad = parseFloat(element.getAttribute('data-bredde'));
+    var lengdegrad = parseFloat(element.getAttribute('data-lengde'));
+    var farge = element.getAttribute('data-nal') || 'gi';   // 'gi' = grønn, 'hjelp' = rød
+
+    // Uten Leaflet, eller uten en ekte posisjon, viser vi ikke noe kart.
+    var gyldig = !isNaN(breddegrad) && !isNaN(lengdegrad) && !(breddegrad === 0 && lengdegrad === 0);
+    if (typeof L === 'undefined' || !gyldig) {
         element.hidden = true;
         return;
     }
-    var breddegrad = parseFloat(element.getAttribute('data-bredde'));
-    var lengdegrad = parseFloat(element.getAttribute('data-lengde'));
 
     var kart = lagKart(element, [breddegrad, lengdegrad], 14);
-    L.marker([breddegrad, lengdegrad], { icon: lagNal('gi') }).addTo(kart);
+    L.marker([breddegrad, lengdegrad], { icon: lagNal(farge) }).addTo(kart);
 }
 
 
@@ -230,10 +234,12 @@ function visOversikt(elementId, ressurser, behov) {
 
         var antallSynlige = 0;
 
+        // Alle punkter vises til brukeren har valgt både avstand og et utgangspunkt.
+        var filtrerer = radius !== null && valgtPosisjon !== null;
+
         alleMarkorer.forEach(function (punkt) {
-            var skalVises = radius === null ||
-                (valgtPosisjon !== null &&
-                 valgtPosisjon.distanceTo(punkt.posisjon) <= radius);
+            var skalVises = !filtrerer ||
+                valgtPosisjon.distanceTo(punkt.posisjon) <= radius;
 
             if (skalVises) {
                 if (!kart.hasLayer(punkt.markor)) {
@@ -263,17 +269,13 @@ function visOversikt(elementId, ressurser, behov) {
         }
 
         if (status) {
+            var punkter = antallSynlige === 1 ? ' punkt' : ' punkter';
             if (radius !== null && valgtPosisjon === null) {
-                status.textContent =
-                    'Klikk på kartet for å velge utgangspunkt.';
+                status.textContent = 'Klikk på kartet for å velge utgangspunkt. Viser alle ' + antallSynlige + punkter + ' så lenge.';
             } else if (radius === null) {
-                status.textContent =
-                    'Viser alle ' + antallSynlige + ' punkter.';
+                status.textContent = 'Viser alle ' + antallSynlige + punkter + '.';
             } else {
-                status.textContent =
-                    'Viser ' + antallSynlige +
-                    ' punkter innenfor ' +
-                    (radius / 1000) + ' km.';
+                status.textContent = 'Viser ' + antallSynlige + punkter + ' innenfor ' + (radius / 1000) + ' km.';
             }
         }
     }

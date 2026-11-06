@@ -17,6 +17,17 @@ public static class Visningstekst
         }
     }
 
+    // Som Type, men viser også det brukeren skrev når typen er «Annet»,
+    // for eksempel «Annet: vannlekkasje».
+    public static string Type(BehovType type, string? annetType)
+    {
+        if (type == BehovType.Annet && !string.IsNullOrWhiteSpace(annetType))
+        {
+            return "Annet: " + annetType.Trim();
+        }
+        return Type(type);
+    }
+
     public static string Prioritet(BehovPrioritet prioritet)
     {
         if (prioritet == BehovPrioritet.Urgent)
@@ -39,60 +50,26 @@ public static class Visningstekst
         }
     }
 
-    // CSS-klasse for merkelappen (se .merke-* i site.css)
-    public static string PrioritetFarge(BehovPrioritet prioritet)
-    {
-        if (prioritet == BehovPrioritet.Urgent)
-        {
-            return "merke-rod";
-        }
-        return "merke-bla";
-    }
-
+    // CSS-klassen for statusmerket (se .merke-* i site.css):
+    // gul = under arbeid, grønn = hjelp er på vei eller gitt, rød = avvist.
     public static string StatusFarge(BehovStatus status)
     {
         switch (status)
         {
-            case BehovStatus.New: return "";
-            case BehovStatus.UnderReview: return "merke-gul";
-            case BehovStatus.Assigned: return "merke-bla";
-            case BehovStatus.Rejected: return "merke-rod";
-            case BehovStatus.Withdrawn: return "";
-            default: return "merke-gronn";
+            case BehovStatus.UnderReview: return "merke-lys";
+            case BehovStatus.Assigned: return "merke-gi";
+            case BehovStatus.Resolved: return "merke-gi";
+            case BehovStatus.Rejected: return "merke-hjelp";
+            default: return "";
         }
     }
 
-    // Akutte behov får en rød strek i tabellen (se .rad-akutt i site.css)
-    public static string RadKlasse(BehovPrioritet prioritet)
-    {
-        if (prioritet == BehovPrioritet.Urgent)
-        {
-            return "rad-akutt";
-        }
-        return "";
-    }
-
-    // Lenken i menyen får klassen "aktiv" hvis brukeren er på den siden,
-    // slik at den blir markert med en blå strek.
-    public static string MenyKlasse(string aktivSide, string side)
-    {
-        if (aktivSide == side)
-        {
-            return "nav-link aktiv";
-        }
-        return "nav-link";
-    }
-
-    // Ressurser har status som tekst ("Tilgjengelig", "Tildelt" ...)
+    // Ressurser har status som tekst. «Tilgjengelig» vises grønt.
     public static string RessursStatusFarge(string status)
     {
         if (status == "Tilgjengelig")
         {
-            return "merke-gronn";
-        }
-        if (status == "Tildelt")
-        {
-            return "merke-bla";
+            return "merke-gi";
         }
         return "";
     }

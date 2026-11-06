@@ -1,5 +1,5 @@
 @model List<AdminBrukerViewModel>
-@using Nabohjelp.Controllers
+@using Nabohjelp.Data
 
 @{
     ViewData["Title"] = "Brukere";
@@ -63,16 +63,9 @@
                             <form asp-action="EndreRolle" method="post" class="d-flex gap-2">
                                 <input type="hidden" name="id" value="@bruker.Id" />
                                 <select name="rolle" class="form-select form-select-sm" aria-label="@T["Rolle for"] @bruker.Epost">
-                                    @foreach (var rolle in AdminController.Roller)
+                                    @foreach (var rolle in RoleInitializer.Roller)
                                     {
-                                        if (rolle == bruker.Rolle)
-                                        {
-                                            <option value="@rolle" selected>@rolle</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@rolle">@rolle</option>
-                                        }
+                                        <option value="@rolle" selected="@(rolle == bruker.Rolle)">@rolle</option>
                                     }
                                 </select>
                                 <button type="submit" class="btn btn-sm btn-outline-secondary">@T["Lagre"]</button>

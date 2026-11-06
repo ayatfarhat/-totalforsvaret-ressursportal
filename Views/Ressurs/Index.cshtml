@@ -112,7 +112,7 @@
                             <td data-label="Posisjon">@ressurs.Posisjon</td>
                             <td data-label="Tilgjengelig fra">@ressurs.VisTilgjengeligFra()</td>
                             <td data-label="Status">
-                                <span class="merke @(ressurs.Status == "Tilgjengelig" ? "merke-gi" : "")">@ressurs.Status</span>
+                                <span class="merke @Visningstekst.RessursStatusFarge(ressurs.Status)">@ressurs.Status</span>
                             </td>
                             <td data-label="Kontakt">
                                 @ressurs.Navn

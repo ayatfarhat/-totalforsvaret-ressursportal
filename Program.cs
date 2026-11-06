@@ -98,31 +98,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
 });
 
-// Ulike brukergrupper har ulike krav til innlogging.
 // Admin og Kommune har tilgang til Kommandobroen og personopplysninger om andre.
 // Når "KrevTofaForAnsatte" er true i appsettings, må de i tillegg ha logget inn med 2FA.
-// Identity legger til "amr" = "mfa" i innloggingen når brukeren har brukt 2FA.
-bool krevTofa = builder.Configuration.GetValue<bool>("Sikkerhet:KrevTofaForAnsatte");
+// Selve regelen står i Services/Tilgang.cs, så controllere og sider bruker den samme.
+Tilgang.KrevTofaForAnsatte = builder.Configuration.GetValue<bool>("Sikkerhet:KrevTofaForAnsatte");
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Ansatt", policy =>
-    {
-        policy.RequireRole("Admin", "Kommune");
-        if (krevTofa)
-        {
-            policy.RequireClaim("amr", "mfa");
-        }
-    });
-
-    options.AddPolicy("Admin", policy =>
-    {
-        policy.RequireRole("Admin");
-        if (krevTofa)
-        {
-            policy.RequireClaim("amr", "mfa");
-        }
-    });
+    options.AddPolicy("Ansatt", policy => policy.RequireAssertion(context => Tilgang.ErAnsatt(context.User)));
+    options.AddPolicy("Admin", policy => policy.RequireAssertion(context => Tilgang.ErAdmin(context.User)));
 });
 
 // Sletting og nedlasting av brukerdata (brukes av AccountController og AdminController).
@@ -145,8 +129,12 @@ using (var scope = app.Services.CreateScope())
     await RoleInitializer.InitializeAsync(roleManager);
 }
 
-// Lager testbrukere etter at databasen og rollene finnes
-await SeedData.LagTestbrukere(app);
+// Lager testbrukere (med kjente passord) etter at databasen og rollene finnes.
+// Bare under utvikling: Docker og «dotnet run» kjører som Development (se docker-compose.yml).
+if (app.Environment.IsDevelopment())
+{
+    await SeedData.LagTestbrukere(app);
+}
 
 // GDPR: fjerner kontaktopplysninger fra gamle, avsluttede behov.
 using (var scope = app.Services.CreateScope())

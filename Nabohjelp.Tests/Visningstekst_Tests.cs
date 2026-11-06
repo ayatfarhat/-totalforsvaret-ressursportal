@@ -1,4 +1,4 @@
-﻿using Nabohjelp.Models;
+using Nabohjelp.Models;
 using Xunit;
 
 // TRENGER Å FIKSE PÅ KOMMENTARER I DENNE FILEN!!!
@@ -75,5 +75,22 @@ public class VisningstekstTests
     {
         var tekst = Visningstekst.Prioritet(BehovPrioritet.Planned);
         Assert.Equal("Planlagt", tekst);
+    }
+
+    [Fact]
+    public void Type_Annet_ViserTekstenBrukerenSkrev()
+    {
+        Assert.Equal("Annet: vannlekkasje", Visningstekst.Type(BehovType.Annet, " vannlekkasje "));
+        Assert.Equal("Annet", Visningstekst.Type(BehovType.Annet, null));
+        Assert.Equal("Transport", Visningstekst.Type(BehovType.Transport, "ignoreres"));
+    }
+
+    [Fact]
+    public void StatusFarge_GirRiktigMerke()
+    {
+        Assert.Equal("merke-lys", Visningstekst.StatusFarge(BehovStatus.UnderReview));
+        Assert.Equal("merke-gi", Visningstekst.StatusFarge(BehovStatus.Resolved));
+        Assert.Equal("merke-hjelp", Visningstekst.StatusFarge(BehovStatus.Rejected));
+        Assert.Equal("", Visningstekst.StatusFarge(BehovStatus.New));
     }
 }

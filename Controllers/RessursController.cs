@@ -1,4 +1,5 @@
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,9 +35,7 @@ namespace Nabohjelp.Controllers
         {
             var sporring = _db.Ressurser.AsNoTracking();
 
-            bool erKoordinator =
-                User.IsInRole("Admin") ||
-                User.IsInRole("Kommune");
+            bool erKoordinator = Tilgang.ErAnsatt(User);
 
             if (!erKoordinator)
             {
@@ -163,9 +162,7 @@ namespace Nabohjelp.Controllers
                 !string.IsNullOrEmpty(brukerId) &&
                 ressurs.OpprettetAvBrukerId == brukerId;
 
-            bool erKoordinator =
-                User.IsInRole("Admin") ||
-                User.IsInRole("Kommune");
+            bool erKoordinator = Tilgang.ErAnsatt(User);
 
             if (!erEier && !erKoordinator)
             {
@@ -349,7 +346,7 @@ namespace Nabohjelp.Controllers
         // Eieren av ressursen og kriseledelsen (Kommune og Admin) kan endre og slette.
         private bool KanEndre(Ressurs ressurs)
         {
-            if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+            if (Tilgang.ErAnsatt(User))
             {
                 return true;
             }

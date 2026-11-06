@@ -2,28 +2,19 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Nabohjelp.Data;
 
+// Oppretter rollene når appen starter (se Program.cs), hvis de ikke finnes fra før.
 public static class RoleInitializer
 {
-    public static async Task InitializeAsync(
-        RoleManager<IdentityRole> roleManager)
-    {
-        // Rollene brukt i resten av appen (innlogging/registrering, Kommandobro,
-        // kartet og Behov). Erstatter de tidligere "PublicActor"/"Operator"-
-        // navnene som Behov-funksjonen og databaseoppsettet opprinnelig brukte.
-        string[] roles =
-        {
-            "Admin",
-            "Kommune",
-            "Frivillig"
-        };
+    // Alle rollene i systemet. Brukes også av AdminController når admin bytter rolle.
+    public static readonly string[] Roller = { "Admin", "Kommune", "Frivillig" };
 
-        foreach (string role in roles)
+    public static async Task InitializeAsync(RoleManager<IdentityRole> roleManager)
+    {
+        foreach (string rolle in Roller)
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            if (!await roleManager.RoleExistsAsync(rolle))
             {
-                await roleManager.CreateAsync(
-                    new IdentityRole(role)
-                );
+                await roleManager.CreateAsync(new IdentityRole(rolle));
             }
         }
     }

@@ -5,36 +5,32 @@
 @{
     ViewData["Title"] = "Mine behov";
 
-    bool erAdminEllerKommune =
-        User.IsInRole("Admin") || User.IsInRole("Kommune");
+    // Samme regel som i BehovController.MineBehov: ansatte ser alle behov.
+    bool erAnsatt = Tilgang.ErAnsatt(User);
 
     // Brukes til å vise «Trekk tilbake» bare på behov brukeren selv har meldt.
     string? brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
 @functions {
-    // Fargen på merket for statusen (se .merke-* i site.css).
-    string StatusFarge(BehovStatus status)
-    {
-        if (status == BehovStatus.Assigned || status == BehovStatus.Resolved) return "merke-gi";
-        if (status == BehovStatus.UnderReview) return "merke-lys";
-        if (status == BehovStatus.Rejected) return "merke-hjelp";
-        return "";
-    }
-
     // Forklaring under et behov som er avvist eller trukket tilbake.
-    string AvsluttetTekst(BehovStatus status)
+    // Admin og Kommune ser alle behov, så teksten må passe for dem også.
+    string AvsluttetTekst(BehovStatus status, bool erEgen)
     {
         if (status == BehovStatus.Rejected)
         {
             return "Kommunen har avvist behovet, for eksempel fordi det var meldt to ganger. Ta kontakt med kommunen hvis du fortsatt trenger hjelp.";
         }
-        return "Du trakk tilbake dette behovet. Meld et nytt behov hvis du trenger hjelp igjen.";
+        if (erEgen)
+        {
+            return "Du trakk tilbake dette behovet. Meld et nytt behov hvis du trenger hjelp igjen.";
+        }
+        return "Den som meldte behovet, trakk det tilbake.";
     }
 }
 
 <div class="side-topp">
-    <h1>@(erAdminEllerKommune ? "Alle registrerte behov" : "Mine behov")</h1>
+    <h1>@(erAnsatt ? "Alle registrerte behov" : "Mine behov")</h1>
     <p class="ingress">Her ser du hvor langt hvert behov har kommet: fra det er meldt, til kommunen vurderer det, sender en ressurs og markerer det som løst.</p>
 </div>
 
@@ -54,7 +50,7 @@
 else
 {
     <div class="liste-topp">
-        <h2>@(erAdminEllerKommune ? "Behov" : "Dine behov")</h2>
+        <h2>@(erAnsatt ? "Behov" : "Dine behov")</h2>
         <span class="antall">@Model.Count</span>
     </div>
 
@@ -66,9 +62,9 @@ else
 
             <article class="behov-kort @(behov.Prioritet == BehovPrioritet.Urgent ? "behov-akutt" : "")" aria-labelledby="behov-@behov.Id">
                 <div class="behov-topp">
-                    <h3 id="behov-@behov.Id">@Visningstekst.Type(behov.Type)</h3>
+                    <h3 id="behov-@behov.Id">@Visningstekst.Type(behov.Type, behov.AnnetType)</h3>
                     <span class="merke @(behov.Prioritet == BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Visningstekst.Prioritet(behov.Prioritet)</span>
-                    <span class="merke @StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
+                    <span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
                 </div>
 
                 <p class="behov-meta">Meldt @behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
@@ -92,16 +88,23 @@ else
                 }
                 else
                 {
-                    <p class="behov-avsluttet">@AvsluttetTekst(behov.Status)</p>
+                    <p class="behov-avsluttet">@AvsluttetTekst(behov.Status, erEgen)</p>
                 }
 
-                @if (erEgen && BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+                @if ((erEgen || erAnsatt) && BehovStatusflyt.KanRedigeres(behov.Status))
                 {
-                    <form asp-controller="Behov" asp-action="TrekkTilbake" asp-route-id="@behov.Id" method="post" class="behov-handling"
-                          onsubmit="return confirm('Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det.');">
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">Trekk tilbake</button>
-                        <small class="dempet">Trenger du ikke hjelpen lenger? Da kan kommunen bruke tiden på andre.</small>
-                    </form>
+                    <div class="behov-handling">
+                        <a asp-controller="Behov" asp-action="Rediger" asp-route-id="@behov.Id" class="btn btn-sm btn-outline-secondary"
+                           aria-label="Endre behovet @Visningstekst.Type(behov.Type, behov.AnnetType), meldt @behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")">Endre</a>
+                        @if (erEgen && BehovStatusflyt.KanTrekkesTilbake(behov.Status))
+                        {
+                            <form asp-controller="Behov" asp-action="TrekkTilbake" asp-route-id="@behov.Id" method="post"
+                                  onsubmit="return confirm('Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det.');">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Trekk tilbake</button>
+                            </form>
+                            <small class="dempet">Trenger du ikke hjelpen lenger? Da kan kommunen bruke tiden på andre.</small>
+                        }
+                    </div>
                 }
             </article>
         }
@@ -110,7 +113,7 @@ else
 
 <div class="skjema-bunn">
     <a asp-controller="Behov" asp-action="Opprett" class="btn btn-danger">Meld nytt behov</a>
-    @if (erAdminEllerKommune)
+    @if (erAnsatt)
     {
         <a asp-controller="Behov" asp-action="Ko" class="btn btn-outline-secondary">Til behovskøen</a>
     }

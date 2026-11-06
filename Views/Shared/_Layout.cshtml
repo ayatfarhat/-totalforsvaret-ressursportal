@@ -137,7 +137,12 @@
                         <li><a asp-controller="Behov" asp-action="Opprett">@T["Meld behov"]</a></li>
                         <li><a asp-controller="Ressurs" asp-action="Create">@T["Registrer en ressurs"]</a></li>
                         <li><a asp-controller="OnsketRessurs" asp-action="Index">@T["Ønskede ressurser"]</a></li>
-                        <li><a asp-controller="Kommandobro" asp-action="Index">@T["For nødetater og kriseledelse"]</a></li>
+                        @* Frivillige har ikke tilgang til Kommandobro, så lenken vises bare
+                           for dem som ikke er logget inn og for Admin/Kommune. *@
+                        @if (User.Identity?.IsAuthenticated != true || User.IsInRole("Admin") || User.IsInRole("Kommune"))
+                        {
+                            <li><a asp-controller="Kommandobro" asp-action="Index">@T["For nødetater og kriseledelse"]</a></li>
+                        }
                         <li><a asp-controller="Home" asp-action="Personvern">@T["Personvern"]</a></li>
                     </ul>
                 </div>
@@ -148,7 +153,6 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

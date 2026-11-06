@@ -2,25 +2,16 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Nabohjelp.Models;
-using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers;
 
 // Controller for forsiden
 public class HomeController : Controller
 {
-    // Viser forsiden
+    // Viser forsiden. All tekst står i Views/Home/Index.cshtml.
     public IActionResult Index()
     {
-        // Lager en ViewModel med data til nettsiden
-        var viewModel = new HomeViewModel
-        {
-            Title = "BeredskapsPortalen",
-            Message = "En plattform for deling av ressurser under kriser og nødsituasjoner."
-        };
-
-        // Sender ViewModel til View
-        return View(viewModel);
+        return View();
     }
 
     // Feilsiden. Brukes av UseExceptionHandler("/Home/Error") i Program.cs

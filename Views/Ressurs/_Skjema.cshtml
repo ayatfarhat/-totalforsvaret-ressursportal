@@ -14,11 +14,11 @@
         <fieldset class="felt-gruppe">
             <legend><span class="trinn" aria-hidden="true">1</span> Hva kan du stille med?</legend>
             <div class="type-valg" role="presentation">
-                @{ var typer = Nabohjelp.Models.RessursFormViewModel.Typer; }
+                @{ var typer = RessursFormViewModel.Typer; }
                 @for (var i = 0; i < typer.Count; i++)
                 {
                     <div class="type-valg-element">
-                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" data-forslag="@Nabohjelp.Models.RessursFormViewModel.HentForslag(typer[i])" />
+                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" data-forslag="@RessursFormViewModel.HentForslag(typer[i])" />
                         @* Usynlig mellomrom etter «/» lar lange navn brytes pent på mobil *@
                         <label for="type-@i">@typer[i].Replace("/", "/\u200B")</label>
                     </div>
@@ -120,7 +120,7 @@
                     <label asp-for="Telefon" class="form-label">Telefon <span class="valgfritt">(valgfritt)</span></label>
                     <div class="telefon-rad">
                         <select asp-for="Landskode" class="form-select" aria-label="Landskode">
-                            @foreach (var land in Nabohjelp.Models.RessursFormViewModel.Landskoder)
+                            @foreach (var land in RessursFormViewModel.Landskoder)
                             {
                                 <option value="@land.Kode">@land.Kode @land.Land</option>
                             }

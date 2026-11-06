@@ -74,6 +74,79 @@ public class BehovStatusflytTests
         Assert.False(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.Withdrawn));
     }
 
+    // ==========================
+    // ----- Endre et behov -----
+    // ==========================
+    [Fact]
+    public void Redigering_GarForTildeling()
+    {
+        Assert.True(BehovStatusflyt.KanRedigeres(BehovStatus.New));
+        Assert.True(BehovStatusflyt.KanRedigeres(BehovStatus.UnderReview));
+    }
+
+    [Fact]
+    public void Redigering_GarIkkeEtterTildelingEllerAvslutning()
+    {
+        Assert.False(BehovStatusflyt.KanRedigeres(BehovStatus.Assigned));
+        Assert.False(BehovStatusflyt.KanRedigeres(BehovStatus.Resolved));
+        Assert.False(BehovStatusflyt.KanRedigeres(BehovStatus.Rejected));
+        Assert.False(BehovStatusflyt.KanRedigeres(BehovStatus.Withdrawn));
+    }
+
+    [Fact]
+    public void FraBehov_FyllerSkjemaetOgDelerOppTelefonen()
+    {
+        var behov = new Behov
+        {
+            Id = 7,
+            Type = BehovType.Transport,
+            Prioritet = BehovPrioritet.Planned,
+            Latitude = 58.2,
+            Longitude = 8.1,
+            Beskrivelse = "To personer til Arendal",
+            KontaktTelefon = "+46 70 123 45 67",
+            KontaktEpost = "kari@example.no"
+        };
+
+        var skjema = BehovViewModel.FraBehov(behov);
+
+        Assert.Equal(7, skjema.Id);
+        Assert.Equal(BehovType.Transport, skjema.Type);
+        Assert.Equal("+46", skjema.Landskode);
+        Assert.Equal("70 123 45 67", skjema.KontaktTelefon);
+        Assert.Equal("+46 70 123 45 67", skjema.TelefonForLagring());
+    }
+
+    [Fact]
+    public void AnnetTekst_LagresBareNaarTypenErAnnet()
+    {
+        var skjema = new BehovViewModel { Type = BehovType.Annet, AnnetType = " steinras " };
+        Assert.Equal("steinras", skjema.AnnetTypeForLagring());
+
+        skjema.Type = BehovType.Transport;
+        Assert.Null(skjema.AnnetTypeForLagring());
+    }
+
+    [Fact]
+    public void LesTelefon_GammeltNummerUtenLandskode_BrukerNorge()
+    {
+        var skjema = new BehovViewModel();
+        skjema.LesTelefonFraLagring("41234567");
+
+        Assert.Equal("+47", skjema.Landskode);
+        Assert.Equal("41234567", skjema.KontaktTelefon);
+    }
+
+    [Fact]
+    public void LesTelefon_UkjentLandskode_ForsvinnerIkke()
+    {
+        var skjema = new BehovViewModel();
+        skjema.LesTelefonFraLagring("+999 1234");
+
+        // Nummeret står igjen i feltet (og gir valideringsfeil), så brukeren kan rette det.
+        Assert.Equal("+999 1234", skjema.KontaktTelefon);
+    }
+
     // ===============================
     // ----- Avsluttet og statuslinje -----
     // ===============================

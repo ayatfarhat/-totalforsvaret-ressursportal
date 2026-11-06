@@ -5,20 +5,6 @@
 }
 
 @functions {
-    // Norsk statustekst kommer fra Visningstekst, så alle sider bruker samme ord.
-    string StatusTekst(BehovStatus status)
-    {
-        return Visningstekst.Status(status);
-    }
-
-    // Fargen på statusmerket.
-    string StatusFarge(BehovStatus status)
-    {
-        if (status == BehovStatus.Assigned) return "merke-gi";
-        if (status == BehovStatus.UnderReview) return "merke-lys";
-        return "";
-    }
-
     // Teksten på knappen som flytter behovet til neste status.
     string KnappTekst(BehovStatus nesteStatus)
     {
@@ -77,7 +63,7 @@ else
                 @foreach (var b in Model)
                 {
                     <tr class="@(b.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
-                        <td data-label="Type"><strong>@Nabohjelp.Models.Visningstekst.Type(b.Type)</strong></td>
+                        <td data-label="Type"><strong>@Visningstekst.Type(b.Type, b.AnnetType)</strong></td>
                         <td data-label="Prioritet">
                             @if (b.Prioritet == BehovPrioritet.Urgent)
                             {
@@ -88,7 +74,7 @@ else
                                 <span class="merke">Planlagt</span>
                             }
                         </td>
-                        <td data-label="Status"><span class="merke @StatusFarge(b.Status)">@StatusTekst(b.Status)</span></td>
+                        <td data-label="Status"><span class="merke @Visningstekst.StatusFarge(b.Status)">@Visningstekst.Status(b.Status)</span></td>
                         <td data-label="Beskrivelse"><span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? "Ingen beskrivelse" : b.Beskrivelse)</span></td>
                         <td data-label="Registrert">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                         <td data-label="Kontakt">
@@ -112,6 +98,11 @@ else
                                         <input type="hidden" name="nyStatus" value="@neste" />
                                         <button type="submit" class="@KnappKlasse(neste)">@KnappTekst(neste)</button>
                                     </form>
+                                }
+                                @if (BehovStatusflyt.KanRedigeres(b.Status))
+                                {
+                                    <a asp-action="Rediger" asp-route-id="@b.Id" class="btn btn-sm btn-link ko-endre"
+                                       aria-label="Endre behovet @Visningstekst.Type(b.Type, b.AnnetType), registrert @b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")">Endre</a>
                                 }
                             </div>
                         </td>
