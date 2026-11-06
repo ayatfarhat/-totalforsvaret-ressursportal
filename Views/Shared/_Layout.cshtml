@@ -74,7 +74,7 @@
                             {
                                 <li class="nav-item">
                                     <a class="nav-link @(side == "Kommandobro" || side == "Tildeling" ? "active" : "")"
-                                       asp-area="" asp-controller="Kommandobro" asp-action="Index">Kommandobro</a>
+                                       asp-area="" asp-controller="Kommandobro" asp-action="Index">@T["Kommandobro"]</a>
                                 </li>
                             }
                             @if (User.IsInRole("Admin"))
@@ -151,6 +151,7 @@
         </div>
     </footer>
 
+    <partial name="_JsTekster" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -1,0 +1,104 @@
+@model List<Invitasjon>
+
+@{
+    ViewData["Title"] = T["Invitasjonslenker"];
+    DateTime naa = DateTime.UtcNow;
+}
+
+<div class="side-topp">
+    <h1>@T["Invitasjonslenker"]</h1>
+    <p class="ingress">@T["Send en lenke til en ny kommuneansatt eller administrator. Den som åpner lenken og er logget inn, får rollen. Lenken kan brukes én gang."]</p>
+</div>
+
+@* Den nye lenken vises bare her, rett etter at den er laget. *@
+@if (TempData["NyLenke"] is string nyLenke)
+{
+    <section class="ny-lenke" aria-labelledby="ny-lenke-tittel">
+        <h2 id="ny-lenke-tittel">@T["Ny lenke"]</h2>
+        <label for="nyLenke" class="form-label">@T["Kopier lenken og send den til personen, for eksempel på e-post."]</label>
+        <input id="nyLenke" class="form-control" value="@nyLenke" readonly />
+    </section>
+}
+
+<form asp-action="LagInvitasjon" method="post" class="invitasjon-skjema">
+    <h2>@T["Lag ny lenke"]</h2>
+    <div class="invitasjon-felt">
+        <div>
+            <label for="rolle" class="form-label">@T["Rolle"]</label>
+            <select id="rolle" name="rolle" class="form-select">
+                @foreach (string rolle in Invitasjonsregler.Roller)
+                {
+                    <option value="@rolle">@T[rolle]</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label for="dager" class="form-label">@T["Gjelder i"]</label>
+            <select id="dager" name="dager" class="form-select">
+                @foreach (int dager in Invitasjonsregler.GyldigDager)
+                {
+                    <option value="@dager" selected="@(dager == 3)">@(dager == 1 ? T["1 dag"] : T["{0} dager", dager])</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">@T["Lag lenke"]</button>
+    </div>
+</form>
+
+<div class="liste-topp">
+    <h2>@T["Alle lenker"]</h2>
+    <span class="antall">@Model.Count</span>
+</div>
+
+@if (!Model.Any())
+{
+    <p>@T["Ingen lenker er laget ennå."]</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table stablet align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">@T["Rolle"]</th>
+                    <th scope="col">@T["Laget"]</th>
+                    <th scope="col">@T["Gjelder til"]</th>
+                    <th scope="col">@T["Status"]</th>
+                    <th scope="col"><span class="visually-hidden">@T["Handling"]</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var invitasjon in Model)
+                {
+                    // Brukt, utløpt eller aktiv (samme regler som når lenken åpnes).
+                    string status = T["Aktiv"];
+                    if (invitasjon.BruktTid != null)
+                    {
+                        status = T["Brukt av {0}", invitasjon.BruktAvEpost ?? ""];
+                    }
+                    else if (invitasjon.UtloperTid <= naa)
+                    {
+                        status = T["Utløpt"];
+                    }
+
+                    <tr>
+                        <td data-label="@T["Rolle"]">@T[invitasjon.Rolle]</td>
+                        <td data-label="@T["Laget"]">@invitasjon.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td data-label="@T["Gjelder til"]">@invitasjon.UtloperTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td data-label="@T["Status"]">@status</td>
+                        <td>
+                            @if (invitasjon.BruktTid == null)
+                            {
+                                <form asp-action="SlettInvitasjon" asp-route-id="@invitasjon.Id" method="post">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">@T["Trekk tilbake"]</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">@T["Tilbake til brukere"]</a>

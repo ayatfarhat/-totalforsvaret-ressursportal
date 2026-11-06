@@ -79,7 +79,7 @@ public class BehovController : Controller
         }
 
         // Frivillige får bekreftelse og en knapp til Mine behov.
-        TempData["Melding"] = "Ditt behov er registrert.";
+        TempData["Melding"] = Oversetter.Tekst("Ditt behov er registrert.");
         TempData["VisMineBehovKnapp"] = true;
 
         return RedirectToAction("Index", "Home");
@@ -190,7 +190,7 @@ public class BehovController : Controller
 
         await _db.SaveChangesAsync();
 
-        TempData["Melding"] = "Endringene er lagret.";
+        TempData["Melding"] = Oversetter.Tekst("Endringene er lagret.");
         return TilbakeEtterRedigering();
     }
 
@@ -208,8 +208,9 @@ public class BehovController : Controller
 
     private static string IkkeRedigerbarMelding(BehovStatus status)
     {
-        return $"Behovet er «{Visningstekst.Status(status)}» og kan ikke endres lenger. " +
-               "Kontakt kommunen hvis noe har endret seg.";
+        return Oversetter.Tekst(
+            "Behovet er «{0}» og kan ikke endres lenger. Kontakt kommunen hvis noe har endret seg.",
+            Visningstekst.Status(status));
     }
 
     // Kriseledelsen går tilbake til køen, den som meldte behovet til «Mine behov».
@@ -246,9 +247,9 @@ public class BehovController : Controller
 
         if (!BehovStatusflyt.KanTrekkesTilbake(behov.Status))
         {
-            TempData["Feil"] =
-                $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke trekkes tilbake. " +
-                "Kontakt kommunen hvis du ikke trenger hjelpen lenger.";
+            TempData["Feil"] = Oversetter.Tekst(
+                "Behovet er «{0}» og kan ikke trekkes tilbake. Kontakt kommunen hvis du ikke trenger hjelpen lenger.",
+                Visningstekst.Status(behov.Status));
 
             return RedirectToAction(nameof(MineBehov));
         }
@@ -259,7 +260,7 @@ public class BehovController : Controller
 
         await _db.SaveChangesAsync();
 
-        TempData["Melding"] = "Behovet er trukket tilbake.";
+        TempData["Melding"] = Oversetter.Tekst("Behovet er trukket tilbake.");
         return RedirectToAction(nameof(MineBehov));
     }
 
@@ -314,9 +315,10 @@ public class BehovController : Controller
 
         if (!BehovStatusflyt.KanEndres(behov.Status, nyStatus))
         {
-            TempData["Feil"] =
-                $"Kan ikke endre status fra «{Visningstekst.Status(behov.Status)}» " +
-                $"til «{Visningstekst.Status(nyStatus)}».";
+            TempData["Feil"] = Oversetter.Tekst(
+                "Kan ikke endre status fra «{0}» til «{1}».",
+                Visningstekst.Status(behov.Status),
+                Visningstekst.Status(nyStatus));
 
             return RedirectToAction(nameof(Ko));
         }
@@ -354,15 +356,15 @@ public class BehovController : Controller
     // Bekreftelsen som vises øverst i køen etter en statusendring.
     private static string LagStatusMelding(BehovStatus nyStatus, int antallFrigjort)
     {
-        string melding = $"Behovet har nå status «{Visningstekst.Status(nyStatus)}».";
+        string melding = Oversetter.Tekst("Behovet har nå status «{0}».", Visningstekst.Status(nyStatus));
 
         if (antallFrigjort == 1)
         {
-            melding += " Ressursen som var tildelt, er tilgjengelig igjen.";
+            melding += " " + Oversetter.Tekst("Ressursen som var tildelt, er tilgjengelig igjen.");
         }
         else if (antallFrigjort > 1)
         {
-            melding += $" {antallFrigjort} ressurser som var tildelt, er tilgjengelige igjen.";
+            melding += " " + Oversetter.Tekst("{0} ressurser som var tildelt, er tilgjengelige igjen.", antallFrigjort);
         }
 
         return melding;

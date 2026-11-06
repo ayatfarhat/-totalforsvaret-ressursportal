@@ -15,23 +15,27 @@ CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Ikke fortell hvilken webserver vi bruker (svarhodet «Server: Kestrel»).
+builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
+
 // Språkvalg: tekstene på engelsk ligger i mappen Resources.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // Legger til MVC
 builder.Services.AddControllersWithViews(options =>
 {
-    // Norske feilmeldinger når en verdi ikke kan leses (for eksempel bokstaver i et tallfelt).
+    // Feilmeldinger når en verdi ikke kan leses (for eksempel bokstaver i et tallfelt),
+    // på norsk eller engelsk (se Services/Oversetter.cs).
     var meldinger = options.ModelBindingMessageProvider;
-    meldinger.SetAttemptedValueIsInvalidAccessor((verdi, felt) => $"«{verdi}» er ikke en gyldig verdi for {felt}.");
-    meldinger.SetValueIsInvalidAccessor(verdi => $"«{verdi}» er ikke en gyldig verdi.");
-    meldinger.SetValueMustBeANumberAccessor(felt => $"{felt} må være et tall.");
-    meldinger.SetValueMustNotBeNullAccessor(verdi => "Feltet må fylles ut.");
-    meldinger.SetMissingKeyOrValueAccessor(() => "Feltet må fylles ut.");
-    meldinger.SetUnknownValueIsInvalidAccessor(felt => $"Verdien er ikke gyldig for {felt}.");
-    meldinger.SetNonPropertyAttemptedValueIsInvalidAccessor(verdi => $"«{verdi}» er ikke en gyldig verdi.");
-    meldinger.SetNonPropertyUnknownValueIsInvalidAccessor(() => "Verdien er ikke gyldig.");
-    meldinger.SetNonPropertyValueMustBeANumberAccessor(() => "Feltet må være et tall.");
+    meldinger.SetAttemptedValueIsInvalidAccessor((verdi, felt) => Oversetter.Tekst("«{0}» er ikke en gyldig verdi for {1}.", verdi, felt));
+    meldinger.SetValueIsInvalidAccessor(verdi => Oversetter.Tekst("«{0}» er ikke en gyldig verdi.", verdi));
+    meldinger.SetValueMustBeANumberAccessor(felt => Oversetter.Tekst("{0} må være et tall.", felt));
+    meldinger.SetValueMustNotBeNullAccessor(verdi => Oversetter.Tekst("Feltet må fylles ut."));
+    meldinger.SetMissingKeyOrValueAccessor(() => Oversetter.Tekst("Feltet må fylles ut."));
+    meldinger.SetUnknownValueIsInvalidAccessor(felt => Oversetter.Tekst("Verdien er ikke gyldig for {0}.", felt));
+    meldinger.SetNonPropertyAttemptedValueIsInvalidAccessor(verdi => Oversetter.Tekst("«{0}» er ikke en gyldig verdi.", verdi));
+    meldinger.SetNonPropertyUnknownValueIsInvalidAccessor(() => Oversetter.Tekst("Verdien er ikke gyldig."));
+    meldinger.SetNonPropertyValueMustBeANumberAccessor(() => Oversetter.Tekst("Feltet må være et tall."));
 })
     // Gjør at sidene kan bruke @T["..."] for å vise tekst på valgt språk.
     .AddViewLocalization()
@@ -64,6 +68,14 @@ builder.Services
 
         // Én konto per e-postadresse.
         options.User.RequireUniqueEmail = true;
+
+        // Samme passordregler som i skjemaene (RegisterViewModel og EndrePassordViewModel):
+        // minst 8 tegn, med stor og liten bokstav, tall og spesialtegn.
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -112,7 +124,13 @@ builder.Services.AddAuthorization(options =>
 // Sletting og nedlasting av brukerdata (brukes av AccountController og AdminController).
 builder.Services.AddScoped<KontoService>();
 
+// Maks 10 forsøk per minutt på innlogging, registrering og invitasjoner (se Services/Sikkerhet.cs).
+Sikkerhet.LeggTilFartsgrense(builder.Services);
+
 var app = builder.Build();
+
+// Gjør at modeller og tjenester også kan vise tekst på valgt språk (se Services/Oversetter.cs).
+Oversetter.Localizer = app.Services.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<SharedResource>>();
 
 // Kjører migrasjoner automatisk
 // og oppretter rollene Admin, Kommune og Frivillig
@@ -151,6 +169,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Sikkerhetshoder på alle svar, blant annet mot clickjacking og skript fra fremmede
+// nettsider (se Services/Sikkerhet.cs).
+Sikkerhet.LeggTilSikkerhetshoder(app);
+
 // Viser en norsk side ved 404 og andre feilkoder i stedet for en tom side.
 app.UseStatusCodePagesWithReExecute("/Home/Status/{0}");
 
@@ -171,19 +193,15 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 
 app.UseRouting();
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 // Gjør at bilder som lastes opp mens appen kjører (wwwroot/uploads) kan vises.
 // MapStaticAssets under kjenner bare filene som fantes da appen ble bygget.
-app.UseStaticFiles(new StaticFileOptions
-{
-    // Forteller nettleseren at den ikke skal «gjette» filtypen på det som er lastet opp.
-    OnPrepareResponse = ctx =>
-    {
-        ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    }
-});
+// (Sikkerhetshodene over gjelder også for disse filene.)
+app.UseStaticFiles();
 
 app.MapStaticAssets();
 

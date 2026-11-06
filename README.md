@@ -155,6 +155,10 @@ Kode som brukes av flere controllere, ligger i `Services/`:
 | `KontoService.cs` | Sletter en konto med data, og lager «Last ned mine data» (GDPR). |
 | `Ressursbilder.cs` | Sjekker, lagrer, finner og sletter bildene til ressursene (`wwwroot/uploads/ressurser`). Brukes av RessursController og KontoService. |
 | `PersonvernOpprydding.cs` | Fjerner kontaktinfo fra gamle, avsluttede behov ved oppstart (GDPR). |
+| `Ressursmatching.cs` | Hvilke ressurstyper som passer til hvilke behov, og nærmeste ledige ressurs. Brukes av tildelingen og Kommandobro-kartet. |
+| `Invitasjonsregler.cs` | Lager og sjekker invitasjonslenker som gir rollen Kommune eller Admin. |
+| `Sikkerhet.cs` | Sikkerhetshoder og fartsgrense for innlogging (se «Sikkerhetstiltak» under). |
+| `Oversetter.cs` | Gir tekst på valgt språk i kode som ikke har `T["..."]`, for eksempel modeller og tjenester. |
 
 ### Filene på toppnivå
 
@@ -187,8 +191,11 @@ Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for
 1. Brukeren logger inn som `Admin` eller `Kommune` og åpner Kommandobro.
 2. `KommandobroController` henter ressurser med registrert posisjon og aktive behov (ikke løst, avvist eller trukket tilbake) fra databasen.
 3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
-4. Ressurser vises som grønne punkter, behov som røde punkter.
-5. Brukeren kan klikke på et punkt for å se hva det gjelder.
+4. Fargen viser hva punktet er: rødt er et akutt behov, gult et planlagt behov, grønt en ledig ressurs og grått en ressurs som er tildelt.
+5. Et klikk på et punkt åpner en boks med alt om det:
+   - **Behov:** type, prioritet, status, når det ble meldt, beskrivelse, telefon og e-post, og nærmeste ledige ressurs som passer, med avstand i luftlinje (`Services/Ressursmatching.cs`). Knappene «Finn ressurs» og «Endre» går rett til tildeling og redigering.
+   - **Ressurs:** type, status, kommune, adresse, tilgjengelig fra, beskrivelse, navn og telefon, med knappen «Endre».
+6. Avstandsfilteret over kartet viser bare punktene innenfor valgt avstand fra et sted man klikker på.
 
 Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.
 
@@ -228,6 +235,24 @@ Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.
 - **Felles for alle:** passord lagres som hash, kontoen låses i 5 minutter etter 5 feil passord, innloggings-cookien er `HttpOnly`, og alle skjemaer har `[ValidateAntiForgeryToken]`.
 - Rolleendringer og låsing gjelder innen ett minutt, fordi innloggingen sjekkes mot databasen hvert minutt (`SecurityStampValidatorOptions` i `Program.cs`).
 
+### Sikkerhetstiltak
+
+| Trussel | Tiltak | Hvor i koden |
+|---|---|---|
+| Gjetting av passord | Kontoen låses i 5 minutter etter 5 feil passord. Maks 10 forsøk per minutt per IP-adresse på innlogging, registrering og invitasjoner (feilkode 429) | `Program.cs`, `Services/Sikkerhet.cs` |
+| Svake passord | Minst 8 tegn med stor og liten bokstav, tall og spesialtegn, både i skjemaene og i Identity | `RegisterViewModel`, `Program.cs` |
+| Stjålet passord | 2FA med autentiseringsapp. Kan kreves for Kommune og Admin (`Sikkerhet:KrevTofaForAnsatte`) | `AccountController`, `Services/Tilgang.cs` |
+| Tilgang til andres data | Policyene `Ansatt` og `Admin`, og sjekk av eier før endring og sletting | Controllerne, `Services/Tilgang.cs` |
+| Falske skjemaer fra andre nettsider (CSRF) | `[ValidateAntiForgeryToken]` på alle POST-handlinger, og cookies med `SameSite` | Controllerne, `Program.cs` |
+| Skript i tekst brukere skriver (XSS) | Razor gjør om all tekst til trygg HTML. Content-Security-Policy bestemmer hvor skript kan hentes fra | Sidene, `Services/Sikkerhet.cs` |
+| Siden vist inne i en falsk nettside (clickjacking) | `X-Frame-Options: DENY` og `frame-ancestors 'none'` | `Services/Sikkerhet.cs` |
+| Farlige filer lastet opp som bilder | Sjekk av filtype, størrelse (maks 5 MB) og de første bytene i filen. Filnavnet lages av appen | `Services/Ressursbilder.cs` |
+| Videresending til falske nettsider etter innlogging | Bare adresser på egen side godtas (`Url.IsLocalUrl`) | `AccountController`, `HomeController` |
+| Misbruk av invitasjonslenker | Tilfeldig kode på 32 byte, lagret som SHA-256, kan brukes én gang og går ut | `Services/Invitasjonsregler.cs` |
+| Informasjon om serveren | Svarhodet `Server` er fjernet, og feilsider viser ingen detaljer i drift | `Program.cs` |
+
+Tiltakene testes av enhetstestene og systemtestene (se «Testing»).
+
 ### Administrasjon av brukerkontoer
 
 **Admin (`/Admin`, menyvalget «Brukere»):**
@@ -236,6 +261,7 @@ Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.
 - Låse og låse opp kontoer.
 - Nullstille 2FA for brukere som har mistet telefonen.
 - Slette brukere med tilhørende behov og ressurser.
+- Lage invitasjonslenker (`/Admin/Invitasjoner`) som gir rollen Kommune eller Admin. Lenken gjelder i 1, 3 eller 7 dager og kan brukes én gang. Den som åpner lenken, logger inn eller lager konto og trykker «Ta imot rollen». Databasen lagrer bare et fingeravtrykk (SHA-256) av koden, så lenken vises bare én gang for admin.
 
 Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den siste administratoren ikke kan låse seg selv ute.
 
@@ -263,7 +289,10 @@ Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når 
 - Knappene **NO / EN** i menyen bytter språk. Valget lagres i en cookie i ett år.
 - Tekstene skrives på norsk i koden som `@T["Logg inn"]`. Den engelske teksten ligger i `Resources/SharedResource.en.resx`. Mangler en oversettelse, vises den norske teksten.
 - Bare språket på teksten endres. Tall leses fortsatt med punktum, så koordinatene fra kartet virker på begge språk.
-- Oversatt: meny, bunntekst, forsiden, alle sider for innlogging og konto, brukeradministrasjon, personvern og menyen i Kommandobro. Andre sider oversettes på samme måte ved å legge teksten i `T["..."]` og i resx-filen.
+- Alle sider er oversatt, også meldinger fra controllerne, feilmeldinger i skjemaene og boksene på kartet. Kode som ikke har `T` (modeller og tjenester), bruker `Oversetter.Tekst("...")`.
+- Tekstene i JavaScript (`kart.js` og `ressurs-skjema.js`) hentes med `tekst('...')`. Listen over dem står i `Views/Shared/_JsTekster.cshtml`.
+- Enhetstesten `AlleTeksterISidene_HarEngelskOversettelse` feiler hvis en ny tekst mangler i resx-filen.
+- Nytt språk, for eksempel samisk: lag `Resources/SharedResource.se.resx` med de samme nøklene, legg `new CultureInfo("se")` til i `SupportedUICultures` i `Program.cs`, og legg til en knapp i `Views/Shared/_SprakValg.cshtml`.
 
 ### Testing av innlogging, roller, personvern og språk
 
@@ -288,13 +317,41 @@ Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatis
 
 ### Automatiske tester
 
-Enhetstestene ligger i `Nabohjelp.Tests/` (xUnit) og dekker blant annet statusflyten for behov, behovsskjemaet, telefon med landskode, ønskede ressurser, kommunelisten og ressurslisten per kommune. De kjøres med:
+Testene ligger i `Nabohjelp.Tests/` (xUnit) og er av to slag.
+
+**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs og at alle tekster har engelsk oversettelse.
 
 ```bash
-dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj
+dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtest&Kategori!=Fartsgrense"
 ```
 
-GitHub Actions (`.github/workflows/ci.yml`) bygger prosjektet og kjører testene ved hver pull request og push mot `main`.
+**Systemtester** (`Systemtester.cs`) tester hele appen med ekte database, slik en bruker møter den. De logger inn som testbrukerne og sender de samme forespørslene som nettleseren:
+
+| Test | Hva den sjekker |
+|---|---|
+| `Forsiden_HarSikkerhetshoder` | Sikkerhetshodene er med, og `Server`-hodet er fjernet |
+| `IkkeInnlogget_SendesTilInnlogging` | Beskyttede sider krever innlogging |
+| `Frivillig_FarIkkeTilgangTilKriseledelsensSider` | Frivillige kommer ikke inn på Kommandobro, behovskø, tildeling, utskrift og admin |
+| `Kommune_FarIkkeTilgangTilBrukeradministrasjon` | Kommune kommer inn på Kommandobro, men ikke på admin |
+| `Skjema_UtenAntiForgeryToken_Avvises` | Skjema uten token avvises (CSRF) |
+| `FeilPassord_GirFeilmeldingOgIngenInnlogging` | Feil passord gir feilmelding |
+| `Hovedflyt_MeldeBehov_RegistrereRessurs_Tildele` | Frivillig melder behov og registrerer aggregat, kommunen tildeler, og statusen blir «Tildelt» |
+| `Invitasjonslenke_GirRollenEnGang` | En ny bruker får rollen Kommune fra lenken, og lenken virker ikke en gang til |
+| `Sprakvalg_ViserSidenPaEngelsk` | Språkknappen gir engelsk side |
+| `MangeInnloggingsforsok_GirFeilkode429` | Fartsgrensen stopper forsøk nr. 11 innen ett minutt |
+
+Systemtestene trenger at appen kjører. Lokalt:
+
+```bash
+docker compose up -d --build
+SYSTEMTEST_URL=http://localhost:8080 dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori=Systemtest"
+```
+
+Uten `SYSTEMTEST_URL` hopper systemtestene over seg selv.
+
+GitHub Actions (`.github/workflows/ci.yml`) kjører enhetstestene ved hver pull request og push mot `main`. Jobben `systemtest` starter appen og MariaDB med Docker og kjører systemtestene, så den sjekker også at Docker-oppsettet og migrasjonene virker.
+
+**Brukertest** med ekte personer kan ikke automatiseres. Planen med oppgaver, resultatskjema og SUS-skjema ligger i gruppens dokument «Brukertest – BeredskapsPortalen».
 
 ### Manuelle tester av kartet
 

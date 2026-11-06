@@ -1,4 +1,5 @@
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.ViewModels;
 
@@ -31,7 +32,7 @@ public class RessursUtskriftViewModel
             return ValgtFylke;
         }
 
-        return "Hele landet";
+        return Oversetter.Tekst("Hele landet");
     }
 
     // Lager utskriften. En gyldig kommune går foran fylket.

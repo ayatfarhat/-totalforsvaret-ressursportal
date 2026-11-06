@@ -713,6 +713,8 @@ textarea.form-control { min-height: 7rem; }
     box-shadow: 0 2px 6px rgba(0, 0, 0, .35);
 }
 .nal-hjelp span { background: var(--hjelp); }
+.nal-planlagt span { background: var(--lys); }
+.nal-opptatt span { background: var(--kantlinje); }
 .nal span::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; background: #fff; border-radius: 50%; }
 
 .skjema-bunn { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; padding-top: .5rem; border-top: 1px solid var(--linje); margin-top: .25rem; padding-top: 1.5rem; }
@@ -931,6 +933,35 @@ body.kb {
 .kb-kartstatus { margin: .75rem 0 0; color: var(--kb-dempet); font-size: .95rem; }
 .kb .leaflet-popup-content { color: var(--natt); font-family: var(--font-tekst); }
 
+/* Fargeforklaringen over kartet bruker de samme fargene som prikkene. */
+.kb-tegnforklaring { flex-wrap: wrap; }
+.kb-tegnforklaring .farge-hjelp { background: var(--hjelp); }
+.kb-tegnforklaring .farge-planlagt { background: var(--lys); }
+.kb-tegnforklaring .farge-gi { background: var(--gi); }
+.kb-tegnforklaring .farge-opptatt { background: var(--kantlinje); }
+
+/* Boksen som vises når man trykker på en prikk (lages i kart.js). */
+.kart-info { min-width: 13rem; font-size: .9rem; }
+.kart-info-tittel { display: block; font-size: 1rem; margin-bottom: .4rem; }
+.kart-info dl { display: grid; grid-template-columns: auto 1fr; gap: .15rem .6rem; margin: 0 0 .6rem; }
+.kart-info dt { font-weight: 600; color: var(--dempet); }
+.kart-info dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.kart-info-knapper { display: flex; flex-wrap: wrap; gap: .4rem; }
+.kb .kart-info-knapper a,
+.kart-info-knapper a {
+    display: inline-block;
+    padding: .3rem .7rem;
+    border-radius: 6px;
+    background: var(--natt);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.kb .kart-info-knapper a:hover,
+.kart-info-knapper a:hover { background: var(--natt-lys); }
+.kb .kart-info-knapper a:focus-visible,
+.kart-info-knapper a:focus-visible { outline: 3px solid var(--lys); outline-offset: 2px; }
+
 /* Landskode + telefonnummer på samme rad */
 .telefon-rad { display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: .5rem; }
 .telefon-rad .form-select { min-width: 0; }
@@ -1070,6 +1101,14 @@ a[href^="tel:"] { white-space: nowrap; }
 
 /* Brukerlisten for admin */
 .admin-sok { max-width: 28rem; margin-bottom: 1.5rem; }
+
+/* Invitasjonslenker (Admin) */
+.ny-lenke { background: var(--gi-lys); border: 1px solid var(--gi); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.ny-lenke h2 { font-size: 1.15rem; margin: 0 0 .5rem; }
+.invitasjon-skjema { background: var(--flate); border: 1px solid var(--linje); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 2rem; }
+.invitasjon-skjema h2 { font-size: 1.15rem; margin: 0 0 1rem; }
+.invitasjon-felt { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+.invitasjon-felt > div { min-width: 10rem; }
 .admin-handling { display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
 .admin-handling form { margin: 0; }
 @media (max-width: 767.98px) { .admin-handling { justify-content: flex-start; } }

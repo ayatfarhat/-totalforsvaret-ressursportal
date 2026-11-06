@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.ViewModels;
 public class BehovViewModel : IValidatableObject
@@ -133,13 +134,13 @@ public class BehovViewModel : IValidatableObject
         switch (type)
         {
             case BehovType.Transport:
-                return "Hva skal fraktes (personer eller utstyr):\nFra hvor og til hvor:\nNår trengs det:";
+                return Oversetter.Linjer("Hva skal fraktes (personer eller utstyr):", "Fra hvor og til hvor:", "Når trengs det:");
             case BehovType.Drone:
-                return "Hva skal dronen brukes til (søk, oversikt, levering):\nOmråde:\nNår trengs det:";
+                return Oversetter.Linjer("Hva skal dronen brukes til (søk, oversikt, levering):", "Område:", "Når trengs det:");
             case BehovType.Generator:
-                return "Hva trenger strøm (for eksempel medisinsk utstyr):\nOmtrent hvor mye effekt (kW), hvis du vet:\nHvor lenge:";
+                return Oversetter.Linjer("Hva trenger strøm (for eksempel medisinsk utstyr):", "Omtrent hvor mye effekt (kW), hvis du vet:", "Hvor lenge:");
             case BehovType.Evakuering:
-                return "Antall personer:\nTrenger noen spesiell hjelp (rullestol, medisiner):\nHvor skal de:";
+                return Oversetter.Linjer("Antall personer:", "Trenger noen spesiell hjelp (rullestol, medisiner):", "Hvor skal de:");
             default:
                 return "";
         }

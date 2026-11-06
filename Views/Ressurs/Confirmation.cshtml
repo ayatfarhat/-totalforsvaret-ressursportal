@@ -1,14 +1,14 @@
 @model RessursFormViewModel
 
 @{
-    ViewData["Title"] = "Kvittering";
+    ViewData["Title"] = T["Kvittering"];
     bool harPosisjon = Model.Breddegrad != null && Model.Lengdegrad != null;
 }
 
 @section Head {
     @if (harPosisjon)
     {
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
     }
 }
 
@@ -18,26 +18,26 @@
             <circle cx="36" cy="36" r="34" fill="#E4F1EA" stroke="#1B6B4B" stroke-width="3" />
             <path d="M21 37l10 10 20-22" fill="none" stroke="#1B6B4B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <h1>Takk, ressursen er registrert</h1>
-        <p>Den er nå synlig for kriseledelsen og kan kobles til et behov.</p>
+        <h1>@T["Takk, ressursen er registrert"]</h1>
+        <p>@T["Den er nå synlig for kriseledelsen og kan kobles til et behov."]</p>
     </div>
 
     <section class="sammendrag-boks" aria-labelledby="sammendrag-tittel">
-        <h2 id="sammendrag-tittel">Sammendrag</h2>
+        <h2 id="sammendrag-tittel">@T["Sammendrag"]</h2>
         <dl class="sammendrag">
-            <div><dt>Type</dt><dd>@Model.Type</dd></div>
-            <div><dt>Kommune</dt><dd>@Model.VisKommune()</dd></div>
-            <div><dt>Posisjon</dt><dd>@Model.Posisjon</dd></div>
-            <div><dt>Koordinater</dt><dd>@Model.VisKoordinater()</dd></div>
-            <div><dt>Tilgjengelig fra</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
-            <div><dt>Beskrivelse</dt><dd>@Model.VisBeskrivelse()</dd></div>
+            <div><dt>@T["Type"]</dt><dd>@T[Model.Type]</dd></div>
+            <div><dt>@T["Kommune"]</dt><dd>@Model.VisKommune()</dd></div>
+            <div><dt>@T["Posisjon"]</dt><dd>@Model.Posisjon</dd></div>
+            <div><dt>@T["Koordinater"]</dt><dd>@Model.VisKoordinater()</dd></div>
+            <div><dt>@T["Tilgjengelig fra"]</dt><dd>@Model.VisTilgjengeligFra()</dd></div>
+            <div><dt>@T["Beskrivelse"]</dt><dd>@Model.VisBeskrivelse()</dd></div>
             @if (!string.IsNullOrEmpty(Model.BildeSti))
             {
-                <div><dt>Bilde</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="Bilde av ressursen: @Model.Type" /></dd></div>
+                <div><dt>@T["Bilde"]</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Bilde av ressursen: {0}", T[Model.Type]]" /></dd></div>
             }
-            <div><dt>Navn</dt><dd>@Model.VisNavn()</dd></div>
-            <div><dt>Telefon</dt><dd>@Model.VisTelefon()</dd></div>
-            <div><dt>Status</dt><dd><span class="merke merke-gi">@Model.Status</span></dd></div>
+            <div><dt>@T["Navn"]</dt><dd>@Model.VisNavn()</dd></div>
+            <div><dt>@T["Telefon"]</dt><dd>@Model.VisTelefon()</dd></div>
+            <div><dt>@T["Status"]</dt><dd><span class="merke merke-gi">@T[Model.Status]</span></dd></div>
         </dl>
     </section>
 
@@ -49,20 +49,20 @@
              data-lengde="@Model.Lengdegrad!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
              data-nal="gi"
              role="img"
-             aria-label="Kart som viser posisjonen du valgte"></div>
+             aria-label="@T["Kart som viser posisjonen du valgte"]"></div>
     }
 
     <div class="kvittering-handling">
-        <a asp-action="Create" class="btn btn-success">Registrer en til</a>
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Endre</a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Se alle ressurser</a>
+        <a asp-action="Create" class="btn btn-success">@T["Registrer en til"]</a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-secondary">@T["Endre"]</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">@T["Se alle ressurser"]</a>
     </div>
 </div>
 
 @section Scripts {
     @if (harPosisjon)
     {
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
         <script src="~/js/kart.js" asp-append-version="true"></script>
     }
 }

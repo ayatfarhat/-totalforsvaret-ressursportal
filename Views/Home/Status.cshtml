@@ -1,7 +1,23 @@
 @{
     int kode = ViewBag.Kode ?? 0;
-    bool ikkeFunnet = kode == 404;
-    ViewData["Title"] = ikkeFunnet ? "Siden finnes ikke" : "Noe gikk galt";
+
+    // Overskrift og forklaring ut fra feilkoden.
+    string tittel = T["Noe gikk galt"];
+    string tekst = T["Forespørselen kunne ikke fullføres (feilkode {0}). Gå tilbake og prøv igjen.", kode];
+
+    if (kode == 404)
+    {
+        tittel = T["Siden finnes ikke"];
+        tekst = T["Vi fant ikke siden du lette etter. Den kan være flyttet, eller lenken kan være feil."];
+    }
+    else if (kode == 429)
+    {
+        // Gis av fartsgrensen for innlogging i Program.cs (AddRateLimiter).
+        tittel = T["For mange forsøk"];
+        tekst = T["Du har prøvd for mange ganger på kort tid. Vent ett minutt og prøv igjen."];
+    }
+
+    ViewData["Title"] = tittel;
 }
 
 <div class="melding-side">
@@ -10,15 +26,7 @@
         <path d="M36 20v20" stroke="#A52E10" stroke-width="6" stroke-linecap="round" />
         <circle cx="36" cy="51" r="3.6" fill="#A52E10" />
     </svg>
-    @if (ikkeFunnet)
-    {
-        <h1>Siden finnes ikke</h1>
-        <p>Vi fant ikke siden du lette etter. Den kan være flyttet, eller lenken kan være feil.</p>
-    }
-    else
-    {
-        <h1>Noe gikk galt</h1>
-        <p>Forespørselen kunne ikke fullføres (feilkode @kode). Gå tilbake og prøv igjen.</p>
-    }
-    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
+    <h1>@tittel</h1>
+    <p>@tekst</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@T["Til forsiden"]</a>
 </div>

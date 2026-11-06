@@ -1,7 +1,10 @@
+using Nabohjelp.Services;
+
 namespace Nabohjelp.Models;
 
-// Gjør om verdiene i enum-ene (som er på engelsk i koden) til norsk
-// tekst som kan vises til brukeren, og velger farge på merkelappen.
+// Gjør om verdiene i enum-ene (som er på engelsk i koden) til tekst som kan
+// vises til brukeren, og velger farge på merkelappen. Teksten skrives på norsk her
+// og oversettes til engelsk av Oversetter når brukeren har valgt engelsk.
 // Samles her, slik at alle sider viser samme ord og samme farger.
 public static class Visningstekst
 {
@@ -9,11 +12,11 @@ public static class Visningstekst
     {
         switch (type)
         {
-            case BehovType.Transport: return "Transport";
-            case BehovType.Drone: return "Drone";
-            case BehovType.Generator: return "Aggregat";
-            case BehovType.Evakuering: return "Evakuering";
-            default: return "Annet";
+            case BehovType.Transport: return Oversetter.Tekst("Transport");
+            case BehovType.Drone: return Oversetter.Tekst("Drone");
+            case BehovType.Generator: return Oversetter.Tekst("Aggregat");
+            case BehovType.Evakuering: return Oversetter.Tekst("Evakuering");
+            default: return Oversetter.Tekst("Annet");
         }
     }
 
@@ -23,7 +26,7 @@ public static class Visningstekst
     {
         if (type == BehovType.Annet && !string.IsNullOrWhiteSpace(annetType))
         {
-            return "Annet: " + annetType.Trim();
+            return Oversetter.Tekst("Annet") + ": " + annetType.Trim();
         }
         return Type(type);
     }
@@ -32,21 +35,21 @@ public static class Visningstekst
     {
         if (prioritet == BehovPrioritet.Urgent)
         {
-            return "Akutt";
+            return Oversetter.Tekst("Akutt");
         }
-        return "Planlagt";
+        return Oversetter.Tekst("Planlagt");
     }
 
     public static string Status(BehovStatus status)
     {
         switch (status)
         {
-            case BehovStatus.New: return "Ny";
-            case BehovStatus.UnderReview: return "Under vurdering";
-            case BehovStatus.Assigned: return "Tildelt";
-            case BehovStatus.Rejected: return "Avvist";
-            case BehovStatus.Withdrawn: return "Trukket tilbake";
-            default: return "Løst";
+            case BehovStatus.New: return Oversetter.Tekst("Ny");
+            case BehovStatus.UnderReview: return Oversetter.Tekst("Under vurdering");
+            case BehovStatus.Assigned: return Oversetter.Tekst("Tildelt");
+            case BehovStatus.Rejected: return Oversetter.Tekst("Avvist");
+            case BehovStatus.Withdrawn: return Oversetter.Tekst("Trukket tilbake");
+            default: return Oversetter.Tekst("Løst");
         }
     }
 

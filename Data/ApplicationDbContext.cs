@@ -22,6 +22,9 @@ public class ApplicationDbContext : IdentityDbContext
     // Ressurser som kommunen eller kriseledelsen ønsker at innbyggere registrerer.
     public DbSet<OnsketRessurs> OnskedeRessurser { get; set; } = null!;
 
+    // Invitasjonslenker som gir en rolle (se Services/Invitasjonsregler.cs).
+    public DbSet<Invitasjon> Invitasjoner { get; set; } = null!;
+
     // Tildeling kobler et behov, en ressurs og brukeren som tildelte.
     // Restrict betyr at et behov, en ressurs eller en bruker ikke kan slettes
     // så lenge en tildeling viser til dem. Da beholdes historikken.
@@ -47,5 +50,10 @@ public class ApplicationDbContext : IdentityDbContext
             .WithMany()
             .HasForeignKey(t => t.TildeltAvBrukerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Hver kode finnes bare én gang, og databasen kan slå den opp raskt.
+        builder.Entity<Invitasjon>()
+            .HasIndex(i => i.KodeHash)
+            .IsUnique();
     }
 }

@@ -233,7 +233,7 @@ namespace Nabohjelp.Controllers
                 Ressursbilder.Slett(_miljo.WebRootPath, ressurs.Id);
             }
 
-            TempData["Melding"] = "Endringene er lagret.";
+            TempData["Melding"] = Oversetter.Tekst("Endringene er lagret.");
             return RedirectToAction(nameof(Index));
         }
 
@@ -296,7 +296,7 @@ namespace Nabohjelp.Controllers
 
             Ressursbilder.Slett(_miljo.WebRootPath, id);
 
-            TempData["Melding"] = "Ressursen er slettet.";
+            TempData["Melding"] = Oversetter.Tekst("Ressursen er slettet.");
             return RedirectToAction(nameof(Index));
         }
 
@@ -340,8 +340,7 @@ namespace Nabohjelp.Controllers
         {
             if (ressurs.Status == "Tildelt")
             {
-                return "Ressursen er tildelt et behov akkurat nå og kan ikke slettes. " +
-                       "Kontakt kommunen hvis den ikke lenger er tilgjengelig.";
+                return Oversetter.Tekst("Ressursen er tildelt et behov akkurat nå og kan ikke slettes. Kontakt kommunen hvis den ikke lenger er tilgjengelig.");
             }
 
             // Tildelinger viser til ressursen (DeleteBehavior.Restrict i ApplicationDbContext),
@@ -351,8 +350,7 @@ namespace Nabohjelp.Controllers
 
             if (harVaertTildelt)
             {
-                return "Ressursen har vært brukt i en tildeling og må bli liggende i historikken. " +
-                       "Du kan fortsatt endre den.";
+                return Oversetter.Tekst("Ressursen har vært brukt i en tildeling og må bli liggende i historikken. Du kan fortsatt endre den.");
             }
 
             return null;
@@ -364,19 +362,19 @@ namespace Nabohjelp.Controllers
             // Typen må være en av de faste typene (ikke bare «en tekst»).
             if (!RessursFormViewModel.Typer.Contains(model.Type))
             {
-                ModelState.AddModelError("Type", "Du må velge type ressurs.");
+                ModelState.AddModelError("Type", Oversetter.Tekst("Du må velge type ressurs."));
             }
 
             // Kommunen må finnes i listen over norske kommuner.
             if (!string.IsNullOrEmpty(model.Kommunenummer) && !Kommuner.Finnes(model.Kommunenummer))
             {
-                ModelState.AddModelError("Kommunenummer", "Velg en kommune fra listen.");
+                ModelState.AddModelError("Kommunenummer", Oversetter.Tekst("Velg en kommune fra listen."));
             }
 
             // Landskoden må være en av de som finnes i listen.
             if (!RessursFormViewModel.Landskoder.Any(l => l.Kode == model.Landskode))
             {
-                ModelState.AddModelError("Landskode", "Velg en landskode fra listen.");
+                ModelState.AddModelError("Landskode", Oversetter.Tekst("Velg en landskode fra listen."));
             }
 
             // Sjekker bildet (valgfritt) før noe lagres.
@@ -385,7 +383,7 @@ namespace Nabohjelp.Controllers
                 string? bildeFeil = Ressursbilder.Sjekk(bildefil);
                 if (bildeFeil != null)
                 {
-                    ModelState.AddModelError("Bilde", bildeFeil);
+                    ModelState.AddModelError("Bilde", Oversetter.Tekst(bildeFeil));
                 }
             }
 
@@ -394,7 +392,7 @@ namespace Nabohjelp.Controllers
             {
                 ModelState.AddModelError(
                     "TilgjengeligFra",
-                    "Tidspunkt kan ikke ligge i fortiden.");
+                    Oversetter.Tekst("Tidspunkt kan ikke ligge i fortiden."));
             }
         }
 

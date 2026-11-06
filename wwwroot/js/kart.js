@@ -8,6 +8,9 @@
 //
 // Hvis Leaflet ikke ble lastet (for eksempel uten internett), skjules kartet,
 // og skjemaet kan fylles ut for hånd.
+//
+// Tekstene som vises, hentes med tekst('...'), som gir dem på valgt språk
+// (se Views/Shared/_JsTekster.cshtml).
 
 var NORGE = [64.5, 11.0];
 
@@ -50,7 +53,7 @@ function startKartvelger(element) {
     if (typeof L === 'undefined') {
         element.hidden = true;
         knapp.hidden = true;
-        statusTekst.textContent = 'Kartet kunne ikke lastes. Fyll ut feltene i stedet.';
+        statusTekst.textContent = tekst('Kartet kunne ikke lastes. Fyll ut feltene i stedet.');
         return;
     }
 
@@ -73,11 +76,11 @@ function startKartvelger(element) {
 
         breddeFelt.value = breddegrad.toFixed(6);
         lengdeFelt.value = lengdegrad.toFixed(6);
-        statusTekst.textContent = 'Valgt posisjon: ' + breddegrad.toFixed(5) + ', ' + lengdegrad.toFixed(5);
+        statusTekst.textContent = tekst('Valgt posisjon: {0}, {1}', breddegrad.toFixed(5), lengdegrad.toFixed(5));
 
         // Hvis adressen er tom, fyller vi den med koordinatene.
         if (adresseFelt !== null && adresseFelt.value === '') {
-            adresseFelt.value = 'Valgt på kart (' + breddegrad.toFixed(5) + ', ' + lengdegrad.toFixed(5) + ')';
+            adresseFelt.value = tekst('Valgt på kart ({0}, {1})', breddegrad.toFixed(5), lengdegrad.toFixed(5));
         }
     }
 
@@ -120,25 +123,25 @@ function startKartvelger(element) {
     }
     flyttNalFraFeltene();
     if (nal === null) {
-        statusTekst.textContent = 'Ingen posisjon valgt ennå.';
+        statusTekst.textContent = tekst('Ingen posisjon valgt ennå.');
     }
 
     // Knappen «Bruk min posisjon»
     knapp.addEventListener('click', function () {
         // Noen nettlesere (eller sider uten https) har ikke posisjonstjenesten.
         if (!navigator.geolocation) {
-            statusTekst.textContent = 'Nettleseren din støtter ikke posisjon. Trykk på kartet i stedet.';
+            statusTekst.textContent = tekst('Nettleseren din støtter ikke posisjon. Trykk på kartet i stedet.');
             return;
         }
 
-        statusTekst.textContent = 'Henter posisjonen din ...';
+        statusTekst.textContent = tekst('Henter posisjonen din ...');
         navigator.geolocation.getCurrentPosition(
             function (posisjon) {
                 velgSted(posisjon.coords.latitude, posisjon.coords.longitude);
                 kart.setView([posisjon.coords.latitude, posisjon.coords.longitude], 15);
             },
             function () {
-                statusTekst.textContent = 'Fikk ikke tilgang til posisjonen din. Trykk på kartet i stedet.';
+                statusTekst.textContent = tekst('Fikk ikke tilgang til posisjonen din. Trykk på kartet i stedet.');
             }
         );
     });
@@ -166,7 +169,8 @@ function startKartvisning(element) {
 
 // ---------- 3. Oversikt for Kommandobro ----------
 
-// ressurser og behov er lister med punkter: { Tittel, Breddegrad, Lengdegrad }
+// ressurser og behov er lister med punkter fra KommandobroController:
+// { Tittel, Breddegrad, Lengdegrad, Farge, Linjer: [{ Etikett, Verdi }], Lenker: [{ Tekst, Adresse }] }
 function visOversikt(elementId, ressurser, behov) {
     var element = document.getElementById(elementId);
 
@@ -185,7 +189,45 @@ function visOversikt(elementId, ressurser, behov) {
     var startMarkor = null;
     var radiusSirkel = null;
 
-    function leggTilNaler(liste, farge, prefiks) {
+    // Lager boksen som vises når man trykker på en prikk.
+    // Vi bruker textContent (ikke innerHTML), så tekst brukerne har skrevet
+    // aldri kan bli tolket som HTML eller skript.
+    function lagInfoboks(punkt) {
+        var boks = document.createElement('div');
+        boks.className = 'kart-info';
+
+        var tittel = document.createElement('strong');
+        tittel.className = 'kart-info-tittel';
+        tittel.textContent = punkt.Tittel;
+        boks.appendChild(tittel);
+
+        var liste = document.createElement('dl');
+        punkt.Linjer.forEach(function (linje) {
+            var etikett = document.createElement('dt');
+            etikett.textContent = linje.Etikett;
+            var verdi = document.createElement('dd');
+            verdi.textContent = linje.Verdi;
+            liste.appendChild(etikett);
+            liste.appendChild(verdi);
+        });
+        boks.appendChild(liste);
+
+        if (punkt.Lenker.length > 0) {
+            var knapper = document.createElement('div');
+            knapper.className = 'kart-info-knapper';
+            punkt.Lenker.forEach(function (lenke) {
+                var a = document.createElement('a');
+                a.href = lenke.Adresse;
+                a.textContent = lenke.Tekst;
+                knapper.appendChild(a);
+            });
+            boks.appendChild(knapper);
+        }
+
+        return boks;
+    }
+
+    function leggTilNaler(liste) {
         liste.forEach(function (punkt) {
             var breddegrad = Number(punkt.Breddegrad);
             var lengdegrad = Number(punkt.Lengdegrad);
@@ -199,13 +241,15 @@ function visOversikt(elementId, ressurser, behov) {
 
             var posisjon = L.latLng(breddegrad, lengdegrad);
 
+            // title vises når man holder musen over prikken, og leses opp av skjermlesere.
             var nal = L.marker(posisjon, {
-                icon: lagNal(farge)
+                icon: lagNal(punkt.Farge),
+                title: punkt.Tittel,
+                alt: punkt.Tittel
             }).addTo(kart);
 
-            var boks = document.createElement('div');
-            boks.textContent = prefiks + ' ' + punkt.Tittel;
-            nal.bindPopup(boks);
+            // Plass til venstre, så boksen ikke havner under knappene for zoom (+/−).
+            nal.bindPopup(lagInfoboks(punkt), { maxWidth: 300, autoPanPaddingTopLeft: [60, 20] });
 
             alleMarkorer.push({
                 markor: nal,
@@ -216,8 +260,8 @@ function visOversikt(elementId, ressurser, behov) {
         });
     }
 
-    leggTilNaler(ressurser, 'gi', 'Ressurs:');
-    leggTilNaler(behov, 'hjelp', 'Behov:');
+    leggTilNaler(ressurser);
+    leggTilNaler(behov);
 
     if (alleSteder.length > 0) {
         kart.fitBounds(alleSteder, {
@@ -269,13 +313,14 @@ function visOversikt(elementId, ressurser, behov) {
         }
 
         if (status) {
-            var punkter = antallSynlige === 1 ? ' punkt' : ' punkter';
+            // «1 punkt» eller «3 punkter» (tekst() kommer fra Views/Shared/_JsTekster.cshtml).
+            var punkter = antallSynlige === 1 ? tekst('1 punkt') : tekst('{0} punkter', antallSynlige);
             if (radius !== null && valgtPosisjon === null) {
-                status.textContent = 'Klikk på kartet for å velge utgangspunkt. Viser alle ' + antallSynlige + punkter + ' så lenge.';
+                status.textContent = tekst('Klikk på kartet for å velge utgangspunkt. Viser alle {0} så lenge.', punkter);
             } else if (radius === null) {
-                status.textContent = 'Viser alle ' + antallSynlige + punkter + '.';
+                status.textContent = tekst('Viser alle {0}.', punkter);
             } else {
-                status.textContent = 'Viser ' + antallSynlige + punkter + ' innenfor ' + (radius / 1000) + ' km.';
+                status.textContent = tekst('Viser {0} innenfor {1} km.', punkter, radius / 1000);
             }
         }
     }
@@ -288,7 +333,7 @@ function visOversikt(elementId, ressurser, behov) {
                 draggable: true
             }).addTo(kart);
 
-            startMarkor.bindPopup('Valgt utgangspunkt');
+            startMarkor.bindPopup(tekst('Valgt utgangspunkt'));
 
             startMarkor.on('dragend', function () {
                 valgtPosisjon = startMarkor.getLatLng();

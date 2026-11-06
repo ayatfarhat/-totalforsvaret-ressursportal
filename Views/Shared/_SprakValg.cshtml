@@ -9,6 +9,6 @@
 
 @* Knapper for å bytte språk. Valget lagres i en cookie (se HomeController.VelgSprak). *@
 <form asp-controller="Home" asp-action="VelgSprak" asp-route-returnUrl="@tilbake" method="post" class="sprakvalg" aria-label="@T["Velg språk"]">
-    <button type="submit" name="sprak" value="nb" lang="nb" class="@(sprak == "nb" ? "valgt" : "")" aria-pressed="@(sprak == "nb" ? "true" : "false")" title="Norsk">NO</button>
-    <button type="submit" name="sprak" value="en" lang="en" class="@(sprak == "en" ? "valgt" : "")" aria-pressed="@(sprak == "en" ? "true" : "false")" title="English">EN</button>
+    <button type="submit" name="sprak" value="nb" lang="nb" class="@(sprak == "nb" ? "valgt" : "")" aria-pressed="@(sprak == "nb" ? "true" : "false")" title="@T["Norsk"]">NO</button>
+    <button type="submit" name="sprak" value="en" lang="en" class="@(sprak == "en" ? "valgt" : "")" aria-pressed="@(sprak == "en" ? "true" : "false")" title="@T["English"]">EN</button>
 </form>

@@ -1,0 +1,44 @@
+@using System.Text.Json
+@* Tekstene som JavaScript-filene (kart.js og ressurs-skjema.js) viser, på språket brukeren har valgt.
+   JavaScript slår opp med den norske teksten, på samme måte som T["..."] i sidene:
+   tekst('Henter posisjonen din ...') eller tekst('Viser alle {0}.', '3 punkter').
+   Nye tekster legges til i listen under og i Resources/SharedResource.en.resx. *@
+@{
+    string[] norskeTekster =
+    {
+        "Kartet kunne ikke lastes. Fyll ut feltene i stedet.",
+        "Valgt posisjon: {0}, {1}",
+        "Valgt på kart ({0}, {1})",
+        "Ingen posisjon valgt ennå.",
+        "Nettleseren din støtter ikke posisjon. Trykk på kartet i stedet.",
+        "Henter posisjonen din ...",
+        "Fikk ikke tilgang til posisjonen din. Trykk på kartet i stedet.",
+        "1 punkt",
+        "{0} punkter",
+        "Klikk på kartet for å velge utgangspunkt. Viser alle {0} så lenge.",
+        "Viser alle {0}.",
+        "Viser {0} innenfor {1} km.",
+        "Valgt utgangspunkt",
+        "Bildet er for stort. Maks størrelse er 5 MB.",
+        "Filen er ikke et bilde."
+    };
+
+    var tekster = new Dictionary<string, string>();
+    foreach (string norsk in norskeTekster)
+    {
+        tekster[norsk] = T[norsk].Value;
+    }
+}
+<script>
+    // JsonSerializer gjør om tegn som < og > til trygge koder, så teksten ikke kan bryte ut av skriptet.
+    window.tekster = @Html.Raw(JsonSerializer.Serialize(tekster));
+
+    // Gir teksten på valgt språk. {0}, {1} ... byttes ut med verdiene etter teksten.
+    function tekst(norsk) {
+        var resultat = window.tekster[norsk] || norsk;
+        for (var i = 1; i < arguments.length; i++) {
+            resultat = resultat.replace('{' + (i - 1) + '}', arguments[i]);
+        }
+        return resultat;
+    }
+</script>

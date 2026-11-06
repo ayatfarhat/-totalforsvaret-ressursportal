@@ -2,7 +2,7 @@
 @using System.Globalization
 
 @{
-    ViewData["Title"] = "Match ressurs";
+    ViewData["Title"] = T["Match ressurs"];
 
     // Koordinatene skrives med punktum, slik kartet (kart.js) forventer.
     string bredde = Model.Latitude.ToString(CultureInfo.InvariantCulture);
@@ -10,12 +10,12 @@
 }
 
 @section Head {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
 }
 
 <div class="side-topp">
-    <h1>Match ressurs</h1>
-    <p class="ingress">Velg en ressurs som passer til behovet.</p>
+    <h1>@T["Match ressurs"]</h1>
+    <p class="ingress">@T["Velg en ressurs som passer til behovet."]</p>
 </div>
 
 @if (TempData["Feil"] is string feil)
@@ -26,60 +26,60 @@
 <!-- Informasjon om behovet -->
 <div class="card mb-4">
     <div class="card-body">
-        <h2 class="h5">Behov #@Model.BehovId</h2>
-        <p><strong>Type:</strong> @Visningstekst.Type(Model.BehovType, Model.AnnetType)</p>
-        <p><strong>Prioritet:</strong> @Visningstekst.Prioritet(Model.Prioritet)</p>
-        <p><strong>Status:</strong> @Visningstekst.Status(Model.Status)</p>
+        <h2 class="h5">@T["Behov #{0}", Model.BehovId]</h2>
+        <p><strong>@T["Type:"]</strong> @Visningstekst.Type(Model.BehovType, Model.AnnetType)</p>
+        <p><strong>@T["Prioritet:"]</strong> @Visningstekst.Prioritet(Model.Prioritet)</p>
+        <p><strong>@T["Status:"]</strong> @Visningstekst.Status(Model.Status)</p>
         <p>
-            <strong>Beskrivelse:</strong>
-            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(Model.Beskrivelse) ? "Ingen beskrivelse" : Model.Beskrivelse)</span>
+            <strong>@T["Beskrivelse:"]</strong>
+            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(Model.Beskrivelse) ? T["Ingen beskrivelse"].Value : Model.Beskrivelse)</span>
         </p>
     </div>
 </div>
 
 <!-- Kart over behovets posisjon (tegnes av kart.js) -->
-<h2 class="h4">Posisjon</h2>
+<h2 class="h4">@T["Posisjon"]</h2>
 <div class="kart-boks mb-2"
      data-kartvisning
      data-bredde="@bredde"
      data-lengde="@lengde"
      data-nal="hjelp"
      role="img"
-     aria-label="Kart som viser hvor behovet er"></div>
+     aria-label="@T["Kart som viser hvor behovet er"]"></div>
 <p>@bredde, @lengde</p>
 
 <hr />
 
-<h2 class="h4">Matchende ressurser</h2>
-<p class="text-muted">Nærmeste ressurs vises først. Avstanden er luftlinje, ikke kjøreavstand.</p>
+<h2 class="h4">@T["Matchende ressurser"]</h2>
+<p class="text-muted">@T["Nærmeste ressurs vises først. Avstanden er luftlinje, ikke kjøreavstand."]</p>
 
 @if (!Model.MatchendeRessurser.Any())
 {
-    <div class="alert alert-warning">Ingen tilgjengelige ressurser matcher dette behovet.</div>
+    <div class="alert alert-warning">@T["Ingen tilgjengelige ressurser matcher dette behovet."]</div>
 }
 else
 {
     @if (Model.Status == BehovStatus.Assigned)
     {
         <div class="alert alert-info">
-            Dette behovet har allerede fått minst én ressurs. Du kan tildele flere hvis det trengs.
+            @T["Dette behovet har allerede fått minst én ressurs. Du kan tildele flere hvis det trengs."]
         </div>
     }
 
     <!-- Filteret skjuler kort som ligger lenger unna enn valgt avstand (se skriptet nederst). -->
     <div class="mb-3">
-        <label for="avstandsfilter" class="form-label"><strong>Filtrer etter avstand:</strong></label>
+        <label for="avstandsfilter" class="form-label"><strong>@T["Filtrer etter avstand:"]</strong></label>
         <select id="avstandsfilter" class="form-select" style="max-width: 250px;">
-            <option value="alle">Alle avstander</option>
-            <option value="10">Innenfor 10 km</option>
-            <option value="25">Innenfor 25 km</option>
-            <option value="50">Innenfor 50 km</option>
-            <option value="100">Innenfor 100 km</option>
+            <option value="alle">@T["Alle avstander"]</option>
+            <option value="10">@T["Innenfor 10 km"]</option>
+            <option value="25">@T["Innenfor 25 km"]</option>
+            <option value="50">@T["Innenfor 50 km"]</option>
+            <option value="100">@T["Innenfor 100 km"]</option>
         </select>
     </div>
 
     <p id="ingenInnenforAvstand" class="alert alert-warning" hidden>
-        Ingen ressurser finnes innenfor valgt avstand.
+        @T["Ingen ressurser finnes innenfor valgt avstand."]
     </p>
 
     <div class="row">
@@ -92,23 +92,23 @@ else
                 <div class="card h-100">
                     <div class="card-body">
                         <h3 class="h5">
-                            @ressurs.Type
+                            @T[ressurs.Type]
                             @if (ressurs.ErAnbefalt)
                             {
-                                <span class="badge bg-success ms-2">Anbefalt</span>
+                                <span class="badge bg-success ms-2">@T["Anbefalt"]</span>
                             }
                         </h3>
 
-                        <p><strong>Posisjon:</strong> @ressurs.Posisjon</p>
-                        <p><strong>Avstand:</strong> @(ressurs.AvstandKm.HasValue ? ressurs.AvstandKm.Value.ToString("F1") + " km" : "Avstand ukjent")</p>
-                        <p><strong>Status:</strong> @ressurs.Status</p>
-                        <p><strong>Navn:</strong> @(string.IsNullOrWhiteSpace(ressurs.Navn) ? "Ikke oppgitt" : ressurs.Navn)</p>
-                        <p><strong>Match:</strong> @ressurs.MatchBegrunnelse</p>
+                        <p><strong>@T["Posisjon:"]</strong> @ressurs.Posisjon</p>
+                        <p><strong>@T["Avstand:"]</strong> @(ressurs.AvstandKm.HasValue ? ressurs.AvstandKm.Value.ToString("F1") + " km" : T["Avstand ukjent"].Value)</p>
+                        <p><strong>@T["Status:"]</strong> @T[ressurs.Status]</p>
+                        <p><strong>@T["Navn:"]</strong> @(string.IsNullOrWhiteSpace(ressurs.Navn) ? T["Ikke oppgitt"].Value : ressurs.Navn)</p>
+                        <p><strong>@T["Match:"]</strong> @ressurs.MatchBegrunnelse</p>
 
                         <form asp-action="Tildel" method="post">
                             <input type="hidden" name="behovId" value="@Model.BehovId" />
                             <input type="hidden" name="ressursId" value="@ressurs.RessursId" />
-                            <button type="submit" class="btn btn-success">Tildel ressurs</button>
+                            <button type="submit" class="btn btn-success">@T["Tildel ressurs"]</button>
                         </form>
                     </div>
                 </div>
@@ -117,10 +117,10 @@ else
     </div>
 }
 
-<a asp-action="Index" class="btn btn-outline-secondary mt-3">Tilbake</a>
+<a asp-action="Index" class="btn btn-outline-secondary mt-3">@T["Tilbake"]</a>
 
 @section Scripts {
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
     <script>
         // Avstandsfilter: viser bare kortene som ligger innenfor valgt avstand.

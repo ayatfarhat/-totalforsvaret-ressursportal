@@ -388,5 +388,5 @@ public static class Kommuner
     public static bool Finnes(string? nummer) => Finn(nummer) != null;
 
     // Navnet som vises i lister og utskrift.
-    public static string VisNavn(string? nummer) => Finn(nummer)?.Navn ?? IkkeOppgitt;
+    public static string VisNavn(string? nummer) => Finn(nummer)?.Navn ?? Nabohjelp.Services.Oversetter.Tekst(IkkeOppgitt);
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
@@ -16,20 +17,26 @@ namespace Nabohjelp.Controllers;
 //   POST /Admin/LaasOpp          -> låse opp en konto
 //   POST /Admin/NullstillTofa    -> slå av 2FA for en bruker som har mistet telefonen
 //   POST /Admin/SlettBruker      -> slette en bruker og registreringene hens
+//   GET  /Admin/Invitasjoner     -> invitasjonslenker som gir en rolle
+//   POST /Admin/LagInvitasjon    -> lage en ny lenke
+//   POST /Admin/SlettInvitasjon  -> trekke tilbake en lenke
 [Authorize(Policy = "Admin")]
 public class AdminController : Controller
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly KontoService _kontoService;
+    private readonly ApplicationDbContext _db;
     private readonly IStringLocalizer<SharedResource> T;
 
     public AdminController(
         UserManager<IdentityUser> userManager,
         KontoService kontoService,
+        ApplicationDbContext db,
         IStringLocalizer<SharedResource> localizer)
     {
         _userManager = userManager;
         _kontoService = kontoService;
+        _db = db;
         T = localizer;
     }
 
@@ -90,7 +97,7 @@ public class AdminController : Controller
         // Gjør at den nye rollen gjelder innen ett minutt, også hvis brukeren er logget inn nå.
         await _userManager.UpdateSecurityStampAsync(bruker);
 
-        TempData["Melding"] = string.Format(T["{0} har nå rollen {1}."].Value, bruker.Email, rolle);
+        TempData["Melding"] = string.Format(T["{0} har nå rollen {1}."].Value, bruker.Email, T[rolle].Value);
         return RedirectToAction(nameof(Index));
     }
 
@@ -175,6 +182,67 @@ public class AdminController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    // ---------- INVITASJONSLENKER ----------
+
+    // Viser alle invitasjoner (nyeste først) og skjemaet for å lage en ny.
+    [HttpGet]
+    public async Task<IActionResult> Invitasjoner()
+    {
+        var liste = await _db.Invitasjoner
+            .AsNoTracking()
+            .OrderByDescending(i => i.OpprettetTid)
+            .ToListAsync();
+
+        return View(liste);
+    }
+
+    // Lager en ny lenke. Selve lenken vises bare én gang, rett etterpå,
+    // fordi databasen bare har fingeravtrykket av koden (se Services/Invitasjonsregler.cs).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LagInvitasjon(string rolle, int dager)
+    {
+        // Godtar bare rollene og antall dager fra listene, i tilfelle noen har endret skjemaet.
+        if (!Invitasjonsregler.Roller.Contains(rolle) || !Invitasjonsregler.GyldigDager.Contains(dager))
+        {
+            return BadRequest();
+        }
+
+        string kode = Invitasjonsregler.LagKode();
+
+        _db.Invitasjoner.Add(new Invitasjon
+        {
+            KodeHash = Invitasjonsregler.LagHash(kode),
+            Rolle = rolle,
+            OpprettetAvBrukerId = _userManager.GetUserId(User),
+            OpprettetTid = DateTime.UtcNow,
+            UtloperTid = DateTime.UtcNow.AddDays(dager)
+        });
+        await _db.SaveChangesAsync();
+
+        // Hele adressen, for eksempel https://.../Account/Invitasjon?kode=...
+        TempData["NyLenke"] = Url.Action("Invitasjon", "Account", new { kode }, Request.Scheme);
+        string varighet = dager == 1 ? T["1 dag"].Value : T["{0} dager", dager].Value;
+        TempData["Melding"] = string.Format(T["Lenken gir rollen {0} og gjelder i {1}. Kopier den nå, den vises bare én gang."].Value, T[rolle].Value, varighet);
+        return RedirectToAction(nameof(Invitasjoner));
+    }
+
+    // Trekker tilbake en lenke, så den ikke kan brukes lenger.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SlettInvitasjon(int id)
+    {
+        var invitasjon = await _db.Invitasjoner.FirstOrDefaultAsync(i => i.Id == id);
+        if (invitasjon != null)
+        {
+            _db.Invitasjoner.Remove(invitasjon);
+            await _db.SaveChangesAsync();
+            TempData["Melding"] = T["Invitasjonen er slettet."].Value;
+        }
+
+        return RedirectToAction(nameof(Invitasjoner));
     }
 
     // Finner brukeren, men stopper hvis admin prøver å endre sin egen konto.

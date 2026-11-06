@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = T["Invitasjon"];
+
+    string? kode = ViewBag.Kode;
+    string? feil = ViewBag.Feil;
+    string? rolle = ViewBag.Rolle;
+    bool erInnlogget = User.Identity?.IsAuthenticated == true;
+
+    // Hit kommer brukeren tilbake etter innlogging eller registrering.
+    string tilbake = Url.Action("Invitasjon", "Account", new { kode }) ?? "/";
+}
+
+<div class="auth">
+    <span class="logo-icon logo-icon-large"><partial name="_Logo" /></span>
+    <h1>@T["Invitasjon"]</h1>
+
+    <section class="auth-flate" aria-label="@T["Invitasjon"]">
+
+        @if (TempData["Feil"] is string feilFraForsok)
+        {
+            <div class="alert alert-danger" role="alert">@feilFraForsok</div>
+        }
+
+        @if (feil != null)
+        {
+            <div class="alert alert-warning" role="alert">@T[feil]</div>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">@T["Til forsiden"]</a>
+        }
+        else
+        {
+            <p>@T["Du er invitert til å bli {0} i BeredskapsPortalen.", T[rolle ?? ""]]</p>
+            <p class="form-text">@T["Kommune og Admin ser personopplysninger om andre. Du kan bli bedt om å slå på tofaktorinnlogging (2FA) før du får tilgang."]</p>
+
+            @if (erInnlogget)
+            {
+                <form asp-action="TaImotInvitasjon" method="post">
+                    <input type="hidden" name="kode" value="@kode" />
+                    <p>@T["Du er logget inn som {0}.", User.Identity?.Name ?? ""]</p>
+                    <button type="submit" class="btn btn-primary btn-lg">@T["Ta imot rollen"]</button>
+                </form>
+            }
+            else
+            {
+                <p>@T["Logg inn eller lag en konto for å ta imot invitasjonen."]</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-action="Login" asp-route-returnUrl="@tilbake" class="btn btn-primary">@T["Logg inn"]</a>
+                    <a asp-action="Register" asp-route-returnUrl="@tilbake" class="btn btn-outline-secondary">@T["Registrer deg"]</a>
+                </div>
+            }
+        }
+    </section>
+</div>

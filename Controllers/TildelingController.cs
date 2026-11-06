@@ -52,7 +52,7 @@ public class TildelingController : Controller
         // Et avsluttet behov (for eksempel via en gammel lenke) skal ikke vise tildel-knapper.
         if (BehovStatusflyt.ErAvsluttet(behov.Status))
         {
-            TempData["Feil"] = $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
+            TempData["Feil"] = Oversetter.Tekst("Behovet er «{0}» og kan ikke få flere ressurser.", Visningstekst.Status(behov.Status));
             return RedirectToAction(nameof(Index));
         }
 
@@ -65,7 +65,7 @@ public class TildelingController : Controller
         // Beholder ressursene som passer til behovstypen, og sorterer på avstand.
         // Ressurser uten kjent avstand kommer sist.
         var matchende = ressurser
-            .Where(r => PasserTilBehov(behov.Type, r.Type))
+            .Where(r => Ressursmatching.PasserTilBehov(behov.Type, r.Type))
             .Select(r => LagMatchendeRessurs(behov, r))
             .OrderBy(r => r.AvstandKm ?? double.MaxValue)
             .ThenBy(r => r.Type)
@@ -105,16 +105,15 @@ public class TildelingController : Controller
         // Avsluttede behov kan ikke få nye tildelinger.
         if (BehovStatusflyt.ErAvsluttet(behov.Status))
         {
-            TempData["Feil"] =
-                $"Behovet er «{Visningstekst.Status(behov.Status)}» og kan ikke få flere ressurser.";
+            TempData["Feil"] = Oversetter.Tekst("Behovet er «{0}» og kan ikke få flere ressurser.", Visningstekst.Status(behov.Status));
 
             return RedirectToAction(nameof(Index));
         }
 
         // Kontrollerer at ressurstypen passer til behovet.
-        if (!PasserTilBehov(behov.Type, ressurs.Type))
+        if (!Ressursmatching.PasserTilBehov(behov.Type, ressurs.Type))
         {
-            TempData["Feil"] = "Ressursen passer ikke til dette behovet.";
+            TempData["Feil"] = Oversetter.Tekst("Ressursen passer ikke til dette behovet.");
 
             return RedirectToAction(
                 nameof(Match),
@@ -138,7 +137,7 @@ public class TildelingController : Controller
             await transaksjon.RollbackAsync();
 
             TempData["Feil"] =
-                "Ressursen er ikke lenger tilgjengelig.";
+                Oversetter.Tekst("Ressursen er ikke lenger tilgjengelig.");
 
             return RedirectToAction(
                 nameof(Match),
@@ -225,43 +224,6 @@ public class TildelingController : Controller
         };
     }
 
-    // Bestemmer hvilke ressurstyper som passer til behovstypen.
-    private static bool PasserTilBehov(
-        BehovType behovType,
-        string ressursType)
-    {
-        return behovType switch
-        {
-            BehovType.Drone =>
-                ressursType == "Drone og droneoperatør",
-
-            BehovType.Generator =>
-                ressursType == "Aggregat",
-
-            BehovType.Transport =>
-                ressursType is
-                    "ATV" or
-                    "Traktor" or
-                    "Snøskuter" or
-                    "Lastebil" or
-                    "Båt",
-
-            BehovType.Evakuering =>
-                ressursType is
-                    "Mannskap/frivillige" or
-                    "ATV" or
-                    "Snøskuter" or
-                    "Lastebil" or
-                    "Båt" or
-                    "Lokaler",
-
-            // Behovstypen «Annet» kan matches med alle ressurstyper.
-            BehovType.Annet => true,
-
-            _ => false
-        };
-    }
-
     // Lager en forklaring på hvorfor ressursen matcher behovet.
     private static string LagMatchBegrunnelse(
         BehovType behovType,
@@ -269,9 +231,14 @@ public class TildelingController : Controller
     {
         if (behovType == BehovType.Annet)
         {
-            return $"Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{ressursType}».";
+            return Oversetter.Tekst(
+                "Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{0}».",
+                Oversetter.Tekst(ressursType));
         }
 
-        return $"Ressurstypen «{ressursType}» passer til behovstypen «{Visningstekst.Type(behovType)}».";
+        return Oversetter.Tekst(
+            "Ressurstypen «{0}» passer til behovstypen «{1}».",
+            Oversetter.Tekst(ressursType),
+            Visningstekst.Type(behovType));
     }
 }

@@ -2,7 +2,9 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Localization;
+using Nabohjelp.Data;
 using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
 using Nabohjelp.Services;
@@ -20,28 +22,33 @@ public class AccountController : Controller
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly KontoService _kontoService;
+    private readonly ApplicationDbContext _db;
     private readonly IStringLocalizer<SharedResource> T;
 
-    // Gir tilgang til Identity, kontotjenesten (sletting og nedlasting av data)
-    // og oversettelsene (T["..."]).
+    // Gir tilgang til Identity, kontotjenesten (sletting og nedlasting av data),
+    // databasen (invitasjonslenker) og oversettelsene (T["..."]).
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
         KontoService kontoService,
+        ApplicationDbContext db,
         IStringLocalizer<SharedResource> localizer)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _kontoService = kontoService;
+        _db = db;
         T = localizer;
     }
 
     // ---------- REGISTRERING ----------
 
     // GET: /Account/Register
+    // returnUrl brukes når brukeren kommer fra en invitasjonslenke.
     [HttpGet]
-    public IActionResult Register()
+    public IActionResult Register(string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
         return View();
     }
 
@@ -49,8 +56,11 @@ public class AccountController : Controller
     // Oppretter en ny bruker med rollen Frivillig og logger hen inn.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
+    public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl = null)
     {
+        ViewData["ReturnUrl"] = returnUrl;
+
         // GDPR: brukeren må ha lest hvordan opplysningene brukes før kontoen lages.
         if (!model.GodtarPersonvern)
         {
@@ -97,7 +107,7 @@ public class AccountController : Controller
 
         await _signInManager.SignInAsync(bruker, isPersistent: false);
 
-        return RedirectToAction("Index", "Home");
+        return TilbakeEllerForside(returnUrl);
     }
 
     // ---------- INNLOGGING ----------
@@ -115,6 +125,7 @@ public class AccountController : Controller
     // Kontrollerer e-post og passord.
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
@@ -169,6 +180,7 @@ public class AccountController : Controller
     // hvem som skrev riktig passord, så her trengs bare koden.
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
     public async Task<IActionResult> LoginWith2fa(TofaViewModel model, string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
@@ -282,7 +294,7 @@ public class AccountController : Controller
         var model = new KontoViewModel
         {
             Epost = bruker.Email ?? "",
-            Rolle = string.Join(", ", roller),
+            Rolle = string.Join(", ", roller.Select(r => T[r].Value)),
             TofaErPa = bruker.TwoFactorEnabled
         };
 
@@ -429,6 +441,72 @@ public class AccountController : Controller
         await _signInManager.RefreshSignInAsync(bruker);
 
         TempData["Melding"] = T["2FA er slått av."].Value;
+        return RedirectToAction(nameof(Index));
+    }
+
+    // ---------- INVITASJONSLENKE ----------
+
+    // GET: /Account/Invitasjon?kode=...
+    // Viser hvilken rolle lenken gir. Er brukeren ikke logget inn, får hen
+    // knapper til innlogging og registrering som kommer tilbake hit etterpå.
+    [HttpGet]
+    public async Task<IActionResult> Invitasjon(string? kode)
+    {
+        var invitasjon = await Invitasjonsregler.FinnAsync(_db, kode);
+
+        ViewBag.Kode = kode;
+        ViewBag.Feil = Invitasjonsregler.SjekkGyldig(invitasjon, DateTime.UtcNow);
+        ViewBag.Rolle = invitasjon?.Rolle;
+
+        return View();
+    }
+
+    // POST: /Account/Invitasjon
+    // Gir brukeren rollen fra lenken. Lenken merkes som brukt, så den ikke virker igjen.
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
+    public async Task<IActionResult> TaImotInvitasjon(string? kode)
+    {
+        var bruker = await _userManager.GetUserAsync(User);
+
+        if (bruker == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        var invitasjon = await Invitasjonsregler.FinnAsync(_db, kode);
+
+        // Sjekkes på nytt her, i tilfelle lenken ble brukt eller gikk ut mens siden var åpen.
+        string? feil = Invitasjonsregler.SjekkGyldig(invitasjon, DateTime.UtcNow);
+
+        if (feil == null)
+        {
+            var roller = await _userManager.GetRolesAsync(bruker);
+            feil = Invitasjonsregler.SjekkBruker(roller, invitasjon!.Rolle);
+        }
+
+        if (feil != null)
+        {
+            TempData["Feil"] = T[feil].Value;
+            return RedirectToAction(nameof(Invitasjon), new { kode });
+        }
+
+        // Merker lenken som brukt først, så den ikke kan brukes to ganger.
+        invitasjon!.BruktTid = DateTime.UtcNow;
+        invitasjon.BruktAvEpost = bruker.Email;
+        await _db.SaveChangesAsync();
+
+        // Hver bruker har én rolle, som på adminsiden.
+        var gamleRoller = await _userManager.GetRolesAsync(bruker);
+        await _userManager.RemoveFromRolesAsync(bruker, gamleRoller);
+        await _userManager.AddToRoleAsync(bruker, invitasjon.Rolle);
+
+        // Fornyer innloggingen, så den nye rollen gjelder med en gang.
+        await _signInManager.RefreshSignInAsync(bruker);
+
+        TempData["Melding"] = string.Format(T["Du har nå rollen {0}."].Value, T[invitasjon.Rolle].Value);
         return RedirectToAction(nameof(Index));
     }
 

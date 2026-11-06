@@ -1,12 +1,12 @@
 @model IEnumerable<Behov>
 
 @{
-    ViewData["Title"] = "Tildeling";
+    ViewData["Title"] = T["Tildeling"];
 }
 
 <div class="side-topp">
-    <h1>Tildeling og matching</h1>
-    <p class="ingress">Velg et behov for å finne tilgjengelige ressurser som passer.</p>
+    <h1>@T["Tildeling og matching"]</h1>
+    <p class="ingress">@T["Velg et behov for å finne tilgjengelige ressurser som passer."]</p>
 </div>
 
 @if (TempData["Feil"] is string feil)
@@ -18,13 +18,13 @@
 {
     <!-- Vises når det ikke finnes aktive behov -->
     <div class="alert alert-info">
-        Det finnes ingen aktive behov som kan tildeles.
+        @T["Det finnes ingen aktive behov som kan tildeles."]
     </div>
 }
 else
 {
     <div class="liste-topp">
-        <h2>Aktive behov</h2>
+        <h2>@T["Aktive behov"]</h2>
         <span class="antall">@Model.Count()</span>
     </div>
 
@@ -34,12 +34,12 @@ else
 
             <thead>
                 <tr>
-                    <th scope="col">Nr.</th>
-                    <th scope="col">Behov</th>
-                    <th scope="col">Prioritet</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Beskrivelse</th>
-                    <th scope="col"><span class="visually-hidden">Handling</span></th>
+                    <th scope="col">@T["Nr."]</th>
+                    <th scope="col">@T["Behov"]</th>
+                    <th scope="col">@T["Prioritet"]</th>
+                    <th scope="col">@T["Status"]</th>
+                    <th scope="col">@T["Beskrivelse"]</th>
+                    <th scope="col"><span class="visually-hidden">@T["Handling"]</span></th>
                 </tr>
             </thead>
 
@@ -47,18 +47,18 @@ else
                 @foreach (var behov in Model)
                 {
                     <tr class="@(behov.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
-                        <td data-label="Nr.">@behov.Id</td>
-                        <td data-label="Behov"><strong>@Visningstekst.Type(behov.Type, behov.AnnetType)</strong></td>
-                        <td data-label="Prioritet">
+                        <td data-label="@T["Nr."]">@behov.Id</td>
+                        <td data-label="@T["Behov"]"><strong>@Visningstekst.Type(behov.Type, behov.AnnetType)</strong></td>
+                        <td data-label="@T["Prioritet"]">
                             <span class="merke @(behov.Prioritet == BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Visningstekst.Prioritet(behov.Prioritet)</span>
                         </td>
-                        <td data-label="Status">
+                        <td data-label="@T["Status"]">
                             <span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
                         </td>
 
-                        <td data-label="Beskrivelse">
+                        <td data-label="@T["Beskrivelse"]">
                             <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(behov.Beskrivelse)
-                                ? "Ingen beskrivelse"
+                                ? T["Ingen beskrivelse"].Value
                                 : behov.Beskrivelse)</span>
                         </td>
 
@@ -68,7 +68,7 @@ else
                                asp-action="Match"
                                asp-route-id="@behov.Id"
                                class="btn btn-primary btn-sm">
-                                Finn ressurs
+                                @T["Finn ressurs"]
                             </a>
                         </td>
                     </tr>

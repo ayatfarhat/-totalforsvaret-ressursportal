@@ -36,11 +36,11 @@
             <p>@T["Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner."]</p>
         </div>
 
-        <nav class="navbar navbar-expand-md navbar-kommandobro" aria-label="Kommandobro-meny">
+        <nav class="navbar navbar-expand-md navbar-kommandobro" aria-label="@T["Kommandobro-meny"]">
             <div class="container">
                 <a class="navbar-brand" asp-controller="Kommandobro" asp-action="Index">
                     <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
-                    <span>Kommandobro <small>BeredskapsPortalen</small></span>
+                    <span>@T["Kommandobro"] <small>BeredskapsPortalen</small></span>
                 </a>
 
                 <button class="navbar-toggler"
@@ -93,6 +93,7 @@
         </div>
     </main>
 
+    <partial name="_JsTekster" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)

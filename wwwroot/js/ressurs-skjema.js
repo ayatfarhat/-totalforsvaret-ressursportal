@@ -39,14 +39,14 @@
             if (!fil) { return; }
 
             if (fil.size > maksStorrelse) {
-                feilTekst.textContent = "Bildet er for stort. Maks størrelse er 5 MB.";
+                feilTekst.textContent = tekst("Bildet er for stort. Maks størrelse er 5 MB.");
                 feilTekst.hidden = false;
                 filfelt.value = "";
                 return;
             }
 
             if (!fil.type.startsWith("image/")) {
-                feilTekst.textContent = "Filen er ikke et bilde.";
+                feilTekst.textContent = tekst("Filen er ikke et bilde.");
                 feilTekst.hidden = false;
                 filfelt.value = "";
                 return;
