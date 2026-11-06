@@ -1,0 +1,1701 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Engelske tekster. "name" er den norske teksten slik den står i koden (T["..."]),
+       og "value" er den engelske oversettelsen. Mangler en tekst her, vises den på norsk. -->
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Tildeling" xml:space="preserve">
+    <value>Assignment</value>
+  </data>
+  <data name="Match ressurs" xml:space="preserve">
+    <value>Match resource</value>
+  </data>
+  <data name="Tildeling fullført" xml:space="preserve">
+    <value>Assignment completed</value>
+  </data>
+  <data name="Registrer en ressurs" xml:space="preserve">
+    <value>Register a resource</value>
+  </data>
+  <data name="Ressurser og behov" xml:space="preserve">
+    <value>Resources and needs</value>
+  </data>
+  <data name="Ressursliste per kommune" xml:space="preserve">
+    <value>Resource list by municipality</value>
+  </data>
+  <data name="Kvittering" xml:space="preserve">
+    <value>Receipt</value>
+  </data>
+  <data name="Slett ressurs" xml:space="preserve">
+    <value>Delete resource</value>
+  </data>
+  <data name="Endre ressurs" xml:space="preserve">
+    <value>Edit resource</value>
+  </data>
+  <data name="Legg til ønsket ressurs" xml:space="preserve">
+    <value>Add requested resource</value>
+  </data>
+  <data name="Ønskede ressurser" xml:space="preserve">
+    <value>Requested resources</value>
+  </data>
+  <data name="Brukere" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Her kan du gi brukere riktig rolle, låse kontoer og hjelpe brukere som har mistet telefonen med 2FA." xml:space="preserve">
+    <value>Here you can give users the right role, lock accounts and help users who have lost the phone they use for 2FA.</value>
+  </data>
+  <data name="Søk på e-post" xml:space="preserve">
+    <value>Search by email</value>
+  </data>
+  <data name="Søk" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Alle brukere" xml:space="preserve">
+    <value>All users</value>
+  </data>
+  <data name="E-post" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Rolle" xml:space="preserve">
+    <value>Role</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Handling" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="deg" xml:space="preserve">
+    <value>you</value>
+  </data>
+  <data name="Rolle for" xml:space="preserve">
+    <value>Role for</value>
+  </data>
+  <data name="Lagre" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="På" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Av" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Låst" xml:space="preserve">
+    <value>Locked</value>
+  </data>
+  <data name="Aktiv" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Lås opp" xml:space="preserve">
+    <value>Unlock</value>
+  </data>
+  <data name="Lås" xml:space="preserve">
+    <value>Lock</value>
+  </data>
+  <data name="Nullstill 2FA" xml:space="preserve">
+    <value>Reset 2FA</value>
+  </data>
+  <data name="Slette brukeren og alle registreringene permanent?" xml:space="preserve">
+    <value>Delete the user and all their registrations permanently?</value>
+  </data>
+  <data name="Slett" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Oversikt" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="Min konto" xml:space="preserve">
+    <value>My account</value>
+  </data>
+  <data name="Logg ut" xml:space="preserve">
+    <value>Log out</value>
+  </data>
+  <data name="Logg inn" xml:space="preserve">
+    <value>Log in</value>
+  </data>
+  <data name="Registrer deg" xml:space="preserve">
+    <value>Sign up</value>
+  </data>
+  <data name="Hopp til innhold" xml:space="preserve">
+    <value>Skip to content</value>
+  </data>
+  <data name="Akutt fare for liv og helse?" xml:space="preserve">
+    <value>Immediate danger to life or health?</value>
+  </data>
+  <data name="Ring først:" xml:space="preserve">
+    <value>Call first:</value>
+  </data>
+  <data name="Brann" xml:space="preserve">
+    <value>Fire</value>
+  </data>
+  <data name="Politi" xml:space="preserve">
+    <value>Police</value>
+  </data>
+  <data name="Ambulanse" xml:space="preserve">
+    <value>Ambulance</value>
+  </data>
+  <data name="Hovedmeny" xml:space="preserve">
+    <value>Main menu</value>
+  </data>
+  <data name="Åpne og lukk meny" xml:space="preserve">
+    <value>Open and close menu</value>
+  </data>
+  <data name="Forside" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Ressurser" xml:space="preserve">
+    <value>Resources</value>
+  </data>
+  <data name="Se mine behov" xml:space="preserve">
+    <value>See my needs</value>
+  </data>
+  <data name="En beredskapsportal som kobler behov under kriser med utstyr, kjøretøy og frivillige som kan stille opp." xml:space="preserve">
+    <value>An emergency portal that connects needs during a crisis with equipment, vehicles and volunteers who can help.</value>
+  </data>
+  <data name="Sider" xml:space="preserve">
+    <value>Pages</value>
+  </data>
+  <data name="Meld behov" xml:space="preserve">
+    <value>Report a need</value>
+  </data>
+  <data name="For nødetater og kriseledelse" xml:space="preserve">
+    <value>For emergency services and crisis management</value>
+  </data>
+  <data name="Personvern" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="Studentprosjekt i IS-200, gruppe 15. BeredskapsPortalen erstatter ikke nødnumrene." xml:space="preserve">
+    <value>Student project in IS-200, group 15. BeredskapsPortalen does not replace the emergency numbers.</value>
+  </data>
+  <data name="Velg språk" xml:space="preserve">
+    <value>Choose language</value>
+  </data>
+  <data name="Noe gikk galt" xml:space="preserve">
+    <value>Something went wrong</value>
+  </data>
+  <data name="Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner." xml:space="preserve">
+    <value>Only for emergency services, police and crisis management. Not for private individuals.</value>
+  </data>
+  <data name="Behovskø" xml:space="preserve">
+    <value>Needs queue</value>
+  </data>
+  <data name="Til BeredskapsPortalen" xml:space="preserve">
+    <value>To BeredskapsPortalen</value>
+  </data>
+  <data name="Rett ressurs til rett sted når krisen rammer." xml:space="preserve">
+    <value>The right resource in the right place when a crisis hits.</value>
+  </data>
+  <data name="Strømbrudd, ekstremvær eller evakuering: BeredskapsPortalen samler utstyr, kjøretøy og frivillige på ett sted, slik at kriseledelsen raskt kan sende hjelp dit den trengs." xml:space="preserve">
+    <value>Power cuts, extreme weather or evacuation: BeredskapsPortalen gathers equipment, vehicles and volunteers in one place, so crisis management can quickly send help where it is needed.</value>
+  </data>
+  <data name="Jeg trenger hjelp" xml:space="preserve">
+    <value>I need help</value>
+  </data>
+  <data name="Meld et behov i nærheten av deg" xml:space="preserve">
+    <value>Report a need near you</value>
+  </data>
+  <data name="Jeg kan hjelpe" xml:space="preserve">
+    <value>I can help</value>
+  </data>
+  <data name="Registrer utstyr, kjøretøy eller innsats" xml:space="preserve">
+    <value>Register equipment, vehicles or your time</value>
+  </data>
+  <data name="Er det fare for liv og helse, ring 110, 112 eller 113 først." xml:space="preserve">
+    <value>If life or health is in danger, call 110, 112 or 113 first.</value>
+  </data>
+  <data name="Trenger hjelp" xml:space="preserve">
+    <value>Needs help</value>
+  </data>
+  <data name="Kan hjelpe" xml:space="preserve">
+    <value>Can help</value>
+  </data>
+  <data name="Slik fungerer det" xml:space="preserve">
+    <value>How it works</value>
+  </data>
+  <data name="Velg riktig spor" xml:space="preserve">
+    <value>Choose the right path</value>
+  </data>
+  <data name="Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema." xml:space="preserve">
+    <value>Do you need help, or can you help others? Each path has its own short form.</value>
+  </data>
+  <data name="Fortell hva og hvor" xml:space="preserve">
+    <value>Tell us what and where</value>
+  </data>
+  <data name="Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt." xml:space="preserve">
+    <value>Choose a type, point to the place on the map and add how you can be reached. It takes less than a minute.</value>
+  </data>
+  <data name="Kriseledelsen ser det" xml:space="preserve">
+    <value>Crisis management sees it</value>
+  </data>
+  <data name="Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser." xml:space="preserve">
+    <value>The report appears on the crisis management map right away, and they match needs with resources.</value>
+  </data>
+  <data name="Dette kan du stille med" xml:space="preserve">
+    <value>What you can offer</value>
+  </data>
+  <data name="Gå til Min konto" xml:space="preserve">
+    <value>Go to My account</value>
+  </data>
+  <data name="Mine behov" xml:space="preserve">
+    <value>My needs</value>
+  </data>
+  <data name="Skriv inn kode" xml:space="preserve">
+    <value>Enter code</value>
+  </data>
+  <data name="Åpne autentiseringsappen og skriv inn den 6-sifrede koden." xml:space="preserve">
+    <value>Open the authenticator app and enter the 6-digit code.</value>
+  </data>
+  <data name="Kode fra appen" xml:space="preserve">
+    <value>Code from the app</value>
+  </data>
+  <data name="Her ser du hvordan du er logget inn." xml:space="preserve">
+    <value>Here you can see how you are logged in.</value>
+  </data>
+  <data name="Sikkerhet" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="Kontoen din er beskyttet med kode fra autentiseringsapp." xml:space="preserve">
+    <value>Your account is protected with a code from an authenticator app.</value>
+  </data>
+  <data name="Tofaktor-innlogging gir ekstra beskyttelse hvis noen får tak i passordet ditt." xml:space="preserve">
+    <value>Two-factor login gives extra protection if someone gets hold of your password.</value>
+  </data>
+  <data name="Slå av 2FA" xml:space="preserve">
+    <value>Turn off 2FA</value>
+  </data>
+  <data name="Slå på 2FA" xml:space="preserve">
+    <value>Turn on 2FA</value>
+  </data>
+  <data name="Endre passord" xml:space="preserve">
+    <value>Change password</value>
+  </data>
+  <data name="Mine registreringer" xml:space="preserve">
+    <value>My registrations</value>
+  </data>
+  <data name="Her finner du behovene og ressursene du har registrert." xml:space="preserve">
+    <value>Here you find the needs and resources you have registered.</value>
+  </data>
+  <data name="Mine ressurser" xml:space="preserve">
+    <value>My resources</value>
+  </data>
+  <data name="Personvern og dine data" xml:space="preserve">
+    <value>Privacy and your data</value>
+  </data>
+  <data name="Du kan når som helst laste ned alt vi har lagret om deg, eller slette kontoen." xml:space="preserve">
+    <value>You can download everything we store about you, or delete your account, at any time.</value>
+  </data>
+  <data name="Les personvernerklæringen" xml:space="preserve">
+    <value>Read the privacy policy</value>
+  </data>
+  <data name="Last ned mine data" xml:space="preserve">
+    <value>Download my data</value>
+  </data>
+  <data name="Slett konto" xml:space="preserve">
+    <value>Delete account</value>
+  </data>
+  <data name="Ingen tilgang" xml:space="preserve">
+    <value>No access</value>
+  </data>
+  <data name="Denne siden viser personopplysninger, så ansatte må logge inn med tofaktor (2FA)." xml:space="preserve">
+    <value>This page shows personal data, so staff must log in with two-factor authentication (2FA).</value>
+  </data>
+  <data name="Slå på 2FA under Min konto. Har du allerede 2FA, logger du ut og inn igjen med koden fra appen." xml:space="preserve">
+    <value>Turn on 2FA under My account. If you already have 2FA, log out and log in again with the code from the app.</value>
+  </data>
+  <data name="Du er logget inn, men kontoen din har ikke tilgang til denne siden." xml:space="preserve">
+    <value>You are logged in, but your account does not have access to this page.</value>
+  </data>
+  <data name="Til forsiden" xml:space="preserve">
+    <value>To the front page</value>
+  </data>
+  <data name="Du må skrive inn passordet du har nå for å velge et nytt." xml:space="preserve">
+    <value>You must enter your current password to choose a new one.</value>
+  </data>
+  <data name="Nåværende passord" xml:space="preserve">
+    <value>Current password</value>
+  </data>
+  <data name="Nytt passord" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="Minst 8 tegn, med stor og liten bokstav, tall og spesialtegn (for eksempel !)." xml:space="preserve">
+    <value>At least 8 characters, with upper and lower case letters, a number and a special character (for example !).</value>
+  </data>
+  <data name="Gjenta nytt passord" xml:space="preserve">
+    <value>Repeat new password</value>
+  </data>
+  <data name="Lagre nytt passord" xml:space="preserve">
+    <value>Save new password</value>
+  </data>
+  <data name="Avbryt" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Nye brukere får rollen Frivillig." xml:space="preserve">
+    <value>New users get the role Frivillig (volunteer).</value>
+  </data>
+  <data name="Passord" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Gjenta passord" xml:space="preserve">
+    <value>Repeat password</value>
+  </data>
+  <data name="Jeg har lest" xml:space="preserve">
+    <value>I have read the</value>
+  </data>
+  <data name="personvernerklæringen" xml:space="preserve">
+    <value>privacy policy</value>
+  </data>
+  <data name="og godtar at e-posten min lagres for å lage kontoen." xml:space="preserve">
+    <value>and agree that my email is stored to create the account.</value>
+  </data>
+  <data name="Opprett konto" xml:space="preserve">
+    <value>Create account</value>
+  </data>
+  <data name="Har du allerede konto?" xml:space="preserve">
+    <value>Already have an account?</value>
+  </data>
+  <data name="Advarsel: Permanent sletting" xml:space="preserve">
+    <value>Warning: Permanent deletion</value>
+  </data>
+  <data name="Hvis du sletter kontoen din, vil alle behov og ressurser du har registrert, også bli slettet permanent." xml:space="preserve">
+    <value>If you delete your account, all needs and resources you have registered will also be permanently deleted.</value>
+  </data>
+  <data name="Handlingen kan ikke angres!" xml:space="preserve">
+    <value>This cannot be undone!</value>
+  </data>
+  <data name="Vil du ta vare på opplysningene først?" xml:space="preserve">
+    <value>Want to keep a copy of your data first?</value>
+  </data>
+  <data name="Skriv inn passordet ditt for å bekrefte" xml:space="preserve">
+    <value>Enter your password to confirm</value>
+  </data>
+  <data name="Ja, slett kontoen min permanent" xml:space="preserve">
+    <value>Yes, delete my account permanently</value>
+  </data>
+  <data name="Du trenger en autentiseringsapp, for eksempel Microsoft Authenticator eller Google Authenticator." xml:space="preserve">
+    <value>You need an authenticator app, for example Microsoft Authenticator or Google Authenticator.</value>
+  </data>
+  <data name="Skann QR-koden i appen." xml:space="preserve">
+    <value>Scan the QR code in the app.</value>
+  </data>
+  <data name="Kan du ikke skanne? Skriv inn nøkkelen i stedet:" xml:space="preserve">
+    <value>Cannot scan? Enter the key instead:</value>
+  </data>
+  <data name="Skriv inn koden som vises i appen." xml:space="preserve">
+    <value>Enter the code shown in the app.</value>
+  </data>
+  <data name="Logg inn for å melde behov eller registrere ressurser." xml:space="preserve">
+    <value>Log in to report needs or register resources.</value>
+  </data>
+  <data name="Har du ikke konto?" xml:space="preserve">
+    <value>No account yet?</value>
+  </data>
+  <data name="Du må godta personvernerklæringen for å lage en konto." xml:space="preserve">
+    <value>You must accept the privacy policy to create an account.</value>
+  </data>
+  <data name="E-posten er allerede registrert" xml:space="preserve">
+    <value>The email is already registered</value>
+  </data>
+  <data name="Kontoen er låst. Prøv igjen senere, eller kontakt administrator." xml:space="preserve">
+    <value>The account is locked. Try again later, or contact an administrator.</value>
+  </data>
+  <data name="Feil e-post eller passord" xml:space="preserve">
+    <value>Wrong email or password</value>
+  </data>
+  <data name="Feil kode" xml:space="preserve">
+    <value>Wrong code</value>
+  </data>
+  <data name="Passordet er endret." xml:space="preserve">
+    <value>Your password has been changed.</value>
+  </data>
+  <data name="Feil kode, prøv igjen" xml:space="preserve">
+    <value>Wrong code, please try again</value>
+  </data>
+  <data name="2FA er slått på!" xml:space="preserve">
+    <value>2FA is turned on!</value>
+  </data>
+  <data name="2FA er slått av." xml:space="preserve">
+    <value>2FA is turned off.</value>
+  </data>
+  <data name="Feil passord." xml:space="preserve">
+    <value>Wrong password.</value>
+  </data>
+  <data name="Kontoen din og tilhørende registreringer er slettet." xml:space="preserve">
+    <value>Your account and its registrations have been deleted.</value>
+  </data>
+  <data name="{0} har nå rollen {1}." xml:space="preserve">
+    <value>{0} now has the role {1}.</value>
+  </data>
+  <data name="{0} er låst." xml:space="preserve">
+    <value>{0} is locked.</value>
+  </data>
+  <data name="{0} er låst opp." xml:space="preserve">
+    <value>{0} is unlocked.</value>
+  </data>
+  <data name="2FA er slått av for {0}." xml:space="preserve">
+    <value>2FA is turned off for {0}.</value>
+  </data>
+  <data name="{0} og tilhørende registreringer er slettet." xml:space="preserve">
+    <value>{0} and their registrations have been deleted.</value>
+  </data>
+  <data name="Du kan ikke endre din egen konto her. Bruk Min konto." xml:space="preserve">
+    <value>You cannot change your own account here. Use My account.</value>
+  </data>
+  <data name="Fant ikke brukeren." xml:space="preserve">
+    <value>The user was not found.</value>
+  </data>
+  <data name="Skriv inn e-post" xml:space="preserve">
+    <value>Enter your email</value>
+  </data>
+  <data name="Ugyldig e-post" xml:space="preserve">
+    <value>Invalid email</value>
+  </data>
+  <data name="Skriv inn passord" xml:space="preserve">
+    <value>Enter your password</value>
+  </data>
+  <data name="Passordet må være minst 8 tegn" xml:space="preserve">
+    <value>The password must be at least 8 characters</value>
+  </data>
+  <data name="Passordet må ha stor og liten bokstav, tall og spesialtegn (for eksempel !)" xml:space="preserve">
+    <value>The password must have upper and lower case letters, a number and a special character (for example !)</value>
+  </data>
+  <data name="Gjenta passordet" xml:space="preserve">
+    <value>Repeat the password</value>
+  </data>
+  <data name="Passordene er ikke like" xml:space="preserve">
+    <value>The passwords do not match</value>
+  </data>
+  <data name="Skriv inn passordet du har nå" xml:space="preserve">
+    <value>Enter your current password</value>
+  </data>
+  <data name="Skriv inn nytt passord" xml:space="preserve">
+    <value>Enter a new password</value>
+  </data>
+  <data name="Skriv inn koden fra appen" xml:space="preserve">
+    <value>Enter the code from the app</value>
+  </data>
+  <data name="Koden er 6 siffer" xml:space="preserve">
+    <value>The code is 6 digits</value>
+  </data>
+  <data name="Du må skrive inn passordet ditt." xml:space="preserve">
+    <value>You must enter your password.</value>
+  </data>
+  <data name="Kontoen har tilknyttede tildelinger og kan ikke slettes automatisk. Kontakt administrator." xml:space="preserve">
+    <value>The account is linked to assignments and cannot be deleted automatically. Contact an administrator.</value>
+  </data>
+  <data name="Kunne ikke slette kontoen. Prøv igjen." xml:space="preserve">
+    <value>Could not delete the account. Please try again.</value>
+  </data>
+  <data name="Slettingen kunne ikke fullføres. Kontoen kan ha fått nye tilknyttede registreringer. Prøv igjen eller kontakt administrator." xml:space="preserve">
+    <value>The deletion could not be completed. The account may have new linked registrations. Try again or contact an administrator.</value>
+  </data>
+  <data name="Passordet er for kort. Det må ha minst 8 tegn." xml:space="preserve">
+    <value>The password is too short. It must have at least 8 characters.</value>
+  </data>
+  <data name="Passordet må ha minst ett tall." xml:space="preserve">
+    <value>The password must have at least one number.</value>
+  </data>
+  <data name="Passordet må ha minst én liten bokstav." xml:space="preserve">
+    <value>The password must have at least one lower case letter.</value>
+  </data>
+  <data name="Passordet må ha minst én stor bokstav." xml:space="preserve">
+    <value>The password must have at least one upper case letter.</value>
+  </data>
+  <data name="Passordet må ha minst ett spesialtegn, for eksempel !" xml:space="preserve">
+    <value>The password must have at least one special character, for example !</value>
+  </data>
+  <data name="Kunne ikke lagre. Prøv igjen." xml:space="preserve">
+    <value>Could not save. Please try again.</value>
+  </data>
+  <data name="Endre behov" xml:space="preserve">
+    <value>Edit need</value>
+  </data>
+  <data name="Rett opp det som har endret seg. Kriseledelsen ser endringen med en gang." xml:space="preserve">
+    <value>Correct what has changed. The crisis management team sees the change right away.</value>
+  </data>
+  <data name="(går foran fylket)" xml:space="preserve">
+    <value>(overrides the county)</value>
+  </data>
+  <data name="(valgfritt)" xml:space="preserve">
+    <value>(optional)</value>
+  </data>
+  <data name="(valgfritt, men hjelper kriseledelsen)" xml:space="preserve">
+    <value>(optional, but helps the crisis management team)</value>
+  </data>
+  <data name="1 dag" xml:space="preserve">
+    <value>1 day</value>
+  </data>
+  <data name="110 Brann" xml:space="preserve">
+    <value>110 Fire</value>
+  </data>
+  <data name="112 Politi" xml:space="preserve">
+    <value>112 Police</value>
+  </data>
+  <data name="113 Ambulanse" xml:space="preserve">
+    <value>113 Ambulance</value>
+  </data>
+  <data name="2FA" xml:space="preserve">
+    <value>2FA</value>
+  </data>
+  <data name="ATV" xml:space="preserve">
+    <value>ATV</value>
+  </data>
+  <data name="Adresse" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="Adresse eller stedsnavn" xml:space="preserve">
+    <value>Address or place name</value>
+  </data>
+  <data name="Aggregat" xml:space="preserve">
+    <value>Generator</value>
+  </data>
+  <data name="Aggregat, 6 kW" xml:space="preserve">
+    <value>Generator, 6 kW</value>
+  </data>
+  <data name="Aktive behov" xml:space="preserve">
+    <value>Active needs</value>
+  </data>
+  <data name="Aktive behov, med de akutte først." xml:space="preserve">
+    <value>Active needs, urgent ones first.</value>
+  </data>
+  <data name="Aktivt behov" xml:space="preserve">
+    <value>Active need</value>
+  </data>
+  <data name="Akutt" xml:space="preserve">
+    <value>Urgent</value>
+  </data>
+  <data name="Akutt behov" xml:space="preserve">
+    <value>Urgent need</value>
+  </data>
+  <data name="Alle avstander" xml:space="preserve">
+    <value>All distances</value>
+  </data>
+  <data name="Alle fylker" xml:space="preserve">
+    <value>All counties</value>
+  </data>
+  <data name="Alle kommuner" xml:space="preserve">
+    <value>All municipalities</value>
+  </data>
+  <data name="Alle lenker" xml:space="preserve">
+    <value>All links</value>
+  </data>
+  <data name="Alle registrerte behov" xml:space="preserve">
+    <value>All registered needs</value>
+  </data>
+  <data name="Anbefalt" xml:space="preserve">
+    <value>Recommended</value>
+  </data>
+  <data name="Annet" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="Antall" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="Antall må være mellom 1 og 999." xml:space="preserve">
+    <value>Quantity must be between 1 and 999.</value>
+  </data>
+  <data name="Antall personer den tar:" xml:space="preserve">
+    <value>Number of people it carries:</value>
+  </data>
+  <data name="Antall personer:" xml:space="preserve">
+    <value>Number of people:</value>
+  </data>
+  <data name="Antall plasser:" xml:space="preserve">
+    <value>Number of places:</value>
+  </data>
+  <data name="Antall:" xml:space="preserve">
+    <value>Quantity:</value>
+  </data>
+  <data name="Avstand:" xml:space="preserve">
+    <value>Distance:</value>
+  </data>
+  <data name="Avvis" xml:space="preserve">
+    <value>Reject</value>
+  </data>
+  <data name="Avvist" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Behov" xml:space="preserve">
+    <value>Needs</value>
+  </data>
+  <data name="Behov du melder, vises her med status." xml:space="preserve">
+    <value>Needs you report are shown here with their status.</value>
+  </data>
+  <data name="Behov og ressurser akkurat nå." xml:space="preserve">
+    <value>Needs and resources right now.</value>
+  </data>
+  <data name="Behovet er av typen «Annet», så alle ressurstyper kan vurderes. Denne er en «{0}»." xml:space="preserve">
+    <value>The need is of type «Other», so all resource types can be considered. This one is a «{0}».</value>
+  </data>
+  <data name="Behovet er trukket tilbake." xml:space="preserve">
+    <value>The need has been withdrawn.</value>
+  </data>
+  <data name="Behovet er «{0}» og kan ikke endres lenger. Kontakt kommunen hvis noe har endret seg." xml:space="preserve">
+    <value>The need is «{0}» and can no longer be changed. Contact the municipality if something has changed.</value>
+  </data>
+  <data name="Behovet er «{0}» og kan ikke få flere ressurser." xml:space="preserve">
+    <value>The need is «{0}» and cannot get more resources.</value>
+  </data>
+  <data name="Behovet er «{0}» og kan ikke trekkes tilbake. Kontakt kommunen hvis du ikke trenger hjelpen lenger." xml:space="preserve">
+    <value>The need is «{0}» and cannot be withdrawn. Contact the municipality if you no longer need help.</value>
+  </data>
+  <data name="Behovet har nå status «{0}»." xml:space="preserve">
+    <value>The need now has the status «{0}».</value>
+  </data>
+  <data name="Behovstype" xml:space="preserve">
+    <value>Type of need</value>
+  </data>
+  <data name="Behovstype:" xml:space="preserve">
+    <value>Type of need:</value>
+  </data>
+  <data name="Beklager, siden kunne ikke vises. Prøv igjen om litt, eller gå tilbake til forsiden." xml:space="preserve">
+    <value>Sorry, the page could not be shown. Try again in a moment, or go back to the front page.</value>
+  </data>
+  <data name="BeredskapsPortalen, laget {0}." xml:space="preserve">
+    <value>BeredskapsPortalen, created {0}.</value>
+  </data>
+  <data name="Beskrivelse" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Beskrivelse:" xml:space="preserve">
+    <value>Description:</value>
+  </data>
+  <data name="Beskrivelsen kan ikke være lengre enn 1000 tegn." xml:space="preserve">
+    <value>The description cannot be longer than 1000 characters.</value>
+  </data>
+  <data name="Beskrivelsen kan ikke være lengre enn 300 tegn." xml:space="preserve">
+    <value>The description cannot be longer than 300 characters.</value>
+  </data>
+  <data name="Bilde" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="Bilde av ressursen" xml:space="preserve">
+    <value>Image of the resource</value>
+  </data>
+  <data name="Bilde av ressursen: {0}" xml:space="preserve">
+    <value>Image of the resource: {0}</value>
+  </data>
+  <data name="Bilde av {0}" xml:space="preserve">
+    <value>Image of {0}</value>
+  </data>
+  <data name="Breddegrad *" xml:space="preserve">
+    <value>Latitude *</value>
+  </data>
+  <data name="Breddegrad er påkrevd." xml:space="preserve">
+    <value>Latitude is required.</value>
+  </data>
+  <data name="Breddegrad må være mellom -90 og 90." xml:space="preserve">
+    <value>Latitude must be between -90 and 90.</value>
+  </data>
+  <data name="Bruk min posisjon" xml:space="preserve">
+    <value>Use my location</value>
+  </data>
+  <data name="Brukt av {0}" xml:space="preserve">
+    <value>Used by {0}</value>
+  </data>
+  <data name="Bytt bilde" xml:space="preserve">
+    <value>Change image</value>
+  </data>
+  <data name="Båt" xml:space="preserve">
+    <value>Boat</value>
+  </data>
+  <data name="Den er nå synlig for kriseledelsen og kan kobles til et behov." xml:space="preserve">
+    <value>It is now visible to the crisis management team and can be linked to a need.</value>
+  </data>
+  <data name="Den første ressursen du legger inn, vises her og på kartet til kriseledelsen." xml:space="preserve">
+    <value>The first resource you add is shown here and on the crisis management team's map.</value>
+  </data>
+  <data name="Den som meldte behovet, trakk det tilbake." xml:space="preserve">
+    <value>The person who reported the need withdrew it.</value>
+  </data>
+  <data name="Den vises på kartet til kriseledelsen." xml:space="preserve">
+    <value>It is shown on the crisis management team's map.</value>
+  </data>
+  <data name="Det finnes ingen aktive behov som kan tildeles." xml:space="preserve">
+    <value>There are no active needs that can be assigned.</value>
+  </data>
+  <data name="Dette behovet har allerede fått minst én ressurs. Du kan tildele flere hvis det trengs." xml:space="preserve">
+    <value>This need already has at least one resource. You can assign more if needed.</value>
+  </data>
+  <data name="Dette er ressursene kommunen og kriseledelsen trenger akkurat nå. Har du noe på lista? Registrer det, så kan det kobles til et behov." xml:space="preserve">
+    <value>These are the resources the municipality and the crisis management team need right now. Do you have something on the list? Register it so it can be linked to a need.</value>
+  </data>
+  <data name="Dine behov" xml:space="preserve">
+    <value>Your needs</value>
+  </data>
+  <data name="Dine ressurser" xml:space="preserve">
+    <value>Your resources</value>
+  </data>
+  <data name="Ditt behov er registrert." xml:space="preserve">
+    <value>Your need has been registered.</value>
+  </data>
+  <data name="Drivstoff:" xml:space="preserve">
+    <value>Fuel:</value>
+  </data>
+  <data name="Drone" xml:space="preserve">
+    <value>Drone</value>
+  </data>
+  <data name="Drone og droneoperatør" xml:space="preserve">
+    <value>Drone and drone operator</value>
+  </data>
+  <data name="Droneførerbevis (ja/nei):" xml:space="preserve">
+    <value>Drone pilot licence (yes/no):</value>
+  </data>
+  <data name="Du er invitert til å bli {0} i BeredskapsPortalen." xml:space="preserve">
+    <value>You are invited to become {0} in BeredskapsPortalen.</value>
+  </data>
+  <data name="Du er logget inn som {0}." xml:space="preserve">
+    <value>You are logged in as {0}.</value>
+  </data>
+  <data name="Du har nå rollen {0}." xml:space="preserve">
+    <value>You now have the role {0}.</value>
+  </data>
+  <data name="Du har prøvd for mange ganger på kort tid. Vent ett minutt og prøv igjen." xml:space="preserve">
+    <value>You have tried too many times in a short time. Wait one minute and try again.</value>
+  </data>
+  <data name="Du kan likevel registrere det du kan stille med. Kriseledelsen ser det." xml:space="preserve">
+    <value>You can still register what you can offer. The crisis management team will see it.</value>
+  </data>
+  <data name="Du må logge inn først." xml:space="preserve">
+    <value>You must log in first.</value>
+  </data>
+  <data name="Du må oppgi hvor ressursen trengs." xml:space="preserve">
+    <value>You must enter where the resource is needed.</value>
+  </data>
+  <data name="Du må velge type ressurs." xml:space="preserve">
+    <value>You must choose a type of resource.</value>
+  </data>
+  <data name="Du trakk tilbake dette behovet. Meld et nytt behov hvis du trenger hjelp igjen." xml:space="preserve">
+    <value>You withdrew this need. Report a new need if you need help again.</value>
+  </data>
+  <data name="Effekt (kW):" xml:space="preserve">
+    <value>Power (kW):</value>
+  </data>
+  <data name="Eksempel fra en uværsnatt: Et behov for strøm til en omsorgsbolig i Grimstad blir koblet med et aggregat som en frivillig har registrert 2,4 kilometer unna." xml:space="preserve">
+    <value>Example from a stormy night: a need for power at a care home in Grimstad is matched with a generator that a volunteer has registered 2.4 kilometres away.</value>
+  </data>
+  <data name="Endre" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Endre behovet {0}, meldt {1}" xml:space="preserve">
+    <value>Edit the need {0}, reported {1}</value>
+  </data>
+  <data name="Endre behovet {0}, registrert {1}" xml:space="preserve">
+    <value>Edit the need {0}, registered {1}</value>
+  </data>
+  <data name="Endre i stedet" xml:space="preserve">
+    <value>Edit instead</value>
+  </data>
+  <data name="Endre {0}, {1}" xml:space="preserve">
+    <value>Edit {0}, {1}</value>
+  </data>
+  <data name="Endringene er lagret." xml:space="preserve">
+    <value>Your changes have been saved.</value>
+  </data>
+  <data name="Endringene vises med en gang for kriseledelsen." xml:space="preserve">
+    <value>The crisis management team sees the changes right away.</value>
+  </data>
+  <data name="English" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Er det fare for liv?" xml:space="preserve">
+    <value>Is there a danger to life?</value>
+  </data>
+  <data name="Evakuering" xml:space="preserve">
+    <value>Evacuation</value>
+  </data>
+  <data name="Feilreferanse:" xml:space="preserve">
+    <value>Error reference:</value>
+  </data>
+  <data name="Felter merket med * er obligatoriske." xml:space="preserve">
+    <value>Fields marked with * are required.</value>
+  </data>
+  <data name="Feltet må fylles ut." xml:space="preserve">
+    <value>This field is required.</value>
+  </data>
+  <data name="Feltet må være et tall." xml:space="preserve">
+    <value>The field must be a number.</value>
+  </data>
+  <data name="Ferdigheter:" xml:space="preserve">
+    <value>Skills:</value>
+  </data>
+  <data name="Filtrer etter avstand:" xml:space="preserve">
+    <value>Filter by distance:</value>
+  </data>
+  <data name="Filtrer på avstand:" xml:space="preserve">
+    <value>Filter by distance:</value>
+  </data>
+  <data name="Finn ressurs" xml:space="preserve">
+    <value>Find resource</value>
+  </data>
+  <data name="Fjern" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Fjern bildet" xml:space="preserve">
+    <value>Remove the image</value>
+  </data>
+  <data name="For eksempel Grimstad sentrum" xml:space="preserve">
+    <value>For example Grimstad centre</value>
+  </data>
+  <data name="For eksempel Storgata 5, Kristiansand" xml:space="preserve">
+    <value>For example Storgata 5, Kristiansand</value>
+  </data>
+  <data name="For eksempel hvor lenge dere trenger den" xml:space="preserve">
+    <value>For example how long you need it</value>
+  </data>
+  <data name="For eksempel hvor mange personer det gjelder, eller hva som har skjedd" xml:space="preserve">
+    <value>For example how many people are affected, or what has happened</value>
+  </data>
+  <data name="For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe" xml:space="preserve">
+    <value>For example size, condition or how many hours you can help</value>
+  </data>
+  <data name="For mange forsøk" xml:space="preserve">
+    <value>Too many attempts</value>
+  </data>
+  <data name="Forespørselen kunne ikke fullføres (feilkode {0}). Gå tilbake og prøv igjen." xml:space="preserve">
+    <value>The request could not be completed (error code {0}). Go back and try again.</value>
+  </data>
+  <data name="Forhåndsvisning av valgt bilde" xml:space="preserve">
+    <value>Preview of the selected image</value>
+  </data>
+  <data name="Fortell hva dere trenger. Innbyggerne ser lista i BeredskapsPortalen og kan registrere akkurat dette." xml:space="preserve">
+    <value>Say what you need. Residents see the list in BeredskapsPortalen and can register exactly this.</value>
+  </data>
+  <data name="Fortell hva du kan stille med og hvor det finnes. Type, kommune og posisjon må fylles ut, resten er valgfritt." xml:space="preserve">
+    <value>Say what you can offer and where it is. Type, municipality and location are required, the rest is optional.</value>
+  </data>
+  <data name="Fortell hva du trenger og hvor du er. Kriseledelsen ser meldingen med en gang." xml:space="preserve">
+    <value>Say what you need and where you are. The crisis management team sees your report right away.</value>
+  </data>
+  <data name="Fortell mer og hvordan vi når deg" xml:space="preserve">
+    <value>Tell us more and how to reach you</value>
+  </data>
+  <data name="Fra hvor og til hvor:" xml:space="preserve">
+    <value>From where to where:</value>
+  </data>
+  <data name="Frivillig, 2,4 km unna" xml:space="preserve">
+    <value>Volunteer, 2.4 km away</value>
+  </data>
+  <data name="Fylke" xml:space="preserve">
+    <value>County</value>
+  </data>
+  <data name="Følger det med kabler (ja/nei):" xml:space="preserve">
+    <value>Are cables included (yes/no):</value>
+  </data>
+  <data name="Gjelder i" xml:space="preserve">
+    <value>Valid for</value>
+  </data>
+  <data name="Gjelder til" xml:space="preserve">
+    <value>Valid until</value>
+  </data>
+  <data name="Gravemaskin" xml:space="preserve">
+    <value>Excavator</value>
+  </data>
+  <data name="Grimstad, meldt kl. 18.42" xml:space="preserve">
+    <value>Grimstad, reported at 18:42</value>
+  </data>
+  <data name="Har du båtførerbevis (ja/nei):" xml:space="preserve">
+    <value>Do you have a boat licence (yes/no):</value>
+  </data>
+  <data name="Har du ikke ressursen lenger?" xml:space="preserve">
+    <value>Do you no longer have the resource?</value>
+  </data>
+  <data name="Haster" xml:space="preserve">
+    <value>Urgent</value>
+  </data>
+  <data name="Hele landet" xml:space="preserve">
+    <value>The whole country</value>
+  </data>
+  <data name="Hentet fra kontoen din. Du kan endre den." xml:space="preserve">
+    <value>Taken from your account. You can change it.</value>
+  </data>
+  <data name="Her ser du hva kommunen og kriseledelsen ønsker at innbyggere registrerer." xml:space="preserve">
+    <value>Here you can see what the municipality and the crisis management team would like residents to register.</value>
+  </data>
+  <data name="Her ser du hvor langt hvert behov har kommet: fra det er meldt, til kommunen vurderer det, sender en ressurs og markerer det som løst." xml:space="preserve">
+    <value>Here you can see how far each need has come: from when it is reported, to the municipality reviewing it, sending a resource and marking it as resolved.</value>
+  </data>
+  <data name="Her ser du ressursene du selv har registrert. Du kan endre eller slette dem. Kommunen og kriseledelsen ser alle." xml:space="preserve">
+    <value>Here you can see the resources you have registered. You can edit or delete them. The municipality and the crisis management team see all of them.</value>
+  </data>
+  <data name="Hjullaster" xml:space="preserve">
+    <value>Wheel loader</value>
+  </data>
+  <data name="Hva kan du stille med?" xml:space="preserve">
+    <value>What can you offer?</value>
+  </data>
+  <data name="Hva skal dronen brukes til (søk, oversikt, levering):" xml:space="preserve">
+    <value>What is the drone needed for (search, overview, delivery):</value>
+  </data>
+  <data name="Hva skal fraktes (personer eller utstyr):" xml:space="preserve">
+    <value>What needs to be transported (people or equipment):</value>
+  </data>
+  <data name="Hva skjer videre?" xml:space="preserve">
+    <value>What happens next?</value>
+  </data>
+  <data name="Hva slags behov?" xml:space="preserve">
+    <value>What kind of need?</value>
+  </data>
+  <data name="Hva slags behov? *" xml:space="preserve">
+    <value>What kind of need? *</value>
+  </data>
+  <data name="Hva slags behov? Eksempel: vannlekkasje, steinras, snømåking" xml:space="preserve">
+    <value>What kind of need? Example: water leak, rockslide, snow clearing</value>
+  </data>
+  <data name="Hva trenger dere?" xml:space="preserve">
+    <value>What do you need?</value>
+  </data>
+  <data name="Hva trenger du? *" xml:space="preserve">
+    <value>What do you need? *</value>
+  </data>
+  <data name="Hva trenger strøm (for eksempel medisinsk utstyr):" xml:space="preserve">
+    <value>What needs power (for example medical equipment):</value>
+  </data>
+  <data name="Hvor er du?" xml:space="preserve">
+    <value>Where are you?</value>
+  </data>
+  <data name="Hvor finner vi det?" xml:space="preserve">
+    <value>Where can we find it?</value>
+  </data>
+  <data name="Hvor haster det? *" xml:space="preserve">
+    <value>How urgent is it? *</value>
+  </data>
+  <data name="Hvor lenge:" xml:space="preserve">
+    <value>How long:</value>
+  </data>
+  <data name="Hvor mange timer kan dere bidra:" xml:space="preserve">
+    <value>How many hours can you help:</value>
+  </data>
+  <data name="Hvor mange, og hvor?" xml:space="preserve">
+    <value>How many, and where?</value>
+  </data>
+  <data name="Hvor skal de:" xml:space="preserve">
+    <value>Where are they going:</value>
+  </data>
+  <data name="Hvordan kan det hentes:" xml:space="preserve">
+    <value>How can it be collected:</value>
+  </data>
+  <data name="Ikke oppgitt" xml:space="preserve">
+    <value>Not given</value>
+  </data>
+  <data name="Ikke valgt på kart" xml:space="preserve">
+    <value>Not chosen on the map</value>
+  </data>
+  <data name="Ingen" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Ingen aktive behov" xml:space="preserve">
+    <value>No active needs</value>
+  </data>
+  <data name="Ingen behov eller ressurser med posisjon er registrert ennå." xml:space="preserve">
+    <value>No needs or resources with a location have been registered yet.</value>
+  </data>
+  <data name="Ingen behov er registrert" xml:space="preserve">
+    <value>No needs have been registered</value>
+  </data>
+  <data name="Ingen beskrivelse" xml:space="preserve">
+    <value>No description</value>
+  </data>
+  <data name="Ingen lenker er laget ennå." xml:space="preserve">
+    <value>No links have been created yet.</value>
+  </data>
+  <data name="Ingen posisjon valgt ennå." xml:space="preserve">
+    <value>No location chosen yet.</value>
+  </data>
+  <data name="Ingen ressurser er registrert ennå" xml:space="preserve">
+    <value>No resources have been registered yet</value>
+  </data>
+  <data name="Ingen ressurser finnes innenfor valgt avstand." xml:space="preserve">
+    <value>No resources within the selected distance.</value>
+  </data>
+  <data name="Ingen ressurser i {0}" xml:space="preserve">
+    <value>No resources in {0}</value>
+  </data>
+  <data name="Ingen tilgjengelige ressurser matcher dette behovet." xml:space="preserve">
+    <value>No available resources match this need.</value>
+  </data>
+  <data name="Ingen ønskede ressurser akkurat nå" xml:space="preserve">
+    <value>No wanted resources right now</value>
+  </data>
+  <data name="Innenfor 10 km" xml:space="preserve">
+    <value>Within 10 km</value>
+  </data>
+  <data name="Innenfor 100 km" xml:space="preserve">
+    <value>Within 100 km</value>
+  </data>
+  <data name="Innenfor 25 km" xml:space="preserve">
+    <value>Within 25 km</value>
+  </data>
+  <data name="Innenfor 5 km" xml:space="preserve">
+    <value>Within 5 km</value>
+  </data>
+  <data name="Innenfor 50 km" xml:space="preserve">
+    <value>Within 50 km</value>
+  </data>
+  <data name="Invitasjon" xml:space="preserve">
+    <value>Invitation</value>
+  </data>
+  <data name="Invitasjonen er slettet." xml:space="preserve">
+    <value>The invitation has been deleted.</value>
+  </data>
+  <data name="Invitasjonslenker" xml:space="preserve">
+    <value>Invitation links</value>
+  </data>
+  <data name="JPG, PNG eller WebP, maks 5 MB. Hvis skjemaet vises på nytt med feil, må du velge bildet igjen." xml:space="preserve">
+    <value>JPG, PNG or WebP, max 5 MB. If the form is shown again with errors, you must choose the image again.</value>
+  </data>
+  <data name="Jeg kan stille med dette" xml:space="preserve">
+    <value>I can offer this</value>
+  </data>
+  <data name="Kan du kjøre den selv (ja/nei):" xml:space="preserve">
+    <value>Can you drive it yourself (yes/no):</value>
+  </data>
+  <data name="Kan ikke endre status fra «{0}» til «{1}»." xml:space="preserve">
+    <value>Cannot change the status from «{0}» to «{1}».</value>
+  </data>
+  <data name="Kan vente" xml:space="preserve">
+    <value>Can wait</value>
+  </data>
+  <data name="Kart" xml:space="preserve">
+    <value>Map</value>
+  </data>
+  <data name="Kart over behov og ressurser" xml:space="preserve">
+    <value>Map of needs and resources</value>
+  </data>
+  <data name="Kart som viser hvor behovet er" xml:space="preserve">
+    <value>Map showing where the need is</value>
+  </data>
+  <data name="Kart som viser posisjonen du valgte" xml:space="preserve">
+    <value>Map showing the location you chose</value>
+  </data>
+  <data name="Kart. Trykk for å velge posisjon." xml:space="preserve">
+    <value>Map. Tap to choose a location.</value>
+  </data>
+  <data name="Kommandobro" xml:space="preserve">
+    <value>Command centre</value>
+  </data>
+  <data name="Kommandobro-meny" xml:space="preserve">
+    <value>Command centre menu</value>
+  </data>
+  <data name="Kommune" xml:space="preserve">
+    <value>Municipality</value>
+  </data>
+  <data name="Kommune og Admin ser personopplysninger om andre. Du kan bli bedt om å slå på tofaktorinnlogging (2FA) før du får tilgang." xml:space="preserve">
+    <value>Municipality and Admin users see personal data about others. You may be asked to turn on two-factor authentication (2FA) before you get access.</value>
+  </data>
+  <data name="Kommunen har avvist behovet, for eksempel fordi det var meldt to ganger. Ta kontakt med kommunen hvis du fortsatt trenger hjelp." xml:space="preserve">
+    <value>The municipality has rejected the need, for example because it was reported twice. Contact the municipality if you still need help.</value>
+  </data>
+  <data name="Kommunen og kriseledelsen har akkurat nå" xml:space="preserve">
+    <value>Right now the municipality and the crisis management team have</value>
+  </data>
+  <data name="Kontakt" xml:space="preserve">
+    <value>Contact</value>
+  </data>
+  <data name="Koordinater" xml:space="preserve">
+    <value>Coordinates</value>
+  </data>
+  <data name="Kopier lenken og send den til personen, for eksempel på e-post." xml:space="preserve">
+    <value>Copy the link and send it to the person, for example by e-mail.</value>
+  </data>
+  <data name="Kriseledelsen bruker kommunen til å skrive ut ressurslister per område." xml:space="preserve">
+    <value>The crisis management team uses the municipality to print resource lists per area.</value>
+  </data>
+  <data name="Kriseledelsen kan koble den til et behov i nærheten." xml:space="preserve">
+    <value>The crisis management team can link it to a need nearby.</value>
+  </data>
+  <data name="Lag lenke" xml:space="preserve">
+    <value>Create link</value>
+  </data>
+  <data name="Lag ny lenke" xml:space="preserve">
+    <value>Create a new link</value>
+  </data>
+  <data name="Laget" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="Lagre endringer" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="Landskode" xml:space="preserve">
+    <value>Country code</value>
+  </data>
+  <data name="Lastebil" xml:space="preserve">
+    <value>Truck</value>
+  </data>
+  <data name="Ledig ressurs" xml:space="preserve">
+    <value>Available resource</value>
+  </data>
+  <data name="Legg til" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Lengdegrad *" xml:space="preserve">
+    <value>Longitude *</value>
+  </data>
+  <data name="Lengdegrad er påkrevd." xml:space="preserve">
+    <value>Longitude is required.</value>
+  </data>
+  <data name="Lengdegrad må være mellom -180 og 180." xml:space="preserve">
+    <value>Longitude must be between -180 and 180.</value>
+  </data>
+  <data name="Lenken gir rollen {0} og gjelder i {1}. Kopier den nå, den vises bare én gang." xml:space="preserve">
+    <value>The link gives the role {0} and is valid for {1}. Copy it now, it is only shown once.</value>
+  </data>
+  <data name="Logg inn eller lag en konto for å ta imot invitasjonen." xml:space="preserve">
+    <value>Log in or create an account to accept the invitation.</value>
+  </data>
+  <data name="Lokaler" xml:space="preserve">
+    <value>Premises</value>
+  </data>
+  <data name="Løst" xml:space="preserve">
+    <value>Resolved</value>
+  </data>
+  <data name="Mannskap/frivillige" xml:space="preserve">
+    <value>Crew/volunteers</value>
+  </data>
+  <data name="Marker som løst" xml:space="preserve">
+    <value>Mark as resolved</value>
+  </data>
+  <data name="Match:" xml:space="preserve">
+    <value>Match:</value>
+  </data>
+  <data name="Matchende ressurser" xml:space="preserve">
+    <value>Matching resources</value>
+  </data>
+  <data name="Meld et behov" xml:space="preserve">
+    <value>Report a need</value>
+  </data>
+  <data name="Meld et behov i ditt område, for eksempel transport, strøm eller evakuering." xml:space="preserve">
+    <value>Report a need in your area, for example transport, power or evacuation.</value>
+  </data>
+  <data name="Meld nytt behov" xml:space="preserve">
+    <value>Report a new need</value>
+  </data>
+  <data name="Meldt {0}" xml:space="preserve">
+    <value>Reported {0}</value>
+  </data>
+  <data name="Mengde (m3 eller tonn):" xml:space="preserve">
+    <value>Amount (m3 or tonnes):</value>
+  </data>
+  <data name="Modell og størrelse:" xml:space="preserve">
+    <value>Model and size:</value>
+  </data>
+  <data name="Modell:" xml:space="preserve">
+    <value>Model:</value>
+  </data>
+  <data name="Navn" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Navn:" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="Navnet kan ikke være lengre enn 100 tegn." xml:space="preserve">
+    <value>The name cannot be longer than 100 characters.</value>
+  </data>
+  <data name="Neste status" xml:space="preserve">
+    <value>Next status</value>
+  </data>
+  <data name="Norsk" xml:space="preserve">
+    <value>Norwegian</value>
+  </data>
+  <data name="Norsk tekst" xml:space="preserve">
+    <value>Norwegian text</value>
+  </data>
+  <data name="Nr." xml:space="preserve">
+    <value>No.</value>
+  </data>
+  <data name="Ny" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Ny lenke" xml:space="preserve">
+    <value>New link</value>
+  </data>
+  <data name="Nye behov som meldes inn, dukker opp her." xml:space="preserve">
+    <value>New needs that are reported show up here.</value>
+  </data>
+  <data name="Når du velger behovstype, fyller vi inn noen spørsmål du kan svare på. Du kan endre teksten fritt." xml:space="preserve">
+    <value>When you choose a type of need, we fill in a few questions you can answer. You can change the text freely.</value>
+  </data>
+  <data name="Når du velger type, fyller vi inn et forslag du kan endre." xml:space="preserve">
+    <value>When you choose a type, we fill in a suggestion you can change.</value>
+  </data>
+  <data name="Når og hvordan kan vi nå deg?" xml:space="preserve">
+    <value>When and how can we reach you?</value>
+  </data>
+  <data name="Når trengs det:" xml:space="preserve">
+    <value>When is it needed:</value>
+  </data>
+  <data name="Nåværende bilde" xml:space="preserve">
+    <value>Current image</value>
+  </data>
+  <data name="Nåværende bilde av ressursen: {0}" xml:space="preserve">
+    <value>Current image of the resource: {0}</value>
+  </data>
+  <data name="Nærmeste ressurs vises først. Avstanden er luftlinje, ikke kjøreavstand." xml:space="preserve">
+    <value>The nearest resource is shown first. The distance is a straight line, not driving distance.</value>
+  </data>
+  <data name="Om endringene" xml:space="preserve">
+    <value>About the changes</value>
+  </data>
+  <data name="Område:" xml:space="preserve">
+    <value>Area:</value>
+  </data>
+  <data name="Omtrent hvor mye effekt (kW), hvis du vet:" xml:space="preserve">
+    <value>Roughly how much power (kW), if you know:</value>
+  </data>
+  <data name="Oppgi telefon eller e-post, minst én av dem." xml:space="preserve">
+    <value>Enter a phone number or an e-mail address, at least one of them.</value>
+  </data>
+  <data name="Oransje farevarsel: kraftig vind" xml:space="preserve">
+    <value>Orange warning: strong wind</value>
+  </data>
+  <data name="Pek ut stedet på kartet" xml:space="preserve">
+    <value>Point out the place on the map</value>
+  </data>
+  <data name="Planlagt" xml:space="preserve">
+    <value>Planned</value>
+  </data>
+  <data name="Planlagt behov" xml:space="preserve">
+    <value>Planned need</value>
+  </data>
+  <data name="Posisjon" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Posisjon er påkrevd." xml:space="preserve">
+    <value>Location is required.</value>
+  </data>
+  <data name="Posisjon:" xml:space="preserve">
+    <value>Location:</value>
+  </data>
+  <data name="Posisjonen kan ikke være lengre enn 200 tegn." xml:space="preserve">
+    <value>The location cannot be longer than 200 characters.</value>
+  </data>
+  <data name="Prioritet" xml:space="preserve">
+    <value>Priority</value>
+  </data>
+  <data name="Prioritet:" xml:space="preserve">
+    <value>Priority:</value>
+  </data>
+  <data name="Registrer en til" xml:space="preserve">
+    <value>Register another</value>
+  </data>
+  <data name="Registrer utstyr, kjøretøy, lokaler eller innsats du kan stille til rådighet." xml:space="preserve">
+    <value>Register equipment, vehicles, premises or effort you can make available.</value>
+  </data>
+  <data name="Registrert" xml:space="preserve">
+    <value>Registered</value>
+  </data>
+  <data name="Registrerte ressurser" xml:space="preserve">
+    <value>Registered resources</value>
+  </data>
+  <data name="Rekkevidde og flytid:" xml:space="preserve">
+    <value>Range and flight time:</value>
+  </data>
+  <data name="Rekkevidde:" xml:space="preserve">
+    <value>Range:</value>
+  </data>
+  <data name="Ressurs" xml:space="preserve">
+    <value>Resource</value>
+  </data>
+  <data name="Ressurs på kartet" xml:space="preserve">
+    <value>Resource on the map</value>
+  </data>
+  <data name="Ressursen er ikke lenger tilgjengelig." xml:space="preserve">
+    <value>The resource is no longer available.</value>
+  </data>
+  <data name="Ressursen er slettet." xml:space="preserve">
+    <value>The resource has been deleted.</value>
+  </data>
+  <data name="Ressursen er tildelt behovet." xml:space="preserve">
+    <value>The resource has been assigned to the need.</value>
+  </data>
+  <data name="Ressursen er tildelt et behov akkurat nå og kan ikke slettes. Kontakt kommunen hvis den ikke lenger er tilgjengelig." xml:space="preserve">
+    <value>The resource is assigned to a need right now and cannot be deleted. Contact the municipality if it is no longer available.</value>
+  </data>
+  <data name="Ressursen får status «Tilgjengelig»." xml:space="preserve">
+    <value>The resource gets the status «Available».</value>
+  </data>
+  <data name="Ressursen har vært brukt i en tildeling og må bli liggende i historikken. Du kan fortsatt endre den." xml:space="preserve">
+    <value>The resource has been used in an assignment and must stay in the history. You can still edit it.</value>
+  </data>
+  <data name="Ressursen passer ikke til dette behovet." xml:space="preserve">
+    <value>The resource does not fit this need.</value>
+  </data>
+  <data name="Ressursen som var tildelt, er tilgjengelig igjen." xml:space="preserve">
+    <value>The resource that was assigned is available again.</value>
+  </data>
+  <data name="Ressurser på kartet" xml:space="preserve">
+    <value>Resources on the map</value>
+  </data>
+  <data name="Ressurstypen «{0}» passer til behovstypen «{1}»." xml:space="preserve">
+    <value>The resource type «{0}» fits the need type «{1}».</value>
+  </data>
+  <data name="Rett opp det som har endret seg. Type, kommune og posisjon må fylles ut, resten er valgfritt." xml:space="preserve">
+    <value>Correct whatever has changed. Type, municipality and location are required, the rest is optional.</value>
+  </data>
+  <data name="Ring først. BeredskapsPortalen er ikke en nødtjeneste, og du får ikke svar umiddelbart." xml:space="preserve">
+    <value>Call first. BeredskapsPortalen is not an emergency service, and you will not get an answer immediately.</value>
+  </data>
+  <data name="Sambandsutstyr" xml:space="preserve">
+    <value>Communication equipment</value>
+  </data>
+  <data name="Sammendrag" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Sand/grus" xml:space="preserve">
+    <value>Sand/gravel</value>
+  </data>
+  <data name="Se alle ressurser" xml:space="preserve">
+    <value>See all resources</value>
+  </data>
+  <data name="Se om du kan stille med noe." xml:space="preserve">
+    <value>See if you can offer something.</value>
+  </data>
+  <data name="Se ønskede ressurser" xml:space="preserve">
+    <value>See wanted resources</value>
+  </data>
+  <data name="Send en lenke til en ny kommuneansatt eller administrator. Den som åpner lenken og er logget inn, får rollen. Lenken kan brukes én gang." xml:space="preserve">
+    <value>Send a link to a new municipal employee or administrator. Whoever opens the link while logged in gets the role. The link can be used once.</value>
+  </data>
+  <data name="Send inn" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="Siden finnes ikke" xml:space="preserve">
+    <value>Page not found</value>
+  </data>
+  <data name="Sjekk at dette er riktig ressurs. Slettingen kan ikke angres." xml:space="preserve">
+    <value>Check that this is the right resource. Deleting cannot be undone.</value>
+  </data>
+  <data name="Skogsmaskin" xml:space="preserve">
+    <value>Forestry machine</value>
+  </data>
+  <data name="Skriv telefonnummeret uten landskode, bare tall." xml:space="preserve">
+    <value>Write the phone number without the country code, digits only.</value>
+  </data>
+  <data name="Skriv ut" xml:space="preserve">
+    <value>Print</value>
+  </data>
+  <data name="Skriv ut ressursliste per kommune" xml:space="preserve">
+    <value>Print resource list per municipality</value>
+  </data>
+  <data name="Slett ressursen" xml:space="preserve">
+    <value>Delete the resource</value>
+  </data>
+  <data name="Slett {0}, {1}" xml:space="preserve">
+    <value>Delete {0}, {1}</value>
+  </data>
+  <data name="Snøskuter" xml:space="preserve">
+    <value>Snowmobile</value>
+  </data>
+  <data name="Start vurdering" xml:space="preserve">
+    <value>Start review</value>
+  </data>
+  <data name="Status:" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="Statusen («{0}») endres ikke her. Den styres av tildelingen." xml:space="preserve">
+    <value>The status («{0}») is not changed here. It is controlled by the assignment.</value>
+  </data>
+  <data name="Sted" xml:space="preserve">
+    <value>Place</value>
+  </data>
+  <data name="Stedet kan ikke være lengre enn 100 tegn." xml:space="preserve">
+    <value>The place cannot be longer than 100 characters.</value>
+  </data>
+  <data name="Strøm og vann (ja/nei):" xml:space="preserve">
+    <value>Power and water (yes/no):</value>
+  </data>
+  <data name="Strøm til omsorgsbolig" xml:space="preserve">
+    <value>Power for a care home</value>
+  </data>
+  <data name="Ta imot rollen" xml:space="preserve">
+    <value>Accept the role</value>
+  </data>
+  <data name="Takk, ressursen er registrert" xml:space="preserve">
+    <value>Thank you, the resource is registered</value>
+  </data>
+  <data name="Telefon" xml:space="preserve">
+    <value>Phone</value>
+  </data>
+  <data name="Tidspunkt kan ikke ligge i fortiden." xml:space="preserve">
+    <value>The time cannot be in the past.</value>
+  </data>
+  <data name="Til behovskøen" xml:space="preserve">
+    <value>To the needs queue</value>
+  </data>
+  <data name="Tilbake" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Tilbake til brukere" xml:space="preserve">
+    <value>Back to users</value>
+  </data>
+  <data name="Tilbake til tildeling" xml:space="preserve">
+    <value>Back to assignment</value>
+  </data>
+  <data name="Tildel ressurs" xml:space="preserve">
+    <value>Assign resource</value>
+  </data>
+  <data name="Tildel ressurser" xml:space="preserve">
+    <value>Assign resources</value>
+  </data>
+  <data name="Tildeling og matching" xml:space="preserve">
+    <value>Assignment and matching</value>
+  </data>
+  <data name="Tildelt" xml:space="preserve">
+    <value>Assigned</value>
+  </data>
+  <data name="Tildelt ressurs" xml:space="preserve">
+    <value>Assigned resource</value>
+  </data>
+  <data name="Tilgang for rullestol (ja/nei):" xml:space="preserve">
+    <value>Wheelchair access (yes/no):</value>
+  </data>
+  <data name="Tilgjengelig" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="Tilgjengelig fra" xml:space="preserve">
+    <value>Available from</value>
+  </data>
+  <data name="Tilstand:" xml:space="preserve">
+    <value>Condition:</value>
+  </data>
+  <data name="Traktor" xml:space="preserve">
+    <value>Tractor</value>
+  </data>
+  <data name="Transport" xml:space="preserve">
+    <value>Transport</value>
+  </data>
+  <data name="Trekk tilbake" xml:space="preserve">
+    <value>Withdraw</value>
+  </data>
+  <data name="Trenger du hjelp, eller kan du bidra? Velg riktig spor." xml:space="preserve">
+    <value>Do you need help, or can you contribute? Choose the right path.</value>
+  </data>
+  <data name="Trenger du ikke hjelpen lenger? Da kan kommunen bruke tiden på andre." xml:space="preserve">
+    <value>No longer need help? Then the municipality can spend its time on others.</value>
+  </data>
+  <data name="Trenger du selv hjelp?" xml:space="preserve">
+    <value>Do you need help yourself?</value>
+  </data>
+  <data name="Trenger hjelp nå" xml:space="preserve">
+    <value>Needs help now</value>
+  </data>
+  <data name="Trenger noen spesiell hjelp (rullestol, medisiner):" xml:space="preserve">
+    <value>Does anyone need special help (wheelchair, medicines):</value>
+  </data>
+  <data name="Trukket tilbake" xml:space="preserve">
+    <value>Withdrawn</value>
+  </data>
+  <data name="Trykk på en prikk for å se detaljer og gå videre til tildeling." xml:space="preserve">
+    <value>Tap a dot to see details and go on to assignment.</value>
+  </data>
+  <data name="Trykk på kartet for å sette en nål. Du kan dra nålen for å justere." xml:space="preserve">
+    <value>Tap the map to place a pin. You can drag the pin to adjust it.</value>
+  </data>
+  <data name="Trykk på kartet, bruk posisjonen din, eller skriv inn koordinatene under." xml:space="preserve">
+    <value>Tap the map, use your location, or enter the coordinates below.</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Type og lengde:" xml:space="preserve">
+    <value>Type and length:</value>
+  </data>
+  <data name="Type utstyr:" xml:space="preserve">
+    <value>Type of equipment:</value>
+  </data>
+  <data name="Type:" xml:space="preserve">
+    <value>Type:</value>
+  </data>
+  <data name="Ugyldig e-postadresse." xml:space="preserve">
+    <value>Invalid e-mail address.</value>
+  </data>
+  <data name="Under vurdering" xml:space="preserve">
+    <value>Under review</value>
+  </data>
+  <data name="Utløpt" xml:space="preserve">
+    <value>Expired</value>
+  </data>
+  <data name="Velg behovstype." xml:space="preserve">
+    <value>Choose a type of need.</value>
+  </data>
+  <data name="Velg en kommune fra listen." xml:space="preserve">
+    <value>Choose a municipality from the list.</value>
+  </data>
+  <data name="Velg en landskode fra listen." xml:space="preserve">
+    <value>Choose a country code from the list.</value>
+  </data>
+  <data name="Velg en ressurs som passer til behovet." xml:space="preserve">
+    <value>Choose a resource that fits the need.</value>
+  </data>
+  <data name="Velg et annet fylke eller en annen kommune, eller vis hele landet." xml:space="preserve">
+    <value>Choose another county or municipality, or show the whole country.</value>
+  </data>
+  <data name="Velg et behov for å finne tilgjengelige ressurser som passer." xml:space="preserve">
+    <value>Choose a need to find available resources that fit.</value>
+  </data>
+  <data name="Velg fylke eller kommune, og skriv ut listen eller lagre den som PDF. Listen viser alle registrerte ressurser, også de som er tildelt." xml:space="preserve">
+    <value>Choose a county or municipality, and print the list or save it as PDF. The list shows all registered resources, including assigned ones.</value>
+  </data>
+  <data name="Velg kommune" xml:space="preserve">
+    <value>Choose municipality</value>
+  </data>
+  <data name="Velg kommunen ressursen står i." xml:space="preserve">
+    <value>Choose the municipality the resource is in.</value>
+  </data>
+  <data name="Velg prioritet." xml:space="preserve">
+    <value>Choose a priority.</value>
+  </data>
+  <data name="Verdien er ikke gyldig for {0}." xml:space="preserve">
+    <value>The value is not valid for {0}.</value>
+  </data>
+  <data name="Verdien er ikke gyldig." xml:space="preserve">
+    <value>The value is not valid.</value>
+  </data>
+  <data name="Vi fant ikke siden du lette etter. Den kan være flyttet, eller lenken kan være feil." xml:space="preserve">
+    <value>We could not find the page you were looking for. It may have moved, or the link may be wrong.</value>
+  </data>
+  <data name="Vil du trekke tilbake dette behovet? Kommunen slutter da å behandle det." xml:space="preserve">
+    <value>Do you want to withdraw this need? The municipality will then stop handling it.</value>
+  </data>
+  <data name="Vis hele landet" xml:space="preserve">
+    <value>Show the whole country</value>
+  </data>
+  <data name="Vis liste" xml:space="preserve">
+    <value>Show list</value>
+  </data>
+  <data name="Viser alle registrerte punkter. Velg en avstand og klikk på kartet for å filtrere." xml:space="preserve">
+    <value>Showing all registered points. Choose a distance and click the map to filter.</value>
+  </data>
+  <data name="{0} dager" xml:space="preserve">
+    <value>{0} days</value>
+  </data>
+  <data name="{0} må være et tall." xml:space="preserve">
+    <value>{0} must be a number.</value>
+  </data>
+  <data name="{0} ressurser som var tildelt, er tilgjengelige igjen." xml:space="preserve">
+    <value>{0} resources that were assigned are available again.</value>
+  </data>
+  <data name="«{0}» er ikke en gyldig verdi for {1}." xml:space="preserve">
+    <value>«{0}» is not a valid value for {1}.</value>
+  </data>
+  <data name="«{0}» er ikke en gyldig verdi." xml:space="preserve">
+    <value>«{0}» is not a valid value.</value>
+  </data>
+  <data name="Åpne behovskø" xml:space="preserve">
+    <value>Open needs queue</value>
+  </data>
+  <data name="Ønsket ressurs er fjernet." xml:space="preserve">
+    <value>The wanted resource has been removed.</value>
+  </data>
+  <data name="Ønsket ressurs er lagt til." xml:space="preserve">
+    <value>The wanted resource has been added.</value>
+  </data>
+  <data name="ønske" xml:space="preserve">
+    <value>request</value>
+  </data>
+  <data name="ønsker" xml:space="preserve">
+    <value>requests</value>
+  </data>
+  <data name="Frivillig" xml:space="preserve">
+    <value>Volunteer</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="Avstand ukjent" xml:space="preserve">
+    <value>Distance unknown</value>
+  </data>
+  <data name="Behov #{0}" xml:space="preserve">
+    <value>Need #{0}</value>
+  </data>
+  <data name="Kartet kunne ikke lastes. Fyll ut feltene i stedet." xml:space="preserve">
+    <value>The map could not be loaded. Fill in the fields instead.</value>
+  </data>
+  <data name="Valgt posisjon: {0}, {1}" xml:space="preserve">
+    <value>Selected location: {0}, {1}</value>
+  </data>
+  <data name="Valgt på kart ({0}, {1})" xml:space="preserve">
+    <value>Chosen on map ({0}, {1})</value>
+  </data>
+  <data name="Nettleseren din støtter ikke posisjon. Trykk på kartet i stedet." xml:space="preserve">
+    <value>Your browser does not support location. Tap the map instead.</value>
+  </data>
+  <data name="Henter posisjonen din ..." xml:space="preserve">
+    <value>Getting your location ...</value>
+  </data>
+  <data name="Fikk ikke tilgang til posisjonen din. Trykk på kartet i stedet." xml:space="preserve">
+    <value>Could not access your location. Tap the map instead.</value>
+  </data>
+  <data name="1 punkt" xml:space="preserve">
+    <value>1 point</value>
+  </data>
+  <data name="{0} punkter" xml:space="preserve">
+    <value>{0} points</value>
+  </data>
+  <data name="Klikk på kartet for å velge utgangspunkt. Viser alle {0} så lenge." xml:space="preserve">
+    <value>Click the map to choose a starting point. Showing all {0} until then.</value>
+  </data>
+  <data name="Viser alle {0}." xml:space="preserve">
+    <value>Showing all {0}.</value>
+  </data>
+  <data name="Viser {0} innenfor {1} km." xml:space="preserve">
+    <value>Showing {0} within {1} km.</value>
+  </data>
+  <data name="Valgt utgangspunkt" xml:space="preserve">
+    <value>Selected starting point</value>
+  </data>
+  <data name="Bildet er for stort. Maks størrelse er 5 MB." xml:space="preserve">
+    <value>The image is too large. The maximum size is 5 MB.</value>
+  </data>
+  <data name="Filen er ikke et bilde." xml:space="preserve">
+    <value>The file is not an image.</value>
+  </data>
+  <data name="Invitasjonen finnes ikke. Sjekk at du har kopiert hele lenken." xml:space="preserve">
+    <value>The invitation does not exist. Check that you copied the whole link.</value>
+  </data>
+  <data name="Invitasjonen er allerede brukt. Be administrator om en ny lenke." xml:space="preserve">
+    <value>The invitation has already been used. Ask an administrator for a new link.</value>
+  </data>
+  <data name="Invitasjonen har gått ut. Be administrator om en ny lenke." xml:space="preserve">
+    <value>The invitation has expired. Ask an administrator for a new link.</value>
+  </data>
+  <data name="Du er administrator og kan ikke bruke en invitasjon." xml:space="preserve">
+    <value>You are an administrator and cannot use an invitation.</value>
+  </data>
+  <data name="Du har allerede denne rollen." xml:space="preserve">
+    <value>You already have this role.</value>
+  </data>
+  <data name="Bildet må være JPG, PNG eller WebP." xml:space="preserve">
+    <value>The image must be JPG, PNG or WebP.</value>
+  </data>
+  <data name="Filen ser ikke ut som et ekte bilde." xml:space="preserve">
+    <value>The file does not look like a real image.</value>
+  </data>
+  <data name="Kommune ikke oppgitt" xml:space="preserve">
+    <value>Municipality not given</value>
+  </data>
+  <data name="1 ressurs" xml:space="preserve">
+    <value>1 resource</value>
+  </data>
+  <data name="{0} ressurser" xml:space="preserve">
+    <value>{0} resources</value>
+  </data>
+  <data name="fordelt på" xml:space="preserve">
+    <value>in</value>
+  </data>
+  <data name="1 kommune." xml:space="preserve">
+    <value>1 municipality.</value>
+  </data>
+  <data name="{0} kommuner." xml:space="preserve">
+    <value>{0} municipalities.</value>
+  </data>
+  <data name="Ingen ledig ressurs som passer" xml:space="preserve">
+    <value>No available resource that fits</value>
+  </data>
+  <data name="Nærmeste ressurs: {0}, {1} km unna" xml:space="preserve">
+    <value>Nearest resource: {0}, {1} km away</value>
+  </data>
+  <data name="Fra" xml:space="preserve">
+    <value>From</value>
+  </data>
+</root>

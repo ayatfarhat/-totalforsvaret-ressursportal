@@ -8,6 +8,16 @@ BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utvi
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 
+### Hovedfunksjoner
+
+- **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
+- **Behov:** innbyggere melder behov med type, hast, posisjon og kontaktinfo. Beskrivelsen får forslag etter type. Behovet kan endres og trekkes tilbake så lenge det ikke er tildelt, og statusen følges under «Mine behov».
+- **Behovskø og statusflyt:** Kommune og Admin ser akutte behov først og flytter dem gjennom Ny → Under vurdering → Tildelt → Løst (eller Avvist). Reglene ligger i `Models/BehovStatusflyt.cs`.
+- **Tildeling og matching:** løsningen foreslår ressurser som passer til behovstypen. Når et behov markeres som løst, blir ressursene ledige igjen.
+- **Ressursliste per kommune:** Kommune og Admin kan filtrere på fylke eller kommune og skrive ut listen (eller lagre som PDF).
+- **Ønskede ressurser:** kriseledelsen legger ut hva de trenger, og frivillige kan registrere en ressurs rett fra ønsket.
+- **Kommandobro:** kart og tall over aktive behov og ressurser for kriseledelsen.
+
 ## Gruppemedlemmer og Roller
 
 | Ansvarsområde | Gruppemedlem |
@@ -34,7 +44,7 @@ Applikasjonen kan kjøres på to måter:
 
 Docker Desktop må være startet før du kjører `docker compose`.
 
-Begge bruker den samme MariaDB-databasen for brukere og behov. Ressurser lagres foreløpig bare i minnet, så de forsvinner når applikasjonen startes på nytt og deles ikke mellom de to kjøremåtene. Kjør bare én av dem om gangen.
+Begge bruker den samme MariaDB-databasen for brukere, behov, ressurser, tildelinger og ønskede ressurser. Bilder av ressurser lagres som filer i `wwwroot/uploads/ressurser/`. Kjør bare én av kjøremåtene om gangen.
 
 ### Starte applikasjonen med Docker
 
@@ -66,19 +76,15 @@ docker compose down -v
 
 ### Testbrukere
 
-Ved oppstart opprettes tre testbrukere:
+Når appen kjører i utviklingsmodus (`Development`, som Docker og `dotnet run` bruker), opprettes tre testbrukere ved oppstart. De lages ikke i produksjon, fordi passordene står her:
 
 | E-post | Passord | Rolle |
 |---|---|---|
 | admin@test.no | Admin123! | Admin |
 | kommune@test.no | Kommune123! | Kommune |
 | privatperson@test.no | Privat123! | Frivillig |
-<!-- | operator@test.no | Operator123! | Operator |
-| public@test.no | Public123! | PublicActor |
 
-Rollene `Operator` og `PublicActor` kommer fra en tidligere versjon av databaseoppsettet og er ikke lenger i bruk noe sted i applikasjonen – de er kun beholdt som testbrukere inntil videre. All tilgangsstyring i appen (innlogging, Kommandobro, kartet, Behov) bruker `Admin`, `Kommune` og `Frivillig`. -->
-
-Tilgangsstyringen i appen bruker rollene `Admin`, `Kommune` og `Frivillig`. Rollene `Operator` og `PublicActor` fra en tidligere versjon av databaseoppsettet er fjernet.
+Tilgangsstyringen i appen bruker rollene `Admin`, `Kommune` og `Frivillig`.
 
 ### Docker-oppsett
 
@@ -128,28 +134,69 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 
 | Funksjon | Controller | Views | Model / ViewModel |
 |---|---|---|---|
-| Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel` |
-| Ressurser | `RessursController` | `Views/Ressurs/` | `RessursFormViewModel` |
-| Behov | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel` |
+| Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel`, `EndrePassordViewModel`, `SlettKontoViewModel` |
+| Brukeradministrasjon | `AdminController` | `Views/Admin/` | `AdminBrukerViewModel` |
+| Ressurser (registrere, endre, slette, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursUtskriftViewModel`, `Kommuner` |
+| Ønskede ressurser | `OnsketRessursController` | `Views/OnsketRessurs/` | `OnsketRessurs` |
+| Behov (melde, endre, trekke tilbake, kø) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovStatusflyt` |
 | Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
-| Forside | `HomeController` | `Views/Home/` | `HomeViewModel` |
+| Forside, personvern og språkvalg | `HomeController` | `Views/Home/` | – |
+
+`Models/` inneholder det som lagres i databasen (`Behov`, `Ressurs`, `Tildeling`, `OnsketRessurs`) og regler som hører til dem (`BehovStatusflyt`, `Kommuner`, `Visningstekst`). `ViewModels/` inneholder klassene som bare brukes til å vise sider og ta imot skjemaer, slik at brukeren aldri sender inn felt som eier, status eller ID direkte til databasen.
 
 Database-tilgangen går gjennom `ApplicationDbContext` i `Data/`, sammen med `SeedData.cs` (testbrukere) og `RoleInitializer.cs` (roller). Selve databasestrukturen styres av migrasjonsfilene i `Migrations/`.
 
+Kode som brukes av flere controllere, ligger i `Services/`:
+
+| Fil | Hva den gjør |
+|---|---|
+| `Tilgang.cs` | Én regel for hvem som er ansatt (Admin/Kommune, med 2FA når det kreves). Brukes av policyene, controllerne og sidene. |
+| `Avstandsberegning.cs` | Luftlinjeavstand mellom behov og ressurs (Haversine-formelen). |
+| `KontoService.cs` | Sletter en konto med data, og lager «Last ned mine data» (GDPR). |
+| `Ressursbilder.cs` | Sjekker, lagrer, finner og sletter bildene til ressursene (`wwwroot/uploads/ressurser`). Brukes av RessursController og KontoService. |
+| `PersonvernOpprydding.cs` | Fjerner kontaktinfo fra gamle, avsluttede behov ved oppstart (GDPR). |
+| `Ressursmatching.cs` | Hvilke ressurstyper som passer til hvilke behov, og nærmeste ledige ressurs. Brukes av tildelingen og Kommandobro-kartet. |
+| `Invitasjonsregler.cs` | Lager og sjekker invitasjonslenker som gir rollen Kommune eller Admin. |
+| `Sikkerhet.cs` | Sikkerhetshoder og fartsgrense for innlogging (se «Sikkerhetstiltak» under). |
+| `Oversetter.cs` | Gir tekst på valgt språk i kode som ikke har `T["..."]`, for eksempel modeller og tjenester. |
+
+### Filene på toppnivå
+
+| Fil/mappe | Hvorfor den trengs |
+|---|---|
+| `.github/` | GitHub Actions bygger og tester koden ved hver pull request. |
+| `.dockerignore` | Hindrer at `bin/`, `obj/` og opplastede bilder kopieres inn i Docker-bildet. |
+| `.gitignore` | Hindrer at byggefiler og lokale innstillinger havner på GitHub. |
+| `Controllers/`, `Models/`, `ViewModels/`, `Views/` | MVC-delene av appen. |
+| `Data/`, `Migrations/` | Databasen: oppsett, testbrukere, roller og migrasjoner. |
+| `Services/` | Kode som brukes av flere controllere (se over). |
+| `Resources/` | Engelske tekster for språkvalget. |
+| `SharedResource.cs` | Tom klasse som gir oversettelsene et navn. Må ligge utenfor `Resources/`, ellers finner ikke appen de engelske tekstene. |
+| `Nabohjelp.Tests/` | Enhetstestene. |
+| `wwwroot/` | CSS, JavaScript, skrifter, ikoner og bibliotekene Bootstrap og jQuery (bare filene som brukes). |
+| `Properties/launchSettings.json` | Port og miljø når appen startes med `dotnet run`. |
+| `appsettings.json`, `appsettings.Development.json` | Innstillinger, og egne innstillinger under utvikling (for eksempel at 2FA ikke kreves). |
+| `Dockerfile`, `docker-compose.yml` | Bygger og starter appen og MariaDB i Docker. |
+| `Nabohjelp.csproj`, `Nabohjelp.slnx` | Prosjektfilen, og løsningsfilen som åpner appen og testene sammen i Visual Studio/Rider. |
+| `Program.cs` | Starter appen og setter opp database, innlogging, roller og språk. |
+
 ## Kartfunksjonalitet
 
-Kartet viser en sanntidsoversikt over alle registrerte ressurser og behov, direkte på Kommandobro-siden. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
+Kartet viser en oversikt over registrerte ressurser og aktive behov, direkte på Kommandobro-siden. Det oppdateres når siden lastes på nytt. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
 
 Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for brukere med rollen `Admin` eller `Kommune`, på samme måte som resten av Kommandobro.
 
 ### Hvordan kartfunksjonen fungerer
 
 1. Brukeren logger inn som `Admin` eller `Kommune` og åpner Kommandobro.
-2. `KommandobroController` henter ressurser med registrert posisjon fra en midlertidig liste i minnet, og behov fra databasen.
+2. `KommandobroController` henter ressurser med registrert posisjon og aktive behov (ikke løst, avvist eller trukket tilbake) fra databasen.
 3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
-4. Ressurser vises som grønne punkter, behov som røde punkter.
-5. Brukeren kan klikke på et punkt for å se hva det gjelder.
+4. Fargen viser hva punktet er: rødt er et akutt behov, gult et planlagt behov, grønt en ledig ressurs og grått en ressurs som er tildelt.
+5. Et klikk på et punkt åpner en boks med alt om det. Øverst står typen og fargede merker for prioritet og status, og under det når behovet ble meldt (eller kommune og adresse for en ressurs). Beskrivelsen står i en egen grå boks, og telefon og e-post er lenker man kan ringe eller skrive til.
+   - **Behov:** nederst står nærmeste ledige ressurs som passer, med avstand i luftlinje (`Services/Ressursmatching.cs`), i en grønn boks. Knappene «Finn ressurs» og «Endre» går rett til tildeling og redigering.
+   - **Ressurs:** tilgjengelig fra, navn og telefon, med knappen «Endre».
+6. Avstandsfilteret over kartet viser bare punktene innenfor valgt avstand fra et sted man klikker på.
 
 Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.
 
@@ -168,7 +215,146 @@ Navigasjonsmenyen tilpasser seg størrelsen på skjermen. På mindre skjermer vi
 
 Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det tilpasser seg forskjellige skjermstørrelser.
 
+## Innlogging, roller, personvern og språk
+
+Ansvarlig: Hassan.
+
+### Tilgang for de ulike brukerrollene
+
+| Rolle | Hvem | Tilgang |
+|---|---|---|
+| Frivillig | Alle nye brukere | Melde behov, registrere ressurser, se og endre sine egne registreringer |
+| Kommune | Beredskapsansatte | I tillegg: Kommandobro, behovskø, tildeling, ressursliste per kommune, ønskede ressurser |
+| Admin | Systemansvarlig | I tillegg: brukeradministrasjon (`/Admin`) |
+
+Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.cs`. Controllerne bruker `[Authorize(Policy = "Ansatt")]` i stedet for å gjenta rollene. Brukeradministrasjonen bruker policyen `Admin`.
+
+### Autentisering for ulike brukergrupper
+
+- **Frivillige:** e-post og passord. 2FA er frivillig, så terskelen for å hjelpe blir lav.
+- **Kommune og Admin:** ser personopplysninger om andre, så de kan kreves å logge inn med 2FA. Det styres med `Sikkerhet:KrevTofaForAnsatte` i `appsettings.json`. Innstillingen er `true` i produksjon og `false` i utvikling (`appsettings.Development.json`), så testbrukerne kan brukes uten autentiseringsapp. Når kravet er på, sjekker policyen at innloggingen har merket `amr = mfa`, som Identity legger til når brukeren har brukt 2FA.
+- **Felles for alle:** passord lagres som hash, kontoen låses i 5 minutter etter 5 feil passord, innloggings-cookien er `HttpOnly`, og alle skjemaer har `[ValidateAntiForgeryToken]`.
+- Rolleendringer og låsing gjelder innen ett minutt, fordi innloggingen sjekkes mot databasen hvert minutt (`SecurityStampValidatorOptions` i `Program.cs`).
+
+### Sikkerhetstiltak
+
+| Trussel | Tiltak | Hvor i koden |
+|---|---|---|
+| Gjetting av passord | Kontoen låses i 5 minutter etter 5 feil passord. Maks 10 forsøk per minutt per IP-adresse på innlogging, registrering og invitasjoner (feilkode 429) | `Program.cs`, `Services/Sikkerhet.cs` |
+| Svake passord | Minst 8 tegn med stor og liten bokstav, tall og spesialtegn, både i skjemaene og i Identity | `RegisterViewModel`, `Program.cs` |
+| Stjålet passord | 2FA med autentiseringsapp. Kan kreves for Kommune og Admin (`Sikkerhet:KrevTofaForAnsatte`) | `AccountController`, `Services/Tilgang.cs` |
+| Tilgang til andres data | Policyene `Ansatt` og `Admin`, og sjekk av eier før endring og sletting | Controllerne, `Services/Tilgang.cs` |
+| Falske skjemaer fra andre nettsider (CSRF) | `[ValidateAntiForgeryToken]` på alle POST-handlinger, og cookies med `SameSite` | Controllerne, `Program.cs` |
+| Skript i tekst brukere skriver (XSS) | Razor gjør om all tekst til trygg HTML. Content-Security-Policy bestemmer hvor skript kan hentes fra | Sidene, `Services/Sikkerhet.cs` |
+| Siden vist inne i en falsk nettside (clickjacking) | `X-Frame-Options: DENY` og `frame-ancestors 'none'` | `Services/Sikkerhet.cs` |
+| Farlige filer lastet opp som bilder | Sjekk av filtype, størrelse (maks 5 MB) og de første bytene i filen. Filnavnet lages av appen | `Services/Ressursbilder.cs` |
+| Videresending til falske nettsider etter innlogging | Bare adresser på egen side godtas (`Url.IsLocalUrl`) | `AccountController`, `HomeController` |
+| Misbruk av invitasjonslenker | Tilfeldig kode på 32 byte, lagret som SHA-256, kan brukes én gang og går ut | `Services/Invitasjonsregler.cs` |
+| Informasjon om serveren | Svarhodet `Server` er fjernet, og feilsider viser ingen detaljer i drift | `Program.cs` |
+
+Tiltakene testes av enhetstestene og systemtestene (se «Testing»).
+
+### Administrasjon av brukerkontoer
+
+**Admin (`/Admin`, menyvalget «Brukere»):**
+- Se alle brukere med rolle, 2FA-status og om kontoen er låst. Søk på e-post.
+- Endre rolle (Frivillig, Kommune eller Admin).
+- Låse og låse opp kontoer.
+- Nullstille 2FA for brukere som har mistet telefonen.
+- Slette brukere med tilhørende behov og ressurser.
+- Lage invitasjonslenker (`/Admin/Invitasjoner`) som gir rollen Kommune eller Admin. Lenken gjelder i 1, 3 eller 7 dager og kan brukes én gang. Den som åpner lenken, logger inn eller lager konto og trykker «Ta imot rollen». Databasen lagrer bare et fingeravtrykk (SHA-256) av koden, så lenken vises bare én gang for admin.
+
+Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den siste administratoren ikke kan låse seg selv ute.
+
+**Alle brukere (Min konto):**
+- Endre passord (krever nåværende passord).
+- Slå 2FA på og av.
+- Laste ned egne data og slette kontoen.
+
+### Personvern og GDPR
+
+| Krav i GDPR | Slik er det løst |
+|---|---|
+| Informasjon om behandlingen | Personvernerklæring på `/Home/Personvern`, lenket fra bunnen av alle sider |
+| Samtykke | Avkrysning for personvernerklæringen ved registrering |
+| Rett til innsyn og dataportabilitet | «Last ned mine data» på Min konto gir en JSON-fil med alt som er lagret om brukeren |
+| Rett til sletting | «Slett konto» sletter kontoen, behovene, ressursene og bildene |
+| Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager` |
+| Tilgangskontroll | Bare eieren, Kommune og Admin ser kontaktinformasjon |
+| Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. Bare nødvendige cookies brukes |
+
+Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når brukeren sletter seg selv og når admin sletter en bruker. Tildelinger er historikk for kriseledelsen, så en konto med tildelinger må håndteres manuelt av administrator.
+
+### Språkvalg (norsk og engelsk)
+
+- Knappene **NO / EN** i menyen bytter språk. Valget lagres i en cookie i ett år.
+- Tekstene skrives på norsk i koden som `@T["Logg inn"]`. Den engelske teksten ligger i `Resources/SharedResource.en.resx`. Mangler en oversettelse, vises den norske teksten.
+- Bare språket på teksten endres. Tall leses fortsatt med punktum, så koordinatene fra kartet virker på begge språk.
+- Alle sider er oversatt, også meldinger fra controllerne, feilmeldinger i skjemaene og boksene på kartet. Kode som ikke har `T` (modeller og tjenester), bruker `Oversetter.Tekst("...")`.
+- Tekstene i JavaScript (`kart.js` og `ressurs-skjema.js`) hentes med `tekst('...')`. Listen over dem står i `Views/Shared/_JsTekster.cshtml`.
+- Enhetstesten `AlleTeksterISidene_HarEngelskOversettelse` feiler hvis en ny tekst mangler i resx-filen.
+- Nytt språk, for eksempel samisk: lag `Resources/SharedResource.se.resx` med de samme nøklene, legg `new CultureInfo("se")` til i `SupportedUICultures` i `Program.cs`, og legg til en knapp i `Views/Shared/_SprakValg.cshtml`.
+
+### Testing av innlogging, roller, personvern og språk
+
+Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatisk sletting av kontaktinformasjon og passordreglene ved bytte av passord. Kjør med `dotnet test Nabohjelp.Tests`.
+
+| # | Scenario | Forventet resultat | Resultat |
+|---|---|---|---|
+| H1 | Registrer uten å krysse av for personvern | Feilmelding, ingen konto lages | OK. «Du må godta personvernerklæringen …». Med avkrysning lages kontoen som Frivillig |
+| H2 | Frivillig åpner `/Admin` og `/Kommandobro` | «Ingen tilgang» | OK. Sendes til «Ingen tilgang» for begge |
+| H3 | Admin endrer rolle for en bruker til Kommune | Brukeren får tilgang til Kommandobro innen ett minutt | OK. Kommune-brukeren kom inn på Kommandobro, men ikke på `/Admin`. Ugyldig rolle gir 400 |
+| H4 | Admin låser en bruker | Brukeren kan ikke logge inn. Står som «Låst» i listen | OK. «Låst» i listen og innlogging avvises. Lås opp virker. Fem feil passord låser også kontoen |
+| H5 | Admin prøver å endre sin egen konto | Ikke mulig, ingen knapper på egen rad | OK. Ingen knapper på egen rad |
+| H6 | Bruker endrer passord med feil nåværende passord | «Feil passord.» | OK. «Feil passord.» |
+| H7 | Bruker endrer passord riktig | «Passordet er endret.» og nytt passord virker | OK. Innlogging med nytt passord virker |
+| H8 | «Last ned mine data» | JSON-fil med konto, behov og ressurser | OK. `mine-data-beredskapsportalen.json` med konto, behov og ressurser |
+| H9 | Admin sletter en bruker uten tildelinger | Brukeren og registreringene er borte | OK. Brukeren er slettet og kan ikke logge inn |
+| H10 | Bytt til EN | Menyen, forsiden og kontosidene vises på engelsk. Valget huskes | OK. Meny, forside, innlogging, registrering, Min konto, Brukere og personvern på engelsk. Valget huskes |
+| H11 | Registrer en ressurs med kartet på engelsk | Koordinatene lagres riktig | OK. Lagret som 58.1467 / 7.9956 |
+| H12 | `KrevTofaForAnsatte = true`, Kommune uten 2FA åpner Kommandobro | Forklaring om at 2FA kreves, med lenke til Min konto | Ikke testet ennå (kravet er av i Development) |
+
 ## Testing
+
+### Automatiske tester
+
+Testene ligger i `Nabohjelp.Tests/` (xUnit) og er av to slag.
+
+**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs og at alle tekster har engelsk oversettelse.
+
+```bash
+dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtest&Kategori!=Fartsgrense"
+```
+
+**Systemtester** (`Systemtester.cs`) tester hele appen med ekte database, slik en bruker møter den. De logger inn som testbrukerne og sender de samme forespørslene som nettleseren:
+
+| Test | Hva den sjekker |
+|---|---|
+| `Forsiden_HarSikkerhetshoder` | Sikkerhetshodene er med, og `Server`-hodet er fjernet |
+| `IkkeInnlogget_SendesTilInnlogging` | Beskyttede sider krever innlogging |
+| `Frivillig_FarIkkeTilgangTilKriseledelsensSider` | Frivillige kommer ikke inn på Kommandobro, behovskø, tildeling, utskrift og admin |
+| `Kommune_FarIkkeTilgangTilBrukeradministrasjon` | Kommune kommer inn på Kommandobro, men ikke på admin |
+| `Skjema_UtenAntiForgeryToken_Avvises` | Skjema uten token avvises (CSRF) |
+| `FeilPassord_GirFeilmeldingOgIngenInnlogging` | Feil passord gir feilmelding |
+| `Hovedflyt_MeldeBehov_RegistrereRessurs_Tildele` | Frivillig melder behov og registrerer aggregat, kommunen tildeler, og statusen blir «Tildelt» |
+| `Invitasjonslenke_GirRollenEnGang` | En ny bruker får rollen Kommune fra lenken, og lenken virker ikke en gang til |
+| `Sprakvalg_ViserSidenPaEngelsk` | Språkknappen gir engelsk side |
+| `MangeInnloggingsforsok_GirFeilkode429` | Fartsgrensen stopper forsøk nr. 11 innen ett minutt |
+
+Systemtestene trenger at appen kjører. Lokalt:
+
+```bash
+docker compose up -d --build
+SYSTEMTEST_URL=http://localhost:8080 dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori=Systemtest"
+```
+
+Uten `SYSTEMTEST_URL` hopper systemtestene over seg selv.
+
+GitHub Actions (`.github/workflows/ci.yml`) kjører enhetstestene ved hver pull request og push mot `main`. Jobben `systemtest` starter appen og MariaDB med Docker og kjører systemtestene, så den sjekker også at Docker-oppsettet og migrasjonene virker.
+
+**Brukertest** med ekte personer kan ikke automatiseres. Planen med oppgaver, resultatskjema og SUS-skjema ligger i gruppens dokument «Brukertest – BeredskapsPortalen».
+
+### Manuelle tester av kartet
 
 Kartfunksjonen er testet manuelt underveis i utviklingen.
 
@@ -192,7 +378,7 @@ En bruker uten rollen Admin eller Kommune prøver å åpne Kommandobro.
 Brukeren skal ikke få tilgang til siden eller kartet.
 
 **Resultat:**
-Bestått (håndheves av `[Authorize(Roles = "Admin,Kommune")]` på `KommandobroController`).
+Bestått (håndheves av `[Authorize(Policy = "Ansatt")]` på `KommandobroController`, som krever rollen Admin eller Kommune).
 
 ### Test 3 – Velge posisjon ved oppretting av ressurs
 
@@ -275,6 +461,7 @@ KI har blant annet blitt brukt til:
 - Implementering av Leaflet-kart og henting av koordinater.
 - Utvikling av matching- og tildelingslogikk.
 - Oppsett av MariaDB og Entity Framework, og tilkobling til applikasjonen.
+- Brukeradministrasjon, personvern (GDPR), språkvalg og ulike krav til innlogging for frivillige og ansatte.
 
 **Docker, Git og drift**
 - Oppsett av Dockerfile og docker-compose.yml, med forklaring av hvert steg.
@@ -299,6 +486,9 @@ Under utviklingen ble KI blant annet spurt om:
 - "Ett steg om gangen."
 - "Hva gjør kodene..."
 - "Hvorfor må navnet endres?"
+- "Hvordan lager jeg en admin-side der admin kan endre roller, låse og slette brukere i ASP.NET Core Identity?"
+- "Hva krever GDPR av en app som lagrer telefon og e-post, og hvordan kan brukeren laste ned og slette sine egne data?"
+- "Hvordan legger jeg til språkvalg mellom norsk og engelsk uten at desimaltall fra kartet slutter å virke?"
 
 ### Hvordan KI-forslag ble kontrollert
 

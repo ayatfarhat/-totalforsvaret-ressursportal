@@ -1,23 +1,23 @@
-@model Nabohjelp.Models.RessursFormViewModel
+@model RessursFormViewModel
 
 @{
-    ViewData["Title"] = "Endre ressurs";
+    ViewData["Title"] = T["Endre ressurs"];
 }
 
 @section Head {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
 }
 
 <div class="side-topp">
-    <h1>Endre ressurs</h1>
-    <p class="ingress">Rett opp det som har endret seg. Type, kommune og posisjon må fylles ut, resten er valgfritt.</p>
+    <h1>@T["Endre ressurs"]</h1>
+    <p class="ingress">@T["Rett opp det som har endret seg. Type, kommune og posisjon må fylles ut, resten er valgfritt."]</p>
 </div>
 
 <partial name="_Skjema" model="Model" />
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
     <script src="~/js/ressurs-skjema.js" asp-append-version="true"></script>
 }

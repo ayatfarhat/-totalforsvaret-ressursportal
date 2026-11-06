@@ -1,16 +1,18 @@
-﻿# ---- Steg 1: Bygg ----
+# ---- Steg 1: Bygg ----
 # Bruker .NET SDK-bildet, som har verktøyene som trengs for å bygge appen
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Kopierer prosjektfilen først og henter pakker.
 # Docker husker dette steget, så pakkene lastes bare ned på nytt hvis .csproj endres.
-COPY *.csproj ./
-RUN dotnet restore
+COPY Nabohjelp.csproj ./
+RUN dotnet restore Nabohjelp.csproj
 
-# Kopierer resten av koden og bygger en ferdig versjon av appen
+# Kopierer resten av koden og bygger en ferdig versjon av appen.
+# Prosjektfilen må nevnes, fordi mappen også har løsningsfilen Nabohjelp.slnx
+# (da vet ikke dotnet hvilken av dem den skal bygge).
 COPY . ./
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish Nabohjelp.csproj -c Release -o /app/publish
 
 # ---- Steg 2: Kjør ----
 # Bruker det mindre ASP.NET-bildet, som bare kan kjøre appen.

@@ -1,7 +1,10 @@
+using Nabohjelp.Services;
+
 namespace Nabohjelp.Models;
 
-// Gjør om verdiene i enum-ene (som er på engelsk i koden) til norsk
-// tekst som kan vises til brukeren, og velger farge på merkelappen.
+// Gjør om verdiene i enum-ene (som er på engelsk i koden) til tekst som kan
+// vises til brukeren, og velger farge på merkelappen. Teksten skrives på norsk her
+// og oversettes til engelsk av Oversetter når brukeren har valgt engelsk.
 // Samles her, slik at alle sider viser samme ord og samme farger.
 public static class Visningstekst
 {
@@ -9,90 +12,67 @@ public static class Visningstekst
     {
         switch (type)
         {
-            case BehovType.Transport: return "Transport";
-            case BehovType.Drone: return "Drone";
-            case BehovType.Generator: return "Aggregat";
-            case BehovType.Evakuering: return "Evakuering";
-            default: return "Annet";
+            case BehovType.Transport: return Oversetter.Tekst("Transport");
+            case BehovType.Drone: return Oversetter.Tekst("Drone");
+            case BehovType.Generator: return Oversetter.Tekst("Aggregat");
+            case BehovType.Evakuering: return Oversetter.Tekst("Evakuering");
+            default: return Oversetter.Tekst("Annet");
         }
+    }
+
+    // Som Type, men viser også det brukeren skrev når typen er «Annet»,
+    // for eksempel «Annet: vannlekkasje».
+    public static string Type(BehovType type, string? annetType)
+    {
+        if (type == BehovType.Annet && !string.IsNullOrWhiteSpace(annetType))
+        {
+            return Oversetter.Tekst("Annet") + ": " + annetType.Trim();
+        }
+        return Type(type);
     }
 
     public static string Prioritet(BehovPrioritet prioritet)
     {
         if (prioritet == BehovPrioritet.Urgent)
         {
-            return "Akutt";
+            return Oversetter.Tekst("Akutt");
         }
-        return "Planlagt";
+        return Oversetter.Tekst("Planlagt");
     }
 
     public static string Status(BehovStatus status)
     {
         switch (status)
         {
-            case BehovStatus.New: return "Ny";
-            case BehovStatus.UnderReview: return "Under vurdering";
-            case BehovStatus.Assigned: return "Tildelt";
-            case BehovStatus.Rejected: return "Avvist";
-            case BehovStatus.Withdrawn: return "Trukket tilbake";
-            default: return "Løst";
+            case BehovStatus.New: return Oversetter.Tekst("Ny");
+            case BehovStatus.UnderReview: return Oversetter.Tekst("Under vurdering");
+            case BehovStatus.Assigned: return Oversetter.Tekst("Tildelt");
+            case BehovStatus.Rejected: return Oversetter.Tekst("Avvist");
+            case BehovStatus.Withdrawn: return Oversetter.Tekst("Trukket tilbake");
+            default: return Oversetter.Tekst("Løst");
         }
     }
 
-    // CSS-klasse for merkelappen (se .merke-* i site.css)
-    public static string PrioritetFarge(BehovPrioritet prioritet)
-    {
-        if (prioritet == BehovPrioritet.Urgent)
-        {
-            return "merke-rod";
-        }
-        return "merke-bla";
-    }
-
+    // CSS-klassen for statusmerket (se .merke-* i site.css):
+    // gul = under arbeid, grønn = hjelp er på vei eller gitt, rød = avvist.
     public static string StatusFarge(BehovStatus status)
     {
         switch (status)
         {
-            case BehovStatus.New: return "";
-            case BehovStatus.UnderReview: return "merke-gul";
-            case BehovStatus.Assigned: return "merke-bla";
-            case BehovStatus.Rejected: return "merke-rod";
-            case BehovStatus.Withdrawn: return "";
-            default: return "merke-gronn";
+            case BehovStatus.UnderReview: return "merke-lys";
+            case BehovStatus.Assigned: return "merke-gi";
+            case BehovStatus.Resolved: return "merke-gi";
+            case BehovStatus.Rejected: return "merke-hjelp";
+            default: return "";
         }
     }
 
-    // Akutte behov får en rød strek i tabellen (se .rad-akutt i site.css)
-    public static string RadKlasse(BehovPrioritet prioritet)
-    {
-        if (prioritet == BehovPrioritet.Urgent)
-        {
-            return "rad-akutt";
-        }
-        return "";
-    }
-
-    // Lenken i menyen får klassen "aktiv" hvis brukeren er på den siden,
-    // slik at den blir markert med en blå strek.
-    public static string MenyKlasse(string aktivSide, string side)
-    {
-        if (aktivSide == side)
-        {
-            return "nav-link aktiv";
-        }
-        return "nav-link";
-    }
-
-    // Ressurser har status som tekst ("Tilgjengelig", "Tildelt" ...)
+    // Ressurser har status som tekst. «Tilgjengelig» vises grønt.
     public static string RessursStatusFarge(string status)
     {
         if (status == "Tilgjengelig")
         {
-            return "merke-gronn";
-        }
-        if (status == "Tildelt")
-        {
-            return "merke-bla";
+            return "merke-gi";
         }
         return "";
     }

@@ -1,0 +1,14 @@
+@using System.Globalization
+@{
+    // Hvilket språk som er valgt nå ("nb" eller "en").
+    string sprak = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb";
+
+    // Siden brukeren er på, så hen kommer tilbake hit etter byttet.
+    string tilbake = Context.Request.Path + Context.Request.QueryString;
+}
+
+@* Knapper for å bytte språk. Valget lagres i en cookie (se HomeController.VelgSprak). *@
+<form asp-controller="Home" asp-action="VelgSprak" asp-route-returnUrl="@tilbake" method="post" class="sprakvalg" aria-label="@T["Velg språk"]">
+    <button type="submit" name="sprak" value="nb" lang="nb" class="@(sprak == "nb" ? "valgt" : "")" aria-pressed="@(sprak == "nb" ? "true" : "false")" title="@T["Norsk"]">NO</button>
+    <button type="submit" name="sprak" value="en" lang="en" class="@(sprak == "en" ? "valgt" : "")" aria-pressed="@(sprak == "en" ? "true" : "false")" title="@T["English"]">EN</button>
+</form>

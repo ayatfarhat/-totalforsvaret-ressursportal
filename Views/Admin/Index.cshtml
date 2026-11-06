@@ -1,0 +1,139 @@
+@model List<AdminBrukerViewModel>
+@using Nabohjelp.Data
+
+@{
+    ViewData["Title"] = T["Brukere"];
+}
+
+<div class="side-topp">
+    <h1>@T["Brukere"]</h1>
+    <p class="ingress">@T["Her kan du gi brukere riktig rolle, låse kontoer og hjelpe brukere som har mistet telefonen med 2FA."]</p>
+    <a asp-action="Invitasjoner" class="btn btn-outline-secondary">@T["Invitasjonslenker"]</a>
+</div>
+
+@if (TempData["Feil"] is string feil)
+{
+    <div class="alert alert-danger" role="alert">@feil</div>
+}
+
+@* Søk på e-post. Bruker GET, så søket kan deles som lenke. *@
+<form asp-action="Index" method="get" class="admin-sok" role="search">
+    <label for="sok" class="form-label">@T["Søk på e-post"]</label>
+    <div class="d-flex gap-2">
+        <input id="sok" name="sok" value="@ViewData["Sok"]" class="form-control" type="search" />
+        <button type="submit" class="btn btn-primary">@T["Søk"]</button>
+    </div>
+</form>
+
+<div class="liste-topp">
+    <h2>@T["Alle brukere"]</h2>
+    <span class="antall">@Model.Count</span>
+</div>
+
+<div class="table-responsive">
+    <table class="table stablet align-middle">
+        <thead>
+            <tr>
+                <th scope="col">@T["E-post"]</th>
+                <th scope="col">@T["Rolle"]</th>
+                <th scope="col">2FA</th>
+                <th scope="col">@T["Status"]</th>
+                <th scope="col"><span class="visually-hidden">@T["Handling"]</span></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var bruker in Model)
+            {
+                <tr>
+                    <td data-label="@T["E-post"]">
+                        <strong>@bruker.Epost</strong>
+                        @if (bruker.ErMeg)
+                        {
+                            <span class="merke">@T["deg"]</span>
+                        }
+                    </td>
+
+                    <td data-label="@T["Rolle"]">
+                        @if (bruker.ErMeg)
+                        {
+                            <text>@T[bruker.Rolle]</text>
+                        }
+                        else
+                        {
+                            @* Eget lite skjema for å bytte rolle *@
+                            <form asp-action="EndreRolle" method="post" class="admin-rolle">
+                                <input type="hidden" name="id" value="@bruker.Id" />
+                                <select name="rolle" class="form-select form-select-sm" aria-label="@T["Rolle for"] @bruker.Epost">
+                                    @foreach (var rolle in RoleInitializer.Roller)
+                                    {
+                                        <option value="@rolle" selected="@(rolle == bruker.Rolle)">@T[rolle]</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">@T["Lagre"]</button>
+                            </form>
+                        }
+                    </td>
+
+                    <td data-label="@T["2FA"]">
+                        @if (bruker.TofaErPa)
+                        {
+                            <span class="merke merke-gi">@T["På"]</span>
+                        }
+                        else
+                        {
+                            <span class="merke">@T["Av"]</span>
+                        }
+                    </td>
+
+                    <td data-label="@T["Status"]">
+                        @if (bruker.ErLaast)
+                        {
+                            <span class="merke merke-hjelp">@T["Låst"]</span>
+                        }
+                        else
+                        {
+                            <span class="merke merke-gi">@T["Aktiv"]</span>
+                        }
+                    </td>
+
+                    <td data-label="">
+                        @if (!bruker.ErMeg)
+                        {
+                            <div class="admin-knapper">
+                            @if (bruker.ErLaast)
+                            {
+                                <form asp-action="LaasOpp" method="post">
+                                    <input type="hidden" name="id" value="@bruker.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@T["Lås opp"]</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="Laas" method="post">
+                                    <input type="hidden" name="id" value="@bruker.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@T["Lås"]</button>
+                                </form>
+                            }
+
+                            @if (bruker.TofaErPa)
+                            {
+                                <form asp-action="NullstillTofa" method="post">
+                                    <input type="hidden" name="id" value="@bruker.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">@T["Nullstill 2FA"]</button>
+                                </form>
+                            }
+
+                            @* Ber om bekreftelse i nettleseren før sletting *@
+                            <form asp-action="SlettBruker" method="post"
+                                  onsubmit="return confirm('@T["Slette brukeren og alle registreringene permanent?"]');">
+                                <input type="hidden" name="id" value="@bruker.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">@T["Slett"]</button>
+                            </form>
+                            </div>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

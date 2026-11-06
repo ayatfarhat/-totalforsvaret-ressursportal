@@ -1,15 +1,19 @@
 @{
     // Hvilken side vi er på. Brukes til å markere riktig lenke i menyen.
-    var side = ViewContext.RouteData.Values["controller"]?.ToString();
+    // ("" + verdi gir tom tekst hvis verdien mangler.)
+    string side = "" + ViewContext.RouteData.Values["controller"];
+
+    // Tittelen på fanen, oversatt hvis engelsk er valgt.
+    string tittel = "" + ViewData["Title"];
 }
 <!DOCTYPE html>
-<html lang="nb">
+<html lang="@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb")">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#12212D" />
 
-    <title>@ViewData["Title"] - BeredskapsPortalen</title>
+    <title>@(string.IsNullOrEmpty(tittel) ? "" : T[tittel].Value) - BeredskapsPortalen</title>
 
     <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="~/favicon.ico" sizes="any" />
@@ -23,23 +27,23 @@
 </head>
 <body>
 
-    <a class="hopp-lenke" href="#innhold">Hopp til innhold</a>
+    <a class="hopp-lenke" href="#innhold">@T["Hopp til innhold"]</a>
 
     <header>
         @* Nødnumrene ligger alltid øverst. På mobil kan de trykkes for å ringe. *@
         <div class="nodstripe">
             <div class="container">
-                <p><strong>Akutt fare for liv og helse?</strong> Ring først:</p>
+                <p><strong>@T["Akutt fare for liv og helse?"]</strong> @T["Ring først:"]</p>
                 <ul>
-                    <li><a href="tel:110">110 Brann</a></li>
-                    <li><a href="tel:112">112 Politi</a></li>
-                    <li><a href="tel:113">113 Ambulanse</a></li>
+                    <li><a href="tel:110">110 @T["Brann"]</a></li>
+                    <li><a href="tel:112">112 @T["Politi"]</a></li>
+                    <li><a href="tel:113">113 @T["Ambulanse"]</a></li>
                 </ul>
             </div>
         </div>
 
         <div class="topp">
-            <nav class="navbar navbar-expand-md" aria-label="Hovedmeny">
+            <nav class="navbar navbar-expand-md" aria-label="@T["Hovedmeny"]">
                 <div class="container">
 
                     <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
@@ -53,7 +57,7 @@
                             data-bs-target="#hovedmeny"
                             aria-controls="hovedmeny"
                             aria-expanded="false"
-                            aria-label="Åpne og lukk meny">
+                            aria-label="@T["Åpne og lukk meny"]">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
@@ -61,17 +65,24 @@
                         <ul class="navbar-nav ms-md-3">
                             <li class="nav-item">
                                 <a class="nav-link @(side == "Home" ? "active" : "")"
-                                   asp-area="" asp-controller="Home" asp-action="Index">Forside</a>
+                                   asp-area="" asp-controller="Home" asp-action="Index">@T["Forside"]</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(side == "Ressurs" || side == "Behov" || side == "OnsketRessurs" ? "active" : "")"
-                                   asp-area="" asp-controller="Ressurs" asp-action="Index">Ressurser</a>
+                                   asp-area="" asp-controller="Ressurs" asp-action="Index">@T["Ressurser"]</a>
                             </li>
                             @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link @(side == "Kommandobro" || side == "Tildeling" ? "active" : "")"
-                                       asp-area="" asp-controller="Kommandobro" asp-action="Index">Kommandobro</a>
+                                       asp-area="" asp-controller="Kommandobro" asp-action="Index">@T["Kommandobro"]</a>
+                                </li>
+                            }
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link @(side == "Admin" ? "active" : "")"
+                                       asp-area="" asp-controller="Admin" asp-action="Index">@T["Brukere"]</a>
                                 </li>
                             }
                         </ul>
@@ -99,7 +110,7 @@
                         <a asp-controller="Behov"
                            asp-action="MineBehov"
                            class="btn btn-primary mt-2">
-                            Se mine behov
+                            @T["Se mine behov"]
                         </a>
                     }
 
@@ -118,26 +129,32 @@
                         <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
                         BeredskapsPortalen
                     </div>
-                    <p>En beredskapsportal som kobler behov under kriser med utstyr, kjøretøy og frivillige som kan stille opp.</p>
+                    <p>@T["En beredskapsportal som kobler behov under kriser med utstyr, kjøretøy og frivillige som kan stille opp."]</p>
                 </div>
                 <div>
-                    <h2>Sider</h2>
+                    <h2>@T["Sider"]</h2>
                     <ul>
-                        <li><a asp-controller="Ressurs" asp-action="Index">Ressurser og behov</a></li>
-                        <li><a asp-controller="Behov" asp-action="Opprett">Meld behov</a></li>
-                        <li><a asp-controller="Ressurs" asp-action="Create">Registrer en ressurs</a></li>
-                        <li><a asp-controller="OnsketRessurs" asp-action="Index">Ønskede ressurser</a></li>
-                        <li><a asp-controller="Kommandobro" asp-action="Index">For nødetater og kriseledelse</a></li>
+                        <li><a asp-controller="Ressurs" asp-action="Index">@T["Ressurser og behov"]</a></li>
+                        <li><a asp-controller="Behov" asp-action="Opprett">@T["Meld behov"]</a></li>
+                        <li><a asp-controller="Ressurs" asp-action="Create">@T["Registrer en ressurs"]</a></li>
+                        <li><a asp-controller="OnsketRessurs" asp-action="Index">@T["Ønskede ressurser"]</a></li>
+                        @* Frivillige har ikke tilgang til Kommandobro, så lenken vises bare
+                           for dem som ikke er logget inn og for Admin/Kommune. *@
+                        @if (!Tilgang.ErInnlogget(User) || User.IsInRole("Admin") || User.IsInRole("Kommune"))
+                        {
+                            <li><a asp-controller="Kommandobro" asp-action="Index">@T["For nødetater og kriseledelse"]</a></li>
+                        }
+                        <li><a asp-controller="Home" asp-action="Personvern">@T["Personvern"]</a></li>
                     </ul>
                 </div>
             </div>
-            <p class="fot-bunn">&copy; 2026 BeredskapsPortalen. Studentprosjekt i IS-200, gruppe 15. BeredskapsPortalen erstatter ikke nødnumrene.</p>
+            <p class="fot-bunn">&copy; 2026 BeredskapsPortalen. @T["Studentprosjekt i IS-200, gruppe 15. BeredskapsPortalen erstatter ikke nødnumrene."]</p>
         </div>
     </footer>
 
+    <partial name="_JsTekster" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

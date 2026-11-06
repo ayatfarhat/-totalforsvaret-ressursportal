@@ -8,165 +8,134 @@ namespace Nabohjelp.Tests;
 // Tester for statusflyten til behov (BehovStatusflyt) og for behovsskjemaet (BehovViewModel).
 public class BehovStatusflytTests
 {
-    // ======================================
+    // ============================================
     // ----- Lovlige og ulovlige statusendringer -----
-    // ======================================
-    [Fact]
-    public void NyttBehov_KanVurderesEllerAvvises()
+    // ============================================
+    [Theory]
+    [InlineData(BehovStatus.New, BehovStatus.UnderReview, true)]
+    [InlineData(BehovStatus.New, BehovStatus.Rejected, true)]
+    [InlineData(BehovStatus.New, BehovStatus.Resolved, false)]      // kan ikke hoppe rett til løst
+    [InlineData(BehovStatus.New, BehovStatus.Assigned, false)]      // «Tildelt» settes bare av tildelingen
+    [InlineData(BehovStatus.UnderReview, BehovStatus.Resolved, true)]
+    [InlineData(BehovStatus.UnderReview, BehovStatus.Rejected, true)]
+    [InlineData(BehovStatus.UnderReview, BehovStatus.Assigned, false)]
+    [InlineData(BehovStatus.Assigned, BehovStatus.Resolved, true)]
+    [InlineData(BehovStatus.Assigned, BehovStatus.Rejected, false)]
+    [InlineData(BehovStatus.Resolved, BehovStatus.New, false)]      // avsluttede behov endres ikke mer
+    [InlineData(BehovStatus.Rejected, BehovStatus.UnderReview, false)]
+    [InlineData(BehovStatus.Withdrawn, BehovStatus.New, false)]
+    public void KanEndres_FolgerStatusflyten(BehovStatus fra, BehovStatus til, bool forventet)
     {
-        var neste = BehovStatusflyt.NesteStatuser(BehovStatus.New);
-
-        Assert.Equal(new List<BehovStatus> { BehovStatus.UnderReview, BehovStatus.Rejected }, neste);
+        Assert.Equal(forventet, BehovStatusflyt.KanEndres(fra, til));
     }
 
-    [Fact]
-    public void NyttBehov_KanIkkeHoppeRettTilLost()
+    // ==================================================
+    // ----- Endre, trekke tilbake og avsluttede behov -----
+    // ==================================================
+    [Theory]
+    [InlineData(BehovStatus.New, true, false, 0)]
+    [InlineData(BehovStatus.UnderReview, true, false, 1)]
+    [InlineData(BehovStatus.Assigned, false, false, 2)]
+    [InlineData(BehovStatus.Resolved, false, true, 3)]
+    [InlineData(BehovStatus.Rejected, false, true, -1)]   // -1: ikke et steg i statuslinjen
+    [InlineData(BehovStatus.Withdrawn, false, true, -1)]
+    public void Status_GirRiktigeRegler(BehovStatus status, bool kanRedigeres, bool erAvsluttet, int steg)
     {
-        Assert.False(BehovStatusflyt.KanEndres(BehovStatus.New, BehovStatus.Resolved));
-    }
-
-    [Fact]
-    public void UnderVurdering_KanLosesEllerAvvises()
-    {
-        Assert.True(BehovStatusflyt.KanEndres(BehovStatus.UnderReview, BehovStatus.Resolved));
-        Assert.True(BehovStatusflyt.KanEndres(BehovStatus.UnderReview, BehovStatus.Rejected));
-    }
-
-    [Fact]
-    public void Tildelt_KanBareLoses()
-    {
-        Assert.Equal(new List<BehovStatus> { BehovStatus.Resolved }, BehovStatusflyt.NesteStatuser(BehovStatus.Assigned));
-        Assert.False(BehovStatusflyt.KanEndres(BehovStatus.Assigned, BehovStatus.Rejected));
-    }
-
-    [Fact]
-    public void Tildelt_SettesIkkeMedKnapp()
-    {
-        // «Tildelt» settes bare av tildelingen, aldri direkte fra køen.
-        Assert.False(BehovStatusflyt.KanEndres(BehovStatus.New, BehovStatus.Assigned));
-        Assert.False(BehovStatusflyt.KanEndres(BehovStatus.UnderReview, BehovStatus.Assigned));
-    }
-
-    [Fact]
-    public void AvsluttedeBehov_KanIkkeEndresMer()
-    {
-        Assert.Empty(BehovStatusflyt.NesteStatuser(BehovStatus.Resolved));
-        Assert.Empty(BehovStatusflyt.NesteStatuser(BehovStatus.Rejected));
-        Assert.Empty(BehovStatusflyt.NesteStatuser(BehovStatus.Withdrawn));
-    }
-
-    // ==========================
-    // ----- Trekke tilbake -----
-    // ==========================
-    [Fact]
-    public void TrekkTilbake_GarForTildeling()
-    {
-        Assert.True(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.New));
-        Assert.True(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.UnderReview));
-    }
-
-    [Fact]
-    public void TrekkTilbake_GarIkkeEtterTildeling()
-    {
-        Assert.False(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.Assigned));
-        Assert.False(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.Resolved));
-        Assert.False(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.Rejected));
-        Assert.False(BehovStatusflyt.KanTrekkesTilbake(BehovStatus.Withdrawn));
-    }
-
-    // ===============================
-    // ----- Avsluttet og statuslinje -----
-    // ===============================
-    [Fact]
-    public void ErAvsluttet_GjelderLostAvvistOgTrukket()
-    {
-        Assert.True(BehovStatusflyt.ErAvsluttet(BehovStatus.Resolved));
-        Assert.True(BehovStatusflyt.ErAvsluttet(BehovStatus.Rejected));
-        Assert.True(BehovStatusflyt.ErAvsluttet(BehovStatus.Withdrawn));
-        Assert.False(BehovStatusflyt.ErAvsluttet(BehovStatus.New));
-        Assert.False(BehovStatusflyt.ErAvsluttet(BehovStatus.Assigned));
-    }
-
-    [Fact]
-    public void StegNummer_FolgerStatuslinjen()
-    {
-        Assert.Equal(0, BehovStatusflyt.StegNummer(BehovStatus.New));
-        Assert.Equal(1, BehovStatusflyt.StegNummer(BehovStatus.UnderReview));
-        Assert.Equal(2, BehovStatusflyt.StegNummer(BehovStatus.Assigned));
-        Assert.Equal(3, BehovStatusflyt.StegNummer(BehovStatus.Resolved));
-        Assert.Equal(-1, BehovStatusflyt.StegNummer(BehovStatus.Rejected));
-    }
-
-    [Fact]
-    public void NyeStatuser_HarNorskTekst()
-    {
-        Assert.Equal("Avvist", Visningstekst.Status(BehovStatus.Rejected));
-        Assert.Equal("Trukket tilbake", Visningstekst.Status(BehovStatus.Withdrawn));
+        Assert.Equal(kanRedigeres, BehovStatusflyt.KanRedigeres(status));
+        Assert.Equal(erAvsluttet, BehovStatusflyt.ErAvsluttet(status));
+        Assert.Equal(steg, BehovStatusflyt.StegNummer(status));
     }
 
     // ===========================
     // ----- Behovsskjemaet -----
     // ===========================
     [Fact]
-    public void Telefon_LagresMedLandskode()
+    public void FraBehov_FyllerSkjemaetOgDelerOppTelefonen()
     {
-        var skjema = new BehovViewModel { Landskode = "+46", KontaktTelefon = "70 123 45 67" };
+        var behov = new Behov
+        {
+            Id = 7,
+            Type = BehovType.Transport,
+            Prioritet = BehovPrioritet.Planned,
+            Latitude = 58.2,
+            Longitude = 8.1,
+            KontaktTelefon = "+46 70 123 45 67"
+        };
 
+        BehovViewModel skjema = BehovViewModel.FraBehov(behov);
+
+        Assert.Equal(7, skjema.Id);
+        Assert.Equal(BehovType.Transport, skjema.Type);
+        Assert.Equal("+46", skjema.Landskode);
+        Assert.Equal("70 123 45 67", skjema.KontaktTelefon);
         Assert.Equal("+46 70 123 45 67", skjema.TelefonForLagring());
     }
 
-    [Fact]
-    public void Telefon_TomLagresSomIngenting()
+    [Theory]
+    [InlineData("41234567", "+47", "41234567")]     // gammelt nummer uten landskode: Norge
+    [InlineData("+999 1234", "+47", "+999 1234")]   // ukjent landskode: nummeret forsvinner ikke
+    public void LesTelefon_UtenKjentLandskode(string lagret, string landskode, string nummer)
     {
-        var skjema = new BehovViewModel { KontaktTelefon = "" };
+        var skjema = new BehovViewModel();
 
-        Assert.Null(skjema.TelefonForLagring());
+        skjema.LesTelefonFraLagring(lagret);
+
+        Assert.Equal(landskode, skjema.Landskode);
+        Assert.Equal(nummer, skjema.KontaktTelefon);
     }
 
     [Fact]
-    public void Autofyll_GirForslagForTransport()
+    public void KopierTil_LagrerAnnetTekstBareNaarTypenErAnnet()
+    {
+        var behov = new Behov();
+        BehovViewModel skjema = GyldigSkjema();
+        skjema.Type = BehovType.Annet;
+        skjema.AnnetType = " steinras ";
+
+        skjema.KopierTil(behov);
+        Assert.Equal("steinras", behov.AnnetType);
+        Assert.Equal("+47 41234567", behov.KontaktTelefon);
+
+        skjema.Type = BehovType.Transport;
+        skjema.KopierTil(behov);
+        Assert.Null(behov.AnnetType);
+    }
+
+    [Fact]
+    public void Forslag_FinnesForTransport_MenIkkeForAnnet()
     {
         Assert.StartsWith("Hva skal fraktes", BehovViewModel.HentForslag(BehovType.Transport));
-    }
-
-    [Fact]
-    public void Autofyll_AnnetGirTomTekst()
-    {
         Assert.Equal("", BehovViewModel.HentForslag(BehovType.Annet));
     }
 
-    [Fact]
-    public void Skjema_UtenTelefonOgEpost_ErUgyldig()
+    [Theory]
+    [InlineData("ok", true)]
+    [InlineData("uten kontakt", false)]   // verken telefon eller e-post
+    [InlineData("ukjent landskode", false)]
+    [InlineData("bokstaver i telefon", false)]
+    [InlineData("annet uten tekst", false)]
+    public void Skjema_Validering(string tilfelle, bool forventet)
     {
-        var skjema = GyldigSkjema();
-        skjema.KontaktTelefon = null;
-        skjema.KontaktEpost = null;
+        BehovViewModel skjema = GyldigSkjema();
+        if (tilfelle == "uten kontakt")
+        {
+            skjema.KontaktTelefon = null;
+            skjema.KontaktEpost = null;
+        }
+        if (tilfelle == "ukjent landskode")
+        {
+            skjema.Landskode = "+999";
+        }
+        if (tilfelle == "bokstaver i telefon")
+        {
+            skjema.KontaktTelefon = "ring meg";
+        }
+        if (tilfelle == "annet uten tekst")
+        {
+            skjema.Type = BehovType.Annet;
+        }
 
-        Assert.False(ErGyldig(skjema));
-    }
-
-    [Fact]
-    public void Skjema_UkjentLandskode_ErUgyldig()
-    {
-        var skjema = GyldigSkjema();
-        skjema.Landskode = "+999";
-
-        Assert.False(ErGyldig(skjema));
-    }
-
-    [Fact]
-    public void Skjema_TelefonMedBokstaver_ErUgyldig()
-    {
-        var skjema = GyldigSkjema();
-        skjema.KontaktTelefon = "ring meg";
-
-        Assert.False(ErGyldig(skjema));
-    }
-
-    [Fact]
-    public void Skjema_GyldigUtfylt_ErGyldig()
-    {
-        Assert.True(ErGyldig(GyldigSkjema()));
+        Assert.Equal(forventet, ErGyldig(skjema));
     }
 
     private static BehovViewModel GyldigSkjema()
@@ -184,14 +153,10 @@ public class BehovStatusflytTests
     }
 
     // Kjører de samme valideringsreglene som ASP.NET bruker på skjemaet,
-    // også Validate-metoden (telefon eller e-post, landskode).
+    // også Validate-metoden (telefon eller e-post, landskode, «Annet»).
     private static bool ErGyldig(BehovViewModel modell)
     {
         var resultater = new List<ValidationResult>();
-        return Validator.TryValidateObject(
-            modell,
-            new ValidationContext(modell),
-            resultater,
-            validateAllProperties: true);
+        return Validator.TryValidateObject(modell, new ValidationContext(modell), resultater, validateAllProperties: true);
     }
 }

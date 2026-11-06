@@ -1,6 +1,6 @@
 @model ErrorViewModel
 @{
-    ViewData["Title"] = "Noe gikk galt";
+    ViewData["Title"] = T["Noe gikk galt"];
 }
 
 <div class="melding-side">
@@ -9,12 +9,12 @@
         <path d="M36 20v20" stroke="#A52E10" stroke-width="6" stroke-linecap="round" />
         <circle cx="36" cy="51" r="3.6" fill="#A52E10" />
     </svg>
-    <h1>Noe gikk galt</h1>
-    <p>Beklager, siden kunne ikke vises. Prøv igjen om litt, eller gå tilbake til forsiden.</p>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Til forsiden</a>
+    <h1>@T["Noe gikk galt"]</h1>
+    <p>@T["Beklager, siden kunne ikke vises. Prøv igjen om litt, eller gå tilbake til forsiden."]</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@T["Til forsiden"]</a>
 
     @if (Model != null && Model.ShowRequestId)
     {
-        <small>Feilreferanse: <code>@Model.RequestId</code></small>
+        <small>@T["Feilreferanse:"] <code>@Model.RequestId</code></small>
     }
 </div>

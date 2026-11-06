@@ -22,33 +22,40 @@ public class ApplicationDbContext : IdentityDbContext
     // Ressurser som kommunen eller kriseledelsen ønsker at innbyggere registrerer.
     public DbSet<OnsketRessurs> OnskedeRessurser { get; set; } = null!;
 
+    // Invitasjonslenker som gir en rolle (se Services/Invitasjonsregler.cs).
+    public DbSet<Invitasjon> Invitasjoner { get; set; } = null!;
+
+    // Tildeling kobler et behov, en ressurs og brukeren som tildelte.
+    // Restrict betyr at et behov, en ressurs eller en bruker ikke kan slettes
+    // så lenge en tildeling viser til dem. Da beholdes historikken.
     protected override void OnModelCreating(ModelBuilder builder)
-{
-    // Beholder Identity-oppsettet for brukere og roller.
-    base.OnModelCreating(builder);
+    {
+        // Beholder Identity-oppsettet for brukere og roller.
+        base.OnModelCreating(builder);
 
-    // Kobler hver tildeling til ett behov.
-    builder.Entity<Tildeling>()
-        .HasOne(t => t.Behov)
-        .WithMany()
-        .HasForeignKey(t => t.BehovId)
-        .OnDelete(DeleteBehavior.Restrict);
+        // t => t.Behov betyr «for en tildeling t: egenskapen Behov». EF bruker det
+        // til å vite hvilke felt koblingen gjelder.
+        builder.Entity<Tildeling>()
+            .HasOne(t => t.Behov)
+            .WithMany()
+            .HasForeignKey(t => t.BehovId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-    // Kobler hver tildeling til én ressurs.
-    builder.Entity<Tildeling>()
-        .HasOne(t => t.Ressurs)
-        .WithMany()
-        .HasForeignKey(t => t.RessursId)
-        .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Tildeling>()
+            .HasOne(t => t.Ressurs)
+            .WithMany()
+            .HasForeignKey(t => t.RessursId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-    // Registrerer hvilken bruker som utførte tildelingen.
-    builder.Entity<Tildeling>()
-        .HasOne(t => t.TildeltAvBruker)
-        .WithMany()
-        .HasForeignKey(t => t.TildeltAvBrukerId)
-        .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<Tildeling>()
+            .HasOne(t => t.TildeltAvBruker)
+            .WithMany()
+            .HasForeignKey(t => t.TildeltAvBrukerId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-    // Restrict hindrer sletting av behov, ressurs eller bruker
-    // så lenge en tildeling viser til dem.
-}
+        // Hver kode finnes bare én gang, og databasen kan slå den opp raskt.
+        builder.Entity<Invitasjon>()
+            .HasIndex(i => i.KodeHash)
+            .IsUnique();
+    }
 }

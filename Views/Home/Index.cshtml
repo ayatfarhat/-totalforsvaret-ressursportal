@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Forside";
+    ViewData["Title"] = T["Forside"];
 }
 
 @* ---------------------------------------------------------------
@@ -10,28 +10,27 @@
 
 <section class="hero" aria-labelledby="hero-tittel">
     <div class="hero-tekst">
-        <h1 id="hero-tittel">Rett ressurs til rett sted når krisen rammer.</h1>
+        <h1 id="hero-tittel">@T["Rett ressurs til rett sted når krisen rammer."]</h1>
         <p class="hero-ingress">
-            Strømbrudd, ekstremvær eller evakuering: BeredskapsPortalen samler utstyr, kjøretøy
-            og frivillige på ett sted, slik at kriseledelsen raskt kan sende hjelp dit den trengs.
+            @T["Strømbrudd, ekstremvær eller evakuering: BeredskapsPortalen samler utstyr, kjøretøy og frivillige på ett sted, slik at kriseledelsen raskt kan sende hjelp dit den trengs."]
         </p>
 
         <div class="hero-valg">
             <a class="valg valg-hjelp" asp-controller="Behov" asp-action="Opprett">
-                <strong>Jeg trenger hjelp</strong>
-                <span>Meld et behov i nærheten av deg</span>
+                <strong>@T["Jeg trenger hjelp"]</strong>
+                <span>@T["Meld et behov i nærheten av deg"]</span>
             </a>
             <a class="valg valg-gi" asp-controller="Ressurs" asp-action="Create">
-                <strong>Jeg kan hjelpe</strong>
-                <span>Registrer utstyr, kjøretøy eller innsats</span>
+                <strong>@T["Jeg kan hjelpe"]</strong>
+                <span>@T["Registrer utstyr, kjøretøy eller innsats"]</span>
             </a>
         </div>
-        <p class="hero-merknad">Er det fare for liv og helse, ring 110, 112 eller 113 først.</p>
+        <p class="hero-merknad">@T["Er det fare for liv og helse, ring 110, 112 eller 113 først."]</p>
     </div>
 
     <figure class="hero-bilde">
         <div class="scene" role="img"
-             aria-label="Eksempel fra en uværsnatt: Et behov for strøm til en omsorgsbolig i Grimstad blir koblet med et aggregat som en frivillig har registrert 2,4 kilometer unna.">
+             aria-label="@T["Eksempel fra en uværsnatt: Et behov for strøm til en omsorgsbolig i Grimstad blir koblet med et aggregat som en frivillig har registrert 2,4 kilometer unna."]">
 
             @* Bakgrunn: uvær om natten, regn og en strømlinje som har falt ned *@
             <svg class="scene-bakgrunn" viewBox="0 0 560 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
@@ -70,24 +69,24 @@
                 </g>
             </svg>
 
-            <p class="scene-varsel"><span class="varsel-trekant" aria-hidden="true"></span>Oransje farevarsel: kraftig vind</p>
+            <p class="scene-varsel"><span class="varsel-trekant" aria-hidden="true"></span>@T["Oransje farevarsel: kraftig vind"]</p>
 
             <div class="scene-kort kort-behov">
                 <span class="kort-ikon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" focusable="false"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" fill="currentColor" /><path d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
                 </span>
                 <span class="kort-tekst">
-                    <strong>Strøm til omsorgsbolig</strong>
-                    <span>Grimstad, meldt kl. 18.42</span>
+                    <strong>@T["Strøm til omsorgsbolig"]</strong>
+                    <span>@T["Grimstad, meldt kl. 18.42"]</span>
                 </span>
-                <span class="kort-status status-haster"><i class="signal"></i>Haster</span>
+                <span class="kort-status status-haster"><i class="signal"></i>@T["Haster"]</span>
             </div>
 
             <div class="scene-kobling" aria-hidden="true">
                 <svg viewBox="0 0 200 60" preserveAspectRatio="none" focusable="false"><path d="M20 0C20 34 180 26 180 60" fill="none" stroke="#F4B740" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 9" vector-effect="non-scaling-stroke" /></svg>
                 <span class="kobling-merke">
                     <svg viewBox="0 0 16 16" focusable="false"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                    Tildelt
+                    @T["Tildelt"]
                 </span>
             </div>
 
@@ -96,43 +95,43 @@
                     <svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="7" width="18" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.2" /><path d="M7 7V5h4v2M13 10l-2 3h3l-2 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M6 19v2M18 19v2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>
                 </span>
                 <span class="kort-tekst">
-                    <strong>Aggregat, 6 kW</strong>
-                    <span>Frivillig, 2,4 km unna</span>
+                    <strong>@T["Aggregat, 6 kW"]</strong>
+                    <span>@T["Frivillig, 2,4 km unna"]</span>
                 </span>
-                <span class="kort-status status-klar">Tilgjengelig</span>
+                <span class="kort-status status-klar">@T["Tilgjengelig"]</span>
             </div>
         </div>
         <figcaption>
-            <span><i style="background:#E5522C"></i>Trenger hjelp</span>
-            <span><i style="background:#4FD39A"></i>Kan hjelpe</span>
+            <span><i style="background:#E5522C"></i>@T["Trenger hjelp"]</span>
+            <span><i style="background:#4FD39A"></i>@T["Kan hjelpe"]</span>
         </figcaption>
     </figure>
 </section>
 
 <section class="seksjon" aria-labelledby="slik-tittel">
-    <h2 id="slik-tittel">Slik fungerer det</h2>
+    <h2 id="slik-tittel">@T["Slik fungerer det"]</h2>
     <ol class="steg">
         <li>
-            <h3>Velg riktig spor</h3>
-            <p>Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema.</p>
+            <h3>@T["Velg riktig spor"]</h3>
+            <p>@T["Trenger du hjelp, eller kan du hjelpe andre? Hvert spor har sitt eget, korte skjema."]</p>
         </li>
         <li>
-            <h3>Fortell hva og hvor</h3>
-            <p>Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt.</p>
+            <h3>@T["Fortell hva og hvor"]</h3>
+            <p>@T["Velg type, pek ut stedet på kartet og legg inn hvordan du kan nås. Det tar under ett minutt."]</p>
         </li>
         <li>
-            <h3>Kriseledelsen ser det</h3>
-            <p>Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser.</p>
+            <h3>@T["Kriseledelsen ser det"]</h3>
+            <p>@T["Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser."]</p>
         </li>
     </ol>
 </section>
 
 <section class="seksjon" aria-labelledby="dele-tittel">
-    <h2 id="dele-tittel">Dette kan du stille med</h2>
+    <h2 id="dele-tittel">@T["Dette kan du stille med"]</h2>
     <ul class="deleliste">
-        @foreach (var type in Nabohjelp.Models.RessursFormViewModel.Typer)
+        @foreach (var type in RessursFormViewModel.Typer)
         {
-            <li>@type</li>
+            <li>@T[type]</li>
         }
     </ul>
 </section>

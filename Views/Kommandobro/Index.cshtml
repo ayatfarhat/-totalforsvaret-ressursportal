@@ -1,71 +1,72 @@
 @using System.Text.Json
-@model Nabohjelp.Models.MapViewModel
+@model MapViewModel
 
 @{
-    ViewData["Title"] = "Oversikt";
+    ViewData["Title"] = T["Oversikt"];
     Layout = "_KommandobroLayout";
 }
 
 @section Head {
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
 }
 
 <div class="kb-topp">
     <div>
-        <h1>Oversikt</h1>
-        <p>Behov og ressurser akkurat nå.</p>
+        <h1>@T["Oversikt"]</h1>
+        <p>@T["Behov og ressurser akkurat nå."]</p>
     </div>
     <div class="kb-handlinger">
-        <a class="btn btn-lys" asp-controller="Behov" asp-action="Ko">Åpne behovskø</a>
-        <a class="btn btn-omriss" asp-controller="Tildeling" asp-action="Index">Tildel ressurser</a>
+        <a class="btn btn-lys" asp-controller="Behov" asp-action="Ko">@T["Åpne behovskø"]</a>
+        <a class="btn btn-omriss" asp-controller="Tildeling" asp-action="Index">@T["Tildel ressurser"]</a>
     </div>
 </div>
 
 <div class="kb-tall">
     <div class="kort-kommandobro tall-behov">
         <strong>@Model.Behov.Count</strong>
-        <span>Aktive behov</span>
+        <span>@(Model.Behov.Count == 1 ? T["Aktivt behov"] : T["Aktive behov"])</span>
     </div>
     <div class="kort-kommandobro tall-ressurs">
         <strong>@Model.Ressurser.Count</strong>
-        <span>Ressurser på kartet</span>
+        <span>@(Model.Ressurser.Count == 1 ? T["Ressurs på kartet"] : T["Ressurser på kartet"])</span>
     </div>
 </div>
 
 <section class="kort-kommandobro kb-kartkort" aria-labelledby="kart-tittel">
     <div class="kb-kartkort-topp">
-        <h2 id="kart-tittel">Kart</h2>
+        <h2 id="kart-tittel">@T["Kart"]</h2>
+        @* Fargene er de samme som på prikkene (.nal-... i site.css). *@
         <ul class="kb-tegnforklaring">
-            <li><i style="background:#E5522C"></i>Behov</li>
-            <li><i style="background:#1B6B4B"></i>Ressurs</li>
+            <li><i class="farge-hjelp"></i>@T["Akutt behov"]</li>
+            <li><i class="farge-planlagt"></i>@T["Planlagt behov"]</li>
+            <li><i class="farge-gi"></i>@T["Ledig ressurs"]</li>
+            <li><i class="farge-opptatt"></i>@T["Tildelt ressurs"]</li>
         </ul>
     </div>
+    <p class="kb-kartstatus">@T["Trykk på en prikk for å se detaljer og gå videre til tildeling."]</p>
+    @* Avstandsfilteret styres av visOversikt(...) i kart.js. *@
     <div class="mb-3">
-    <label for="avstandFilter">
-        <strong>Filtrer på avstand:</strong>
-    </label>
-
-    <select id="avstandFilter" class="form-select">
-        <option value="alle">Alle avstander</option>
-        <option value="5">Innenfor 5 km</option>
-        <option value="10">Innenfor 10 km</option>
-        <option value="25">Innenfor 25 km</option>
-        <option value="50">Innenfor 50 km</option>
-    </select>
-
-    <p id="filterStatus" aria-live="polite">
-        Viser alle registrerte punkter. Velg en avstand og klikk på kartet for å filtrere.
-    </p>
-</div>
-    <div id="oversiktsKart" role="group" aria-label="Kart over behov og ressurser"></div>
-    @if (!Model.Behov.Any() && !Model.Ressurser.Any())
+        <label for="avstandFilter"><strong>@T["Filtrer på avstand:"]</strong></label>
+        <select id="avstandFilter" class="form-select">
+            <option value="alle">@T["Alle avstander"]</option>
+            <option value="5">@T["Innenfor 5 km"]</option>
+            <option value="10">@T["Innenfor 10 km"]</option>
+            <option value="25">@T["Innenfor 25 km"]</option>
+            <option value="50">@T["Innenfor 50 km"]</option>
+        </select>
+        <p id="filterStatus" aria-live="polite">
+            @T["Viser alle registrerte punkter. Velg en avstand og klikk på kartet for å filtrere."]
+        </p>
+    </div>
+    <div id="oversiktsKart" role="group" aria-label="@T["Kart over behov og ressurser"]"></div>
+    @if (Model.Behov.Count == 0 && Model.Ressurser.Count == 0)
     {
-        <p class="kb-kartstatus">Ingen behov eller ressurser med posisjon er registrert ennå.</p>
+        <p class="kb-kartstatus">@T["Ingen behov eller ressurser med posisjon er registrert ennå."]</p>
     }
 </section>
 
 @section Scripts {
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
     <script>
         // Punktene sendes fra controlleren som JSON, ferdig klare til bruk her.

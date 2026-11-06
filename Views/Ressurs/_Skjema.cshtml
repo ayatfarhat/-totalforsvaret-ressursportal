@@ -1,4 +1,4 @@
-@model Nabohjelp.Models.RessursFormViewModel
+@model RessursFormViewModel
 @using Nabohjelp.Models
 
 @* Felles skjema for «Registrer en ressurs» (Create) og «Endre ressurs» (Edit).
@@ -12,15 +12,15 @@
         <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
         <fieldset class="felt-gruppe">
-            <legend><span class="trinn" aria-hidden="true">1</span> Hva kan du stille med?</legend>
+            <legend><span class="trinn" aria-hidden="true">1</span> @T["Hva kan du stille med?"]</legend>
             <div class="type-valg" role="presentation">
-                @{ var typer = Nabohjelp.Models.RessursFormViewModel.Typer; }
+                @{ var typer = RessursFormViewModel.Typer; }
                 @for (var i = 0; i < typer.Count; i++)
                 {
                     <div class="type-valg-element">
-                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" data-forslag="@Nabohjelp.Models.RessursFormViewModel.HentForslag(typer[i])" />
+                        <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" data-forslag="@RessursFormViewModel.HentForslag(typer[i])" />
                         @* Usynlig mellomrom etter «/» lar lange navn brytes pent på mobil *@
-                        <label for="type-@i">@typer[i].Replace("/", "/\u200B")</label>
+                        <label for="type-@i">@T[typer[i]].Value.Replace("/", "/\u200B")</label>
                     </div>
                 }
             </div>
@@ -28,34 +28,34 @@
         </fieldset>
 
         <fieldset class="felt-gruppe">
-            <legend><span class="trinn" aria-hidden="true">2</span> Hvor finner vi det?</legend>
+            <legend><span class="trinn" aria-hidden="true">2</span> @T["Hvor finner vi det?"]</legend>
 
             <div class="felt">
-                <label asp-for="Kommunenummer" class="form-label">Kommune</label>
+                <label asp-for="Kommunenummer" class="form-label">@T["Kommune"]</label>
                 <select asp-for="Kommunenummer" class="form-select" aria-describedby="kommuneHjelp">
-                    <option value="">Velg kommune</option>
-                    @foreach (var fylke in Kommuner.Fylker)
+                    <option value="">@T["Velg kommune"]</option>
+                    @foreach (string fylke in Kommuner.Fylker)
                     {
                         <optgroup label="@fylke">
-                            @foreach (var kommune in Kommuner.Alle.Where(k => k.Fylke == fylke))
+                            @foreach (Kommune kommune in Kommuner.IFylke(fylke))
                             {
                                 <option value="@kommune.Nummer">@kommune.Navn</option>
                             }
                         </optgroup>
                     }
                 </select>
-                <p id="kommuneHjelp" class="kart-tips">Kriseledelsen bruker kommunen til å skrive ut ressurslister per område.</p>
+                <p id="kommuneHjelp" class="kart-tips">@T["Kriseledelsen bruker kommunen til å skrive ut ressurslister per område."]</p>
                 <span asp-validation-for="Kommunenummer"></span>
             </div>
 
             <div class="felt">
-                <label asp-for="Posisjon" class="form-label">Adresse eller stedsnavn</label>
-                <input asp-for="Posisjon" class="form-control" placeholder="For eksempel Storgata 5, Kristiansand" autocomplete="street-address" />
+                <label asp-for="Posisjon" class="form-label">@T["Adresse eller stedsnavn"]</label>
+                <input asp-for="Posisjon" class="form-control" placeholder="@T["For eksempel Storgata 5, Kristiansand"]" autocomplete="street-address" />
                 <span asp-validation-for="Posisjon"></span>
             </div>
 
             <div class="felt">
-                <span class="form-label d-block">Pek ut stedet på kartet <span class="valgfritt">(valgfritt, men hjelper kriseledelsen)</span></span>
+                <span class="form-label d-block">@T["Pek ut stedet på kartet"] <span class="valgfritt">@T["(valgfritt, men hjelper kriseledelsen)"]</span></span>
                 <div id="ressursKart" class="kart-boks"
                      data-kartvelger
                      data-bredde="#breddegradInput"
@@ -64,12 +64,12 @@
                      data-posisjon="#Posisjon"
                      data-knapp="#minPosisjon"
                      data-nal="gi"
-                     role="group" aria-label="Kart. Trykk for å velge posisjon."></div>
+                     role="group" aria-label="@T["Kart. Trykk for å velge posisjon."]"></div>
                 <div class="kart-rad">
-                    <button type="button" id="minPosisjon" class="btn btn-outline-secondary btn-sm">Bruk min posisjon</button>
-                    <p id="valgtPosisjon" class="valgt" aria-live="polite">Ingen posisjon valgt ennå.</p>
+                    <button type="button" id="minPosisjon" class="btn btn-outline-secondary btn-sm">@T["Bruk min posisjon"]</button>
+                    <p id="valgtPosisjon" class="valgt" aria-live="polite">@T["Ingen posisjon valgt ennå."]</p>
                 </div>
-                <p class="kart-tips">Trykk på kartet for å sette en nål. Du kan dra nålen for å justere.</p>
+                <p class="kart-tips">@T["Trykk på kartet for å sette en nål. Du kan dra nålen for å justere."]</p>
 
                 <input asp-for="Breddegrad" type="hidden" id="breddegradInput" />
                 <input asp-for="Lengdegrad" type="hidden" id="lengdegradInput" />
@@ -77,52 +77,52 @@
         </fieldset>
 
         <fieldset class="felt-gruppe">
-            <legend><span class="trinn" aria-hidden="true">3</span> Når og hvordan kan vi nå deg?</legend>
+            <legend><span class="trinn" aria-hidden="true">3</span> @T["Når og hvordan kan vi nå deg?"]</legend>
 
             <div class="felt">
-                <label asp-for="TilgjengeligFra" class="form-label">Tilgjengelig fra <span class="valgfritt">(valgfritt)</span></label>
+                <label asp-for="TilgjengeligFra" class="form-label">@T["Tilgjengelig fra"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
                 <input asp-for="TilgjengeligFra" class="form-control" type="datetime-local" />
                 <span asp-validation-for="TilgjengeligFra"></span>
             </div>
 
             <div class="felt">
-                <label asp-for="Beskrivelse" class="form-label">Beskrivelse <span class="valgfritt">(valgfritt)</span></label>
-                <textarea asp-for="Beskrivelse" class="form-control" rows="4" placeholder="For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"></textarea>
-                <p class="kart-tips">Når du velger type, fyller vi inn et forslag du kan endre.</p>
+                <label asp-for="Beskrivelse" class="form-label">@T["Beskrivelse"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
+                <textarea asp-for="Beskrivelse" class="form-control" rows="4" placeholder="@T["For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"]"></textarea>
+                <p class="kart-tips">@T["Når du velger type, fyller vi inn et forslag du kan endre."]</p>
                 <span asp-validation-for="Beskrivelse"></span>
             </div>
 
             <div class="felt">
                 @if (!erNy && !string.IsNullOrEmpty(Model.BildeSti))
                 {
-                    <span class="form-label d-block">Nåværende bilde</span>
-                    <img src="@Model.BildeSti" class="ressurs-bilde" alt="Nåværende bilde av ressursen: @Model.Type" />
+                    <span class="form-label d-block">@T["Nåværende bilde"]</span>
+                    <img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Nåværende bilde av ressursen: {0}", T[Model.Type]]" />
                     <div class="form-check mt-2 mb-3">
                         <input asp-for="FjernBilde" class="form-check-input" type="checkbox" />
-                        <label asp-for="FjernBilde" class="form-check-label">Fjern bildet</label>
+                        <label asp-for="FjernBilde" class="form-check-label">@T["Fjern bildet"]</label>
                     </div>
                 }
-                <label for="bildefil" class="form-label">@(erNy || string.IsNullOrEmpty(Model.BildeSti) ? "Bilde av ressursen" : "Bytt bilde") <span class="valgfritt">(valgfritt)</span></label>
+                <label for="bildefil" class="form-label">@(erNy || string.IsNullOrEmpty(Model.BildeSti) ? T["Bilde av ressursen"] : T["Bytt bilde"]) <span class="valgfritt">@T["(valgfritt)"]</span></label>
                 <input type="file" name="bildefil" id="bildefil" class="form-control" accept="image/jpeg,image/png,image/webp" aria-describedby="bildeHjelp" />
-                <p id="bildeHjelp" class="kart-tips">JPG, PNG eller WebP, maks 5 MB. Hvis skjemaet vises på nytt med feil, må du velge bildet igjen.</p>
+                <p id="bildeHjelp" class="kart-tips">@T["JPG, PNG eller WebP, maks 5 MB. Hvis skjemaet vises på nytt med feil, må du velge bildet igjen."]</p>
                 @Html.ValidationMessage("Bilde")
                 <p id="bildeFeil" class="field-validation-error" role="alert" hidden></p>
-                <img id="bildeForhandsvisning" class="ressurs-bilde" alt="Forhåndsvisning av valgt bilde" hidden />
+                <img id="bildeForhandsvisning" class="ressurs-bilde" alt="@T["Forhåndsvisning av valgt bilde"]" hidden />
             </div>
 
             <div class="felt-par">
                 <div class="felt">
-                    <label asp-for="Navn" class="form-label">Navn <span class="valgfritt">(valgfritt)</span></label>
+                    <label asp-for="Navn" class="form-label">@T["Navn"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
                     <input asp-for="Navn" class="form-control" autocomplete="name" />
                     <span asp-validation-for="Navn"></span>
                 </div>
                 <div class="felt">
-                    <label asp-for="Telefon" class="form-label">Telefon <span class="valgfritt">(valgfritt)</span></label>
+                    <label asp-for="Telefon" class="form-label">@T["Telefon"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
                     <div class="telefon-rad">
-                        <select asp-for="Landskode" class="form-select" aria-label="Landskode">
-                            @foreach (var land in Nabohjelp.Models.RessursFormViewModel.Landskoder)
+                        <select asp-for="Landskode" class="form-select" aria-label="@T["Landskode"]">
+                            @foreach (Land land in Land.Alle)
                             {
-                                <option value="@land.Kode">@land.Kode @land.Land</option>
+                                <option value="@land.Kode">@land.Kode @T[land.Navn]</option>
                             }
                         </select>
                         <input asp-for="Telefon" class="form-control" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="12345678" />
@@ -134,30 +134,30 @@
         </fieldset>
 
         <div class="skjema-bunn">
-            <button type="submit" class="btn btn-success btn-lg">@(erNy ? "Send inn" : "Lagre endringer")</button>
-            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">Avbryt</a>
+            <button type="submit" class="btn btn-success btn-lg">@(erNy ? T["Send inn"] : T["Lagre endringer"])</button>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-lg">@T["Avbryt"]</a>
         </div>
     </form>
 
     <aside class="sidepanel" aria-labelledby="panel-tittel">
         @if (erNy)
         {
-            <h2 id="panel-tittel">Hva skjer videre?</h2>
+            <h2 id="panel-tittel">@T["Hva skjer videre?"]</h2>
             <ol>
-                <li>Ressursen får status «Tilgjengelig».</li>
-                <li>Den vises på kartet til kriseledelsen.</li>
-                <li>Kriseledelsen kan koble den til et behov i nærheten.</li>
+                <li>@T["Ressursen får status «Tilgjengelig»."]</li>
+                <li>@T["Den vises på kartet til kriseledelsen."]</li>
+                <li>@T["Kriseledelsen kan koble den til et behov i nærheten."]</li>
             </ol>
-            <p>Trenger du selv hjelp? <a asp-controller="Behov" asp-action="Opprett">Meld et behov</a>.</p>
+            <p>@T["Trenger du selv hjelp?"] <a asp-controller="Behov" asp-action="Opprett">@T["Meld et behov"]</a>.</p>
         }
         else
         {
-            <h2 id="panel-tittel">Om endringene</h2>
+            <h2 id="panel-tittel">@T["Om endringene"]</h2>
             <ul>
-                <li>Endringene vises med en gang for kriseledelsen.</li>
-                <li>Statusen («@Model.Status») endres ikke her. Den styres av tildelingen.</li>
+                <li>@T["Endringene vises med en gang for kriseledelsen."]</li>
+                <li>@T["Statusen («{0}») endres ikke her. Den styres av tildelingen.", T[Model.Status]]</li>
             </ul>
-            <p>Har du ikke ressursen lenger? <a asp-action="Delete" asp-route-id="@Model.Id">Slett ressursen</a>.</p>
+            <p>@T["Har du ikke ressursen lenger?"] <a asp-action="Delete" asp-route-id="@Model.Id">@T["Slett ressursen"]</a>.</p>
         }
     </aside>
 </div>

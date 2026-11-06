@@ -1,17 +1,22 @@
 @model Nabohjelp.ViewModels.TildelingViewModel
 
 @{
-    ViewData["Title"] = "Tildeling fullført";
+    ViewData["Title"] = T["Tildeling fullført"];
 
     // Resultatet inneholder ressursen som ble tildelt.
-    var ressurs = Model.MatchendeRessurser.FirstOrDefault();
+    MatchendeRessursViewModel? ressurs = null;
+    if (Model.MatchendeRessurser.Count > 0)
+    {
+        ressurs = Model.MatchendeRessurser[0];
+    }
 }
 
-<!-- Overskrift -->
-<h1>Tildeling fullført</h1>
+<div class="side-topp">
+    <h1>@T["Tildeling fullført"]</h1>
+</div>
 
 <div class="alert alert-success">
-    Ressursen er tildelt behovet.
+    @T["Ressursen er tildelt behovet."]
 </div>
 
 <!-- Informasjon om behovet -->
@@ -19,21 +24,21 @@
     <div class="card-body">
 
         <h2 class="h5">
-            Behov #@Model.BehovId
+            @T["Behov #{0}", Model.BehovId]
         </h2>
 
         <p>
-            <strong>Behovstype:</strong>
-            @Nabohjelp.Models.Visningstekst.Type(Model.BehovType)
+            <strong>@T["Behovstype:"]</strong>
+            @Visningstekst.Type(Model.BehovType, Model.AnnetType)
         </p>
 
         <p>
-            <strong>Status:</strong>
-            @Nabohjelp.Models.Visningstekst.Status(Model.Status)
+            <strong>@T["Status:"]</strong>
+            @Visningstekst.Status(Model.Status)
         </p>
 
         <p>
-            <strong>Posisjon:</strong>
+            <strong>@T["Posisjon:"]</strong>
             @Model.Latitude, @Model.Longitude
         </p>
 
@@ -47,26 +52,26 @@
         <div class="card-body">
 
             <h2 class="h5">
-                Tildelt ressurs
+                @T["Tildelt ressurs"]
             </h2>
 
             <p>
-                <strong>Type:</strong>
-                @ressurs.Type
+                <strong>@T["Type:"]</strong>
+                @T[ressurs.Type]
             </p>
 
             <p>
-                <strong>Posisjon:</strong>
+                <strong>@T["Posisjon:"]</strong>
                 @ressurs.Posisjon
             </p>
 
             <p>
-                <strong>Status:</strong>
-                @ressurs.Status
+                <strong>@T["Status:"]</strong>
+                @T[ressurs.Status]
             </p>
 
             <p>
-                <strong>Match:</strong>
+                <strong>@T["Match:"]</strong>
                 @ressurs.MatchBegrunnelse
             </p>
 
@@ -78,5 +83,5 @@
 <a asp-controller="Tildeling"
    asp-action="Index"
    class="btn btn-primary">
-    Tilbake til tildeling
+    @T["Tilbake til tildeling"]
 </a>

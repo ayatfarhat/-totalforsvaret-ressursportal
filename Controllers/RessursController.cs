@@ -1,23 +1,21 @@
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers
 {
+    // Alle sidene krever innlogging. Utskriften krever i tillegg Admin eller Kommune.
+    [Authorize]
     public class RessursController : Controller
     {
         private readonly ApplicationDbContext _db;
 
-        // Gir oss mappen wwwroot, der opplastede bilder lagres.
+        // Gir oss mappen wwwroot, der opplastede bilder lagres (se Services/Ressursbilder.cs).
         private readonly IWebHostEnvironment _miljo;
-
-        // Regler for bildene som kan lastes opp.
-        private static readonly string[] _tillatteBildeendelser = { ".jpg", ".jpeg", ".png", ".webp" };
-        private const long MaksBildeStorrelse = 5 * 1024 * 1024; // 5 MB
 
         // Gir tilgang til databasen og til mappen for bilder.
         public RessursController(ApplicationDbContext db, IWebHostEnvironment miljo)
@@ -28,47 +26,36 @@ namespace Nabohjelp.Controllers
 
         // Frivillige ser egne ressurser.
         // Admin og Kommune ser alle.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var sporring = _db.Ressurser.AsNoTracking();
+            // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
+            // r => ... betyr «for hver ressurs r».
+            IQueryable<Ressurs> sporring = _db.Ressurser.AsNoTracking();
 
-            bool erKoordinator =
-                User.IsInRole("Admin") ||
-                User.IsInRole("Kommune");
+            bool erKoordinator = Tilgang.ErAnsatt(User);
 
+            // Frivillige ser bare sine egne ressurser.
             if (!erKoordinator)
             {
-                var brukerId =
-                    User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                if (string.IsNullOrEmpty(brukerId))
-                {
-                    return Challenge();
-                }
-
-                // Filtrerer i databasen før data hentes.
-                sporring = sporring.Where(
-                    r => r.OpprettetAvBrukerId == brukerId);
+                string brukerId = Tilgang.BrukerId(User);
+                sporring = sporring.Where(r => r.OpprettetAvBrukerId == brukerId);
             }
 
-            var ressurser = await sporring
+            // Nyeste først.
+            List<Ressurs> ressurser = await sporring
                 .OrderByDescending(r => r.OpprettetTid)
                 .ToListAsync();
-
-            var modeller = ressurser.Select(TilViewModel).ToList();
 
             // Antall ønskede ressurser vises i en egen boks på siden.
             ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
             ViewBag.ErKoordinator = erKoordinator;
 
-            return View(modeller);
+            return View(TilViewModeller(ressurser));
         }
 
         // Viser skjemaet for innloggede brukere.
         // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt.
-        [Authorize]
         [HttpGet]
         public IActionResult Create(string? type)
         {
@@ -83,21 +70,12 @@ namespace Nabohjelp.Controllers
         }
 
         // Lagrer en ressurs med innlogget bruker som eier.
-        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             RessursFormViewModel model,
             IFormFile? bildefil)
         {
-            var brukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(brukerId))
-            {
-                return Challenge();
-            }
-
             // Bilde-adressen settes bare av oss, aldri av det som kommer fra skjemaet.
             model.BildeSti = null;
 
@@ -108,33 +86,23 @@ namespace Nabohjelp.Controllers
                 return View(model);
             }
 
-            // Kopierer skjemadata til databasemodellen.
-            // Landskoden lagres sammen med nummeret, for eksempel «+47 12345678».
+            // Status, tidspunkt og eier settes her. Resten kommer fra skjemaet.
             var ressurs = new Ressurs
             {
-                Type = model.Type,
-                Posisjon = model.Posisjon,
-                Kommunenummer = model.Kommunenummer,
-                Breddegrad = model.Breddegrad,
-                Lengdegrad = model.Lengdegrad,
-                TilgjengeligFra = model.TilgjengeligFra,
-                Beskrivelse = model.Beskrivelse,
-                Navn = model.Navn,
-                Telefon = model.TelefonForLagring(),
                 Status = "Tilgjengelig",
                 OpprettetTid = DateTime.UtcNow,
-                OpprettetAvBrukerId = brukerId
+                OpprettetAvBrukerId = Tilgang.BrukerId(User)
             };
+            model.KopierTil(ressurs);
 
             // Databasen genererer ressursens ID.
             _db.Ressurser.Add(ressurs);
             await _db.SaveChangesAsync();
 
-            // Bildet lagres med ressursens ID som filnavn (for eksempel 12.jpg),
-            // så vi trenger ingen egen kolonne i databasen for det.
+            // Bildet lagres med ressursens ID som filnavn, så det må skje etter lagringen.
             if (bildefil != null && bildefil.Length > 0)
             {
-                LagreBilde(bildefil, ressurs.Id);
+                Ressursbilder.Lagre(_miljo.WebRootPath, bildefil, ressurs.Id);
             }
 
             return RedirectToAction(
@@ -143,31 +111,17 @@ namespace Nabohjelp.Controllers
         }
 
         // Bare eieren, Admin og Kommune får se kvitteringen.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Confirmation(int id)
         {
-            var ressurs = await _db.Ressurser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
                 return NotFound();
             }
 
-            var brukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            bool erEier =
-                !string.IsNullOrEmpty(brukerId) &&
-                ressurs.OpprettetAvBrukerId == brukerId;
-
-            bool erKoordinator =
-                User.IsInRole("Admin") ||
-                User.IsInRole("Kommune");
-
-            if (!erEier && !erKoordinator)
+            if (!KanEndre(ressurs))
             {
                 return Forbid();
             }
@@ -177,13 +131,10 @@ namespace Nabohjelp.Controllers
 
         // GET: /Ressurs/Edit/5
         // Eieren, Kommune og Admin kan endre en ressurs.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var ressurs = await _db.Ressurser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -200,7 +151,6 @@ namespace Nabohjelp.Controllers
 
         // POST: /Ressurs/Edit/5
         // Bare feltene fra skjemaet endres. Status og eier settes aldri fra skjemaet.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
@@ -208,8 +158,7 @@ namespace Nabohjelp.Controllers
             RessursFormViewModel model,
             IFormFile? bildefil)
         {
-            var ressurs = await _db.Ressurser
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -232,46 +181,34 @@ namespace Nabohjelp.Controllers
                 // for feltene brukeren ikke kan endre.
                 model.Id = ressurs.Id;
                 model.Status = ressurs.Status;
-                model.BildeSti = FinnBilde(ressurs.Id);
+                model.BildeSti = Ressursbilder.Finn(_miljo.WebRootPath, ressurs.Id);
                 return View(model);
             }
 
-            ressurs.Type = model.Type;
-            ressurs.Posisjon = model.Posisjon;
-            ressurs.Kommunenummer = model.Kommunenummer;
-            ressurs.Breddegrad = model.Breddegrad;
-            ressurs.Lengdegrad = model.Lengdegrad;
-            ressurs.TilgjengeligFra = model.TilgjengeligFra;
-            ressurs.Beskrivelse = model.Beskrivelse;
-            ressurs.Navn = model.Navn;
-            ressurs.Telefon = model.TelefonForLagring();
-
+            model.KopierTil(ressurs);
             await _db.SaveChangesAsync();
 
             // Nytt bilde erstatter det gamle. Uten nytt bilde kan det gamle fjernes.
             if (bildefil != null && bildefil.Length > 0)
             {
-                SlettBilde(ressurs.Id);
-                LagreBilde(bildefil, ressurs.Id);
+                Ressursbilder.Slett(_miljo.WebRootPath, ressurs.Id);
+                Ressursbilder.Lagre(_miljo.WebRootPath, bildefil, ressurs.Id);
             }
             else if (model.FjernBilde)
             {
-                SlettBilde(ressurs.Id);
+                Ressursbilder.Slett(_miljo.WebRootPath, ressurs.Id);
             }
 
-            TempData["Melding"] = "Endringene er lagret.";
+            TempData["Melding"] = Oversetter.Tekst("Endringene er lagret.");
             return RedirectToAction(nameof(Index));
         }
 
         // GET: /Ressurs/Delete/5
         // Viser hva som slettes, og ber brukeren bekrefte.
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var ressurs = await _db.Ressurser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -290,13 +227,11 @@ namespace Nabohjelp.Controllers
         }
 
         // POST: /Ressurs/Delete/5
-        [Authorize(Roles = "Admin,Kommune,Frivillig")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ressurs = await _db.Ressurser
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -320,28 +255,22 @@ namespace Nabohjelp.Controllers
             _db.Ressurser.Remove(ressurs);
             await _db.SaveChangesAsync();
 
-            SlettBilde(id);
+            Ressursbilder.Slett(_miljo.WebRootPath, id);
 
-            TempData["Melding"] = "Ressursen er slettet.";
+            TempData["Melding"] = Oversetter.Tekst("Ressursen er slettet.");
             return RedirectToAction(nameof(Index));
         }
 
         // GET: /Ressurs/Utskrift?fylke=Agder&kommune=4202
         // Ressurslisten per kommune, laget for å skrives ut eller lagres som PDF.
         // Kun kriseledelsen (Kommune og Admin) har tilgang.
-        [Authorize(Roles = "Admin,Kommune")]
+        [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
         [HttpGet]
         public async Task<IActionResult> Utskrift(string? fylke, string? kommune)
         {
-            var ressurser = await _db.Ressurser
-                .AsNoTracking()
-                .ToListAsync();
+            List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking().ToListAsync();
 
-            var modell = RessursUtskriftViewModel.Lag(
-                ressurser.Select(TilViewModel),
-                fylke,
-                kommune,
-                DateTime.Now);
+            RessursUtskriftViewModel modell = RessursUtskriftViewModel.Lag(TilViewModeller(ressurser), fylke, kommune, DateTime.Now);
 
             return View(modell);
         }
@@ -349,16 +278,7 @@ namespace Nabohjelp.Controllers
         // Eieren av ressursen og kriseledelsen (Kommune og Admin) kan endre og slette.
         private bool KanEndre(Ressurs ressurs)
         {
-            if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
-            {
-                return true;
-            }
-
-            var brukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            return !string.IsNullOrEmpty(brukerId) &&
-                   ressurs.OpprettetAvBrukerId == brukerId;
+            return Tilgang.KanEndre(User, ressurs.OpprettetAvBrukerId);
         }
 
         // Gir en forklaring hvis ressursen ikke kan slettes, ellers null.
@@ -366,8 +286,7 @@ namespace Nabohjelp.Controllers
         {
             if (ressurs.Status == "Tildelt")
             {
-                return "Ressursen er tildelt et behov akkurat nå og kan ikke slettes. " +
-                       "Kontakt kommunen hvis den ikke lenger er tilgjengelig.";
+                return Oversetter.Tekst("Ressursen er tildelt et behov akkurat nå og kan ikke slettes. Kontakt kommunen hvis den ikke lenger er tilgjengelig.");
             }
 
             // Tildelinger viser til ressursen (DeleteBehavior.Restrict i ApplicationDbContext),
@@ -377,8 +296,7 @@ namespace Nabohjelp.Controllers
 
             if (harVaertTildelt)
             {
-                return "Ressursen har vært brukt i en tildeling og må bli liggende i historikken. " +
-                       "Du kan fortsatt endre den.";
+                return Oversetter.Tekst("Ressursen har vært brukt i en tildeling og må bli liggende i historikken. Du kan fortsatt endre den.");
             }
 
             return null;
@@ -390,28 +308,28 @@ namespace Nabohjelp.Controllers
             // Typen må være en av de faste typene (ikke bare «en tekst»).
             if (!RessursFormViewModel.Typer.Contains(model.Type))
             {
-                ModelState.AddModelError("Type", "Du må velge type ressurs.");
+                ModelState.AddModelError("Type", Oversetter.Tekst("Du må velge type ressurs."));
             }
 
             // Kommunen må finnes i listen over norske kommuner.
             if (!string.IsNullOrEmpty(model.Kommunenummer) && !Kommuner.Finnes(model.Kommunenummer))
             {
-                ModelState.AddModelError("Kommunenummer", "Velg en kommune fra listen.");
+                ModelState.AddModelError("Kommunenummer", Oversetter.Tekst("Velg en kommune fra listen."));
             }
 
             // Landskoden må være en av de som finnes i listen.
-            if (!RessursFormViewModel.Landskoder.Any(l => l.Kode == model.Landskode))
+            if (!Land.KodeFinnes(model.Landskode))
             {
-                ModelState.AddModelError("Landskode", "Velg en landskode fra listen.");
+                ModelState.AddModelError("Landskode", Oversetter.Tekst("Velg en landskode fra listen."));
             }
 
             // Sjekker bildet (valgfritt) før noe lagres.
             if (bildefil != null && bildefil.Length > 0)
             {
-                string? bildeFeil = SjekkBilde(bildefil);
+                string? bildeFeil = Ressursbilder.Sjekk(bildefil);
                 if (bildeFeil != null)
                 {
-                    ModelState.AddModelError("Bilde", bildeFeil);
+                    ModelState.AddModelError("Bilde", Oversetter.Tekst(bildeFeil));
                 }
             }
 
@@ -420,7 +338,7 @@ namespace Nabohjelp.Controllers
             {
                 ModelState.AddModelError(
                     "TilgjengeligFra",
-                    "Tidspunkt kan ikke ligge i fortiden.");
+                    Oversetter.Tekst("Tidspunkt kan ikke ligge i fortiden."));
             }
         }
 
@@ -435,153 +353,21 @@ namespace Nabohjelp.Controllers
             return Math.Abs((a.Value - b.Value).TotalMinutes) < 1;
         }
 
-        // Gjør databasedata klare for visningene.
-        private RessursFormViewModel TilViewModel(
-            Ressurs ressurs)
+        // Gjør en ressurs fra databasen klar for visningene, med bildet hvis det finnes.
+        private RessursFormViewModel TilViewModel(Ressurs ressurs)
         {
-            var modell = new RessursFormViewModel
-            {
-                Id = ressurs.Id,
-                OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
-                Type = ressurs.Type,
-                Posisjon = ressurs.Posisjon,
-                Kommunenummer = ressurs.Kommunenummer,
-                Breddegrad = ressurs.Breddegrad,
-                Lengdegrad = ressurs.Lengdegrad,
-                TilgjengeligFra = ressurs.TilgjengeligFra,
-                Beskrivelse = ressurs.Beskrivelse,
-                Navn = ressurs.Navn,
-                Status = ressurs.Status,
-                BildeSti = FinnBilde(ressurs.Id)
-            };
-
-            // Telefonen er lagret som «+47 12345678». Vi deler den opp igjen
-            // i landskode og nummer, slik at visningen blir riktig.
-            modell.LesTelefonFraLagring(ressurs.Telefon);
-
-            return modell;
+            string? bildeSti = Ressursbilder.Finn(_miljo.WebRootPath, ressurs.Id);
+            return RessursFormViewModel.FraRessurs(ressurs, bildeSti);
         }
 
-        // Sjekker at filen er et bilde vi tillater. Gir en feilmelding, eller null hvis OK.
-        private static string? SjekkBilde(IFormFile fil)
+        private List<RessursFormViewModel> TilViewModeller(List<Ressurs> ressurser)
         {
-            if (fil.Length > MaksBildeStorrelse)
+            var modeller = new List<RessursFormViewModel>();
+            foreach (Ressurs ressurs in ressurser)
             {
-                return "Bildet er for stort. Maks størrelse er 5 MB.";
+                modeller.Add(TilViewModel(ressurs));
             }
-
-            string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
-            if (!_tillatteBildeendelser.Contains(endelse))
-            {
-                return "Bildet må være JPG, PNG eller WebP.";
-            }
-
-            if (!fil.ContentType.StartsWith("image/"))
-            {
-                return "Filen er ikke et bilde.";
-            }
-
-            // Filtypen og Content-Type kommer fra nettleseren og kan være falske.
-            // Derfor ser vi også på de første bytene i selve filen.
-            if (!ErEkteBilde(fil, endelse))
-            {
-                return "Filen ser ikke ut som et ekte bilde.";
-            }
-
-            return null;
-        }
-
-        // Sjekker «signaturen» (de første bytene) i filen:
-        //   JPEG begynner med FF D8 FF, PNG med 89 50 4E 47,
-        //   WebP med «RIFF» og så «WEBP» fra byte 8.
-        private static bool ErEkteBilde(IFormFile fil, string endelse)
-        {
-            byte[] start = new byte[12];
-            int lest;
-            using (var strom = fil.OpenReadStream())
-            {
-                lest = strom.Read(start, 0, start.Length);
-            }
-
-            if (lest < 12)
-            {
-                return false;
-            }
-
-            if (endelse == ".jpg" || endelse == ".jpeg")
-            {
-                return start[0] == 0xFF && start[1] == 0xD8 && start[2] == 0xFF;
-            }
-
-            if (endelse == ".png")
-            {
-                return start[0] == 0x89 && start[1] == 0x50 && start[2] == 0x4E && start[3] == 0x47;
-            }
-
-            if (endelse == ".webp")
-            {
-                return start[0] == 'R' && start[1] == 'I' && start[2] == 'F' && start[3] == 'F'
-                    && start[8] == 'W' && start[9] == 'E' && start[10] == 'B' && start[11] == 'P';
-            }
-
-            return false;
-        }
-
-        // Mappen der bildene ligger: wwwroot/uploads/ressurser
-        private string BildeMappe()
-        {
-            return Path.Combine(_miljo.WebRootPath, "uploads", "ressurser");
-        }
-
-        // Lagrer bildet som «ressurs-ID + filendelse», for eksempel 12.jpg.
-        // Vi bruker ikke filnavnet brukeren sendte, slik at ingen kan
-        // overskrive andre filer eller lage rare filnavn.
-        private void LagreBilde(IFormFile fil, int ressursId)
-        {
-            string endelse = Path.GetExtension(fil.FileName).ToLowerInvariant();
-            if (endelse == ".jpeg")
-            {
-                endelse = ".jpg";
-            }
-
-            string mappe = BildeMappe();
-            Directory.CreateDirectory(mappe);
-
-            string fullSti = Path.Combine(mappe, ressursId + endelse);
-            using (var strom = new FileStream(fullSti, FileMode.Create))
-            {
-                fil.CopyTo(strom);
-            }
-        }
-
-        // Finner bildet til en ressurs, hvis det finnes. Gir nettadressen
-        // (for eksempel /uploads/ressurser/12.jpg), eller null.
-        private string? FinnBilde(int ressursId)
-        {
-            string mappe = BildeMappe();
-            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
-            {
-                if (System.IO.File.Exists(Path.Combine(mappe, ressursId + endelse)))
-                {
-                    return "/uploads/ressurser/" + ressursId + endelse;
-                }
-            }
-
-            return null;
-        }
-
-        // Sletter bildet til en ressurs (alle filendelser), hvis det finnes.
-        private void SlettBilde(int ressursId)
-        {
-            string mappe = BildeMappe();
-            foreach (string endelse in new[] { ".jpg", ".png", ".webp" })
-            {
-                string sti = Path.Combine(mappe, ressursId + endelse);
-                if (System.IO.File.Exists(sti))
-                {
-                    System.IO.File.Delete(sti);
-                }
-            }
+            return modeller;
         }
     }
 }

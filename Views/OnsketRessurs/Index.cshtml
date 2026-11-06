@@ -1,26 +1,26 @@
 @model List<Nabohjelp.Models.OnsketRessurs>
 
 @{
-    ViewData["Title"] = "Ønskede ressurser";
-    bool kanAdministrere = User.IsInRole("Admin") || User.IsInRole("Kommune");
+    ViewData["Title"] = T["Ønskede ressurser"];
+    bool kanAdministrere = Tilgang.ErAnsatt(User);
 }
 
 <div class="side-topp">
-    <h1>Ønskede ressurser</h1>
-    <p class="ingress">Dette er ressursene kommunen og kriseledelsen trenger akkurat nå. Har du noe på lista? Registrer det, så kan det kobles til et behov.</p>
+    <h1>@T["Ønskede ressurser"]</h1>
+    <p class="ingress">@T["Dette er ressursene kommunen og kriseledelsen trenger akkurat nå. Har du noe på lista? Registrer det, så kan det kobles til et behov."]</p>
 </div>
 
 @if (kanAdministrere)
 {
-    <p><a asp-action="Create" class="btn btn-success">Legg til ønsket ressurs</a></p>
+    <p><a asp-action="Create" class="btn btn-success">@T["Legg til ønsket ressurs"]</a></p>
 }
 
-@if (!Model.Any())
+@if (Model.Count == 0)
 {
     <div class="tom-tilstand">
-        <h2 class="h3">Ingen ønskede ressurser akkurat nå</h2>
-        <p>Du kan likevel registrere det du kan stille med. Kriseledelsen ser det.</p>
-        <a class="btn btn-success" asp-controller="Ressurs" asp-action="Create">Registrer en ressurs</a>
+        <h2 class="h3">@T["Ingen ønskede ressurser akkurat nå"]</h2>
+        <p>@T["Du kan likevel registrere det du kan stille med. Kriseledelsen ser det."]</p>
+        <a class="btn btn-success" asp-controller="Ressurs" asp-action="Create">@T["Registrer en ressurs"]</a>
     </div>
 }
 else
@@ -29,28 +29,28 @@ else
         <table class="table stablet align-middle">
             <thead>
                 <tr>
-                    <th scope="col">Type</th>
-                    <th scope="col">Antall</th>
-                    <th scope="col">Sted</th>
-                    <th scope="col">Beskrivelse</th>
-                    <th scope="col"><span class="visually-hidden">Handling</span></th>
+                    <th scope="col">@T["Type"]</th>
+                    <th scope="col">@T["Antall"]</th>
+                    <th scope="col">@T["Sted"]</th>
+                    <th scope="col">@T["Beskrivelse"]</th>
+                    <th scope="col"><span class="visually-hidden">@T["Handling"]</span></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var onsket in Model)
                 {
                     <tr>
-                        <td data-label="Type"><strong>@onsket.Type</strong></td>
-                        <td data-label="Antall">@onsket.Antall</td>
-                        <td data-label="Sted">@onsket.Sted</td>
-                        <td data-label="Beskrivelse"><span class="tekst-linjer">@onsket.VisBeskrivelse()</span></td>
+                        <td data-label="@T["Type"]"><strong>@T[onsket.Type]</strong></td>
+                        <td data-label="@T["Antall"]">@onsket.Antall</td>
+                        <td data-label="@T["Sted"]">@onsket.Sted</td>
+                        <td data-label="@T["Beskrivelse"]"><span class="tekst-linjer">@onsket.VisBeskrivelse()</span></td>
                         <td data-label="">
                             <div class="d-flex flex-wrap gap-2">
-                                <a class="btn btn-success btn-sm" asp-controller="Ressurs" asp-action="Create" asp-route-type="@onsket.Type">Jeg kan stille med dette</a>
+                                <a class="btn btn-success btn-sm" asp-controller="Ressurs" asp-action="Create" asp-route-type="@onsket.Type">@T["Jeg kan stille med dette"]</a>
                                 @if (kanAdministrere)
                                 {
                                     <form asp-action="Fjern" asp-route-id="@onsket.Id" method="post">
-                                        <button type="submit" class="btn btn-outline-secondary btn-sm">Fjern</button>
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">@T["Fjern"]</button>
                                     </form>
                                 }
                             </div>

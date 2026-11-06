@@ -8,20 +8,13 @@ namespace Nabohjelp.Models;
 //
 //   Ny / Under vurdering → Trukket tilbake  (den som meldte behovet)
 //
+// Så lenge behovet er Ny eller Under vurdering, kan det også endres
+// av den som meldte det, eller av Admin/Kommune.
+//
 // «Tildelt» settes av tildelingen (TildelingController), ikke med en knapp.
 // Løst, Avvist og Trukket tilbake er avsluttet: da skjer det ikke mer med behovet.
 public static class BehovStatusflyt
 {
-    // Behov med disse statusene vises ikke i køen, på kartet eller i tildelingen.
-    // NB: I databasespørringer skriver vi de tre statusene ut (b.Status != ...),
-    // fordi ikke alle MariaDB-versjoner kan bruke en slik liste i en spørring.
-    public static readonly BehovStatus[] Avsluttet =
-    {
-        BehovStatus.Resolved,
-        BehovStatus.Rejected,
-        BehovStatus.Withdrawn
-    };
-
     // Stegene som vises i statuslinjen på «Mine behov».
     public static readonly BehovStatus[] Steg =
     {
@@ -52,15 +45,20 @@ public static class BehovStatusflyt
         return NesteStatuser(fra).Contains(til);
     }
 
-    // Den som meldte behovet kan trekke det tilbake så lenge ingen ressurs er tildelt.
-    public static bool KanTrekkesTilbake(BehovStatus status)
+    // Et behov kan endres (type, hast, posisjon, beskrivelse, kontaktinfo) eller trekkes
+    // tilbake så lenge ingen ressurs er tildelt. Etter tildeling har kommunen planlagt
+    // ut fra det som står.
+    public static bool KanRedigeres(BehovStatus status)
     {
         return status == BehovStatus.New || status == BehovStatus.UnderReview;
     }
 
+    // Løst, Avvist og Trukket tilbake er avsluttet: da skjer det ikke mer med behovet.
     public static bool ErAvsluttet(BehovStatus status)
     {
-        return Avsluttet.Contains(status);
+        return status == BehovStatus.Resolved ||
+               status == BehovStatus.Rejected ||
+               status == BehovStatus.Withdrawn;
     }
 
     // Hvor langt behovet har kommet i statuslinjen: 0 = Ny ... 3 = Løst.
