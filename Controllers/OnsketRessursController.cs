@@ -27,7 +27,7 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var onskede = await _db.OnskedeRessurser
+            List<OnsketRessurs> onskede = await _db.OnskedeRessurser
                 .AsNoTracking()
                 .OrderByDescending(o => o.Opprettet)
                 .ToListAsync();
@@ -83,7 +83,7 @@ namespace Nabohjelp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Fjern(int id)
         {
-            var onsket = await _db.OnskedeRessurser.FindAsync(id);
+            OnsketRessurs? onsket = await _db.OnskedeRessurser.FindAsync(id);
 
             // Er den allerede fjernet (for eksempel av en kollega), gjør vi ingenting.
             if (onsket != null)

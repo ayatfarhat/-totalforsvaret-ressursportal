@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp;
 using Nabohjelp.Data;
@@ -13,7 +14,10 @@ using Nabohjelp.Services;
 CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Om skrivemåten under: options => ... er en kort metode uten navn (en «lambda»).
+// ASP.NET kaller den med et innstillingsobjekt (options), og vi setter verdiene vi vil ha.
 
 // Ikke fortell hvilken webserver vi bruker (svarhodet «Server: Kestrel»).
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
@@ -26,7 +30,7 @@ builder.Services.AddControllersWithViews(options =>
 {
     // Feilmeldinger når en verdi ikke kan leses (for eksempel bokstaver i et tallfelt),
     // på norsk eller engelsk (se Services/Oversetter.cs).
-    var meldinger = options.ModelBindingMessageProvider;
+    DefaultModelBindingMessageProvider meldinger = options.ModelBindingMessageProvider;
     meldinger.SetAttemptedValueIsInvalidAccessor((verdi, felt) => Oversetter.Tekst("«{0}» er ikke en gyldig verdi for {1}.", verdi, felt));
     meldinger.SetValueIsInvalidAccessor(verdi => Oversetter.Tekst("«{0}» er ikke en gyldig verdi.", verdi));
     meldinger.SetValueMustBeANumberAccessor(felt => Oversetter.Tekst("{0} må være et tall.", felt));
@@ -47,8 +51,7 @@ builder.Services.AddControllersWithViews(options =>
     });
 
 // Henter connection string fra appsettings.json eller Docker
-var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Kobler ApplicationDbContext til MariaDB
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -88,15 +91,7 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 
     // Ved sjekken lages innloggingen på nytt. Da tar vi med merket for at
     // brukeren logget inn med 2FA ("amr" = "mfa"), så det ikke forsvinner.
-    options.OnRefreshingPrincipal = context =>
-    {
-        var amr = context.CurrentPrincipal?.FindFirst("amr");
-        if (amr != null && context.NewPrincipal?.Identity is ClaimsIdentity ny && !ny.HasClaim("amr", amr.Value))
-        {
-            ny.AddClaim(new Claim("amr", amr.Value));
-        }
-        return Task.CompletedTask;
-    };
+    options.OnRefreshingPrincipal = Tilgang.BeholdTofaMerke;
 });
 
 // Innloggings-cookien
@@ -127,21 +122,21 @@ builder.Services.AddScoped<KontoService>();
 // Maks 10 forsøk per minutt på innlogging, registrering og invitasjoner (se Services/Sikkerhet.cs).
 Sikkerhet.LeggTilFartsgrense(builder.Services);
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Gjør at modeller og tjenester også kan vise tekst på valgt språk (se Services/Oversetter.cs).
 Oversetter.Localizer = app.Services.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<SharedResource>>();
 
 // Kjører migrasjoner automatisk
 // og oppretter rollene Admin, Kommune og Frivillig
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider
+    ApplicationDbContext dbContext = scope.ServiceProvider
         .GetRequiredService<ApplicationDbContext>();
 
     await dbContext.Database.MigrateAsync();
 
-    var roleManager = scope.ServiceProvider
+    RoleManager<IdentityRole> roleManager = scope.ServiceProvider
         .GetRequiredService<RoleManager<IdentityRole>>();
 
     await RoleInitializer.InitializeAsync(roleManager);
@@ -155,9 +150,9 @@ if (app.Environment.IsDevelopment())
 }
 
 // GDPR: fjerner kontaktopplysninger fra gamle, avsluttede behov.
-using (var scope = app.Services.CreateScope())
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     int dager = app.Configuration.GetValue("Personvern:SlettKontaktinfoEtterDager", 90);
     await PersonvernOpprydding.FjernGamleKontaktopplysninger(db, dager);
 }
@@ -181,8 +176,8 @@ app.UseHttpsRedirection();
 // Språket velges med knappen NO/EN og huskes i en cookie.
 // Bare språket på teksten endres (UICulture). Tall og datoer leses fortsatt
 // med punktum (InvariantCulture), slik at koordinatene fra kartet virker.
-var norsk = new CultureInfo("nb");
-var engelsk = new CultureInfo("en");
+CultureInfo norsk = new CultureInfo("nb");
+CultureInfo engelsk = new CultureInfo("en");
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
     DefaultRequestCulture = new RequestCulture(CultureInfo.InvariantCulture, norsk),

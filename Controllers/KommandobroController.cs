@@ -32,26 +32,27 @@ namespace Nabohjelp.Controllers
             var modell = new MapViewModel();
 
             // Ressurser: bare de som har en posisjon valgt på kartet, vises.
-            var ressurser = await _db.Ressurser
+            // r => ... betyr «for hver ressurs r» (spørringen kjøres i databasen).
+            List<Ressurs> ressurser = await _db.Ressurser
                 .AsNoTracking()
                 .Where(r => r.Breddegrad != null && r.Lengdegrad != null)
                 .ToListAsync();
 
-            foreach (var ressurs in ressurser)
+            foreach (Ressurs ressurs in ressurser)
             {
                 modell.Ressurser.Add(LagRessursPunkt(ressurs));
             }
 
             // Behov: avsluttede behov (løst, avvist, trukket tilbake) vises ikke,
             // så kartet bare viser det som fortsatt trenger hjelp.
-            var behovsliste = await _db.Behovsliste
+            List<Behov> behovsliste = await _db.Behovsliste
                 .AsNoTracking()
                 .Where(b => b.Status != BehovStatus.Resolved &&
                             b.Status != BehovStatus.Rejected &&
                             b.Status != BehovStatus.Withdrawn)
                 .ToListAsync();
 
-            foreach (var behov in behovsliste)
+            foreach (Behov behov in behovsliste)
             {
                 modell.Behov.Add(LagBehovPunkt(behov, ressurser));
             }
@@ -68,8 +69,13 @@ namespace Nabohjelp.Controllers
                 Tittel = T["Behov: {0}", Visningstekst.Type(behov.Type)],
                 Breddegrad = behov.Latitude,
                 Lengdegrad = behov.Longitude,
-                Farge = behov.Prioritet == BehovPrioritet.Urgent ? "hjelp" : "planlagt"
+                Farge = "planlagt"
             };
+
+            if (behov.Prioritet == BehovPrioritet.Urgent)
+            {
+                punkt.Farge = "hjelp";
+            }
 
             // Når typen er «Annet», står det brukeren skrev i en egen linje.
             if (behov.Type == BehovType.Annet)
@@ -85,7 +91,7 @@ namespace Nabohjelp.Controllers
             punkt.LeggTilLinje(T["E-post"], behov.KontaktEpost);
 
             // Nærmeste ledige ressurs som passer, i luftlinje (se Services/Ressursmatching.cs).
-            var naermeste = Ressursmatching.FinnNaermeste(behov, ressurser);
+            NaermesteRessurs? naermeste = Ressursmatching.FinnNaermeste(behov, ressurser);
             if (naermeste != null)
             {
                 punkt.LeggTilLinje(T["Nærmeste ressurs"], T["{0}, {1} km unna",
@@ -99,7 +105,7 @@ namespace Nabohjelp.Controllers
             punkt.Lenker.Add(new KartLenke
             {
                 Tekst = T["Finn ressurs"],
-                Adresse = Url.Action("Match", "Tildeling", new { id = behov.Id }) ?? ""
+                Adresse = "/Tildeling/Match/" + behov.Id
             });
 
             if (BehovStatusflyt.KanRedigeres(behov.Status))
@@ -107,7 +113,7 @@ namespace Nabohjelp.Controllers
                 punkt.Lenker.Add(new KartLenke
                 {
                     Tekst = T["Endre"],
-                    Adresse = Url.Action("Rediger", "Behov", new { id = behov.Id }) ?? ""
+                    Adresse = "/Behov/Rediger/" + behov.Id
                 });
             }
 
@@ -120,10 +126,21 @@ namespace Nabohjelp.Controllers
             var punkt = new KartPunkt
             {
                 Tittel = T["Ressurs: {0}", T[ressurs.Type]],
-                Breddegrad = (double)ressurs.Breddegrad!.Value,
-                Lengdegrad = (double)ressurs.Lengdegrad!.Value,
-                Farge = ressurs.Status == "Tilgjengelig" ? "gi" : "opptatt"
+                Farge = "opptatt"
             };
+
+            // Bare ressurser med posisjon kommer hit (se Index), så verdiene finnes.
+            // decimal (slik databasen lagrer dem) gjøres om til double, som kartet bruker.
+            if (ressurs.Breddegrad != null && ressurs.Lengdegrad != null)
+            {
+                punkt.Breddegrad = (double)ressurs.Breddegrad.Value;
+                punkt.Lengdegrad = (double)ressurs.Lengdegrad.Value;
+            }
+
+            if (ressurs.Status == "Tilgjengelig")
+            {
+                punkt.Farge = "gi";
+            }
 
             punkt.LeggTilLinje(T["Status"], T[ressurs.Status]);
             if (!string.IsNullOrEmpty(ressurs.Kommunenummer))
@@ -131,7 +148,10 @@ namespace Nabohjelp.Controllers
                 punkt.LeggTilLinje(T["Kommune"], Kommuner.VisNavn(ressurs.Kommunenummer));
             }
             punkt.LeggTilLinje(T["Posisjon"], ressurs.Posisjon);
-            punkt.LeggTilLinje(T["Tilgjengelig fra"], ressurs.TilgjengeligFra?.ToString("dd.MM.yyyy HH:mm"));
+            if (ressurs.TilgjengeligFra != null)
+            {
+                punkt.LeggTilLinje(T["Tilgjengelig fra"], ressurs.TilgjengeligFra.Value.ToString("dd.MM.yyyy HH:mm"));
+            }
             punkt.LeggTilLinje(T["Beskrivelse"], Forkort(ressurs.Beskrivelse));
             punkt.LeggTilLinje(T["Navn"], ressurs.Navn);
             punkt.LeggTilLinje(T["Telefon"], ressurs.Telefon);
@@ -139,7 +159,7 @@ namespace Nabohjelp.Controllers
             punkt.Lenker.Add(new KartLenke
             {
                 Tekst = T["Endre"],
-                Adresse = Url.Action("Edit", "Ressurs", new { id = ressurs.Id }) ?? ""
+                Adresse = "/Ressurs/Edit/" + ressurs.Id
             });
 
             return punkt;

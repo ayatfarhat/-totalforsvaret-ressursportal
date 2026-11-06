@@ -53,7 +53,7 @@
 <h2 class="h4">@T["Matchende ressurser"]</h2>
 <p class="text-muted">@T["Nærmeste ressurs vises først. Avstanden er luftlinje, ikke kjøreavstand."]</p>
 
-@if (!Model.MatchendeRessurser.Any())
+@if (Model.MatchendeRessurser.Count == 0)
 {
     <div class="alert alert-warning">@T["Ingen tilgjengelige ressurser matcher dette behovet."]</div>
 }
@@ -86,7 +86,11 @@ else
         @foreach (var ressurs in Model.MatchendeRessurser)
         {
             // Tom avstand betyr at ressursen mangler posisjon.
-            string avstand = ressurs.AvstandKm?.ToString(CultureInfo.InvariantCulture) ?? "";
+            string avstand = "";
+            if (ressurs.AvstandKm != null)
+            {
+                avstand = ressurs.AvstandKm.Value.ToString(CultureInfo.InvariantCulture);
+            }
 
             <div class="col-12 col-md-6 mb-3 ressurs-kort" data-avstand="@avstand">
                 <div class="card h-100">

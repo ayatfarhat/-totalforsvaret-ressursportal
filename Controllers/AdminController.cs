@@ -44,25 +44,35 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Index(string? sok)
     {
-        var brukere = _userManager.Users.AsQueryable();
+        // Spørringen mot databasen. b => ... betyr «for hver bruker b».
+        IQueryable<IdentityUser> sporring = _userManager.Users;
 
         if (!string.IsNullOrWhiteSpace(sok))
         {
-            brukere = brukere.Where(b => b.Email != null && b.Email.Contains(sok));
+            sporring = sporring.Where(b => b.Email != null && b.Email.Contains(sok));
         }
+
+        // Sortert på e-post.
+        List<IdentityUser> brukere = sporring.OrderBy(b => b.Email).ToList();
 
         string? minId = _userManager.GetUserId(User);
         var liste = new List<AdminBrukerViewModel>();
 
-        foreach (var bruker in brukere.OrderBy(b => b.Email).ToList())
+        foreach (IdentityUser bruker in brukere)
         {
-            var roller = await _userManager.GetRolesAsync(bruker);
+            // Hver bruker har én rolle (se EndreRolle).
+            IList<string> roller = await _userManager.GetRolesAsync(bruker);
+            string rolle = "";
+            if (roller.Count > 0)
+            {
+                rolle = roller[0];
+            }
 
             liste.Add(new AdminBrukerViewModel
             {
                 Id = bruker.Id,
-                Epost = bruker.Email ?? "",
-                Rolle = roller.FirstOrDefault() ?? "",
+                Epost = bruker.Email,
+                Rolle = rolle,
                 TofaErPa = bruker.TwoFactorEnabled,
                 ErLaast = await _userManager.IsLockedOutAsync(bruker),
                 ErMeg = bruker.Id == minId
@@ -84,13 +94,13 @@ public class AdminController : Controller
             return BadRequest();
         }
 
-        var bruker = await HentAnnenBruker(id);
+        IdentityUser? bruker = await HentAnnenBruker(id);
         if (bruker == null)
         {
             return RedirectToAction(nameof(Index));
         }
 
-        var gamleRoller = await _userManager.GetRolesAsync(bruker);
+        IList<string> gamleRoller = await _userManager.GetRolesAsync(bruker);
         await _userManager.RemoveFromRolesAsync(bruker, gamleRoller);
         await _userManager.AddToRoleAsync(bruker, rolle);
 
@@ -106,7 +116,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Laas(string id)
     {
-        var bruker = await HentAnnenBruker(id);
+        IdentityUser? bruker = await HentAnnenBruker(id);
         if (bruker == null)
         {
             return RedirectToAction(nameof(Index));
@@ -127,7 +137,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LaasOpp(string id)
     {
-        var bruker = await HentAnnenBruker(id);
+        IdentityUser? bruker = await HentAnnenBruker(id);
         if (bruker == null)
         {
             return RedirectToAction(nameof(Index));
@@ -145,7 +155,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> NullstillTofa(string id)
     {
-        var bruker = await HentAnnenBruker(id);
+        IdentityUser? bruker = await HentAnnenBruker(id);
         if (bruker == null)
         {
             return RedirectToAction(nameof(Index));
@@ -163,13 +173,13 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SlettBruker(string id)
     {
-        var bruker = await HentAnnenBruker(id);
+        IdentityUser? bruker = await HentAnnenBruker(id);
         if (bruker == null)
         {
             return RedirectToAction(nameof(Index));
         }
 
-        string epost = bruker.Email ?? "";
+        string? epost = bruker.Email;
         string? feil = await _kontoService.SlettBrukerOgData(bruker);
 
         if (feil != null)
@@ -190,7 +200,7 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Invitasjoner()
     {
-        var liste = await _db.Invitasjoner
+        List<Invitasjon> liste = await _db.Invitasjoner
             .AsNoTracking()
             .OrderByDescending(i => i.OpprettetTid)
             .ToListAsync();
@@ -224,7 +234,11 @@ public class AdminController : Controller
 
         // Hele adressen, for eksempel https://.../Account/Invitasjon?kode=...
         TempData["NyLenke"] = Url.Action("Invitasjon", "Account", new { kode }, Request.Scheme);
-        string varighet = dager == 1 ? T["1 dag"].Value : T["{0} dager", dager].Value;
+        string varighet = T["{0} dager", dager].Value;
+        if (dager == 1)
+        {
+            varighet = T["1 dag"].Value;
+        }
         TempData["Melding"] = string.Format(T["Lenken gir rollen {0} og gjelder i {1}. Kopier den nå, den vises bare én gang."].Value, T[rolle].Value, varighet);
         return RedirectToAction(nameof(Invitasjoner));
     }
@@ -234,7 +248,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SlettInvitasjon(int id)
     {
-        var invitasjon = await _db.Invitasjoner.FirstOrDefaultAsync(i => i.Id == id);
+        Invitasjon? invitasjon = await _db.Invitasjoner.FindAsync(id);
         if (invitasjon != null)
         {
             _db.Invitasjoner.Remove(invitasjon);
@@ -255,7 +269,7 @@ public class AdminController : Controller
             return null;
         }
 
-        var bruker = await _userManager.FindByIdAsync(id);
+        IdentityUser? bruker = await _userManager.FindByIdAsync(id);
         if (bruker == null)
         {
             TempData["Feil"] = T["Fant ikke brukeren."].Value;

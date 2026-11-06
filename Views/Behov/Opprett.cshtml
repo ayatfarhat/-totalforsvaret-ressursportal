@@ -111,9 +111,9 @@
                     <label asp-for="KontaktTelefon" class="form-label">@T["Telefon"]</label>
                     <div class="telefon-rad">
                         <select asp-for="Landskode" class="form-select" aria-label="@T["Landskode"]">
-                            @foreach (var land in RessursFormViewModel.Landskoder)
+                            @foreach (Land land in Land.Alle)
                             {
-                                <option value="@land.Kode">@land.Kode @T[land.Land]</option>
+                                <option value="@land.Kode">@land.Kode @T[land.Navn]</option>
                             }
                         </select>
                         <input asp-for="KontaktTelefon" class="form-control" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="12345678" />
@@ -125,7 +125,7 @@
                     <label asp-for="KontaktEpost" class="form-label">@T["E-post"]</label>
                     <input asp-for="KontaktEpost" class="form-control" type="email" autocomplete="email" />
                     <span asp-validation-for="KontaktEpost"></span>
-                    @if (!string.IsNullOrEmpty(Model.KontaktEpost) && Model.KontaktEpost == User.Identity?.Name)
+                    @if (!string.IsNullOrEmpty(Model.KontaktEpost) && Model.KontaktEpost == Tilgang.Epost(User))
                     {
                         <p class="kart-tips">@T["Hentet fra kontoen din. Du kan endre den."]</p>
                     }
@@ -174,7 +174,9 @@
                 felt.hidden = !valgt || valgt.value !== "Annet";
             }
 
-            radioer.forEach(radio => radio.addEventListener('change', oppdater));
+            radioer.forEach(function (radio) {
+                radio.addEventListener('change', oppdater);
+            });
             oppdater();
         })();
     </script>

@@ -13,15 +13,16 @@ public static class PersonvernOpprydding
     // Kjøres når appen starter (se Program.cs). Returnerer hvor mange behov som ble ryddet.
     public static async Task<int> FjernGamleKontaktopplysninger(ApplicationDbContext db, int dager)
     {
-        var naa = DateTime.UtcNow;
+        DateTime naa = DateTime.UtcNow;
 
         // Henter bare behov som fortsatt har kontaktopplysninger.
-        var behovMedKontakt = await db.Behovsliste
+        // b => ... betyr «for hvert behov b» (spørringen kjøres i databasen).
+        List<Behov> behovMedKontakt = await db.Behovsliste
             .Where(b => b.KontaktTelefon != null || b.KontaktEpost != null)
             .ToListAsync();
 
         int antall = 0;
-        foreach (var behov in behovMedKontakt)
+        foreach (Behov behov in behovMedKontakt)
         {
             if (SkalFjerneKontaktinfo(behov, naa, dager))
             {
@@ -54,7 +55,13 @@ public static class PersonvernOpprydding
             return false;
         }
 
-        DateTime sistEndret = behov.SistEndretTid ?? behov.OpprettetTid;
+        // Tiden for siste endring, eller når behovet ble meldt hvis det aldri er endret.
+        DateTime sistEndret = behov.OpprettetTid;
+        if (behov.SistEndretTid != null)
+        {
+            sistEndret = behov.SistEndretTid.Value;
+        }
+
         return (naa - sistEndret).TotalDays > dager;
     }
 }

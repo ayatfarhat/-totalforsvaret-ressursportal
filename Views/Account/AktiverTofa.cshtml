@@ -3,7 +3,7 @@
     ViewData["Title"] = T["Slå på 2FA"];
 
     // Teksten som gjøres om til QR-kode. Autentiseringsappen forstår dette formatet.
-    var qrTekst = "otpauth://totp/BeredskapsPortalen:" + Uri.EscapeDataString(User.Identity?.Name ?? "")
+    string qrTekst = "otpauth://totp/BeredskapsPortalen:" + Uri.EscapeDataString(Tilgang.Epost(User))
                   + "?secret=" + Uri.EscapeDataString(Model.Nokkel) + "&issuer=BeredskapsPortalen";
 }
 

@@ -38,7 +38,7 @@ namespace Nabohjelp.ViewModels
 
         public string? OpprettetAvBrukerId { get; set; }
 
-        // Landskoden velges i en egen nedtrekksliste (standard er +47).
+        // Landskoden velges i en egen nedtrekksliste (se Models/Land.cs). Standard er +47.
         public string Landskode { get; set; } = "+47";
 
         // Selve nummeret skrives uten landskode, bare tall (mellomrom er greit).
@@ -57,7 +57,7 @@ namespace Nabohjelp.ViewModels
         public string Status { get; set; } = "Ny";
 
         // Fast liste over ressurstyper — brukes i dropdown-menyen
-        public static readonly List<string> Typer = new()
+        public static readonly List<string> Typer = new List<string>
         {
             "Drone og droneoperatør",
             "ATV",
@@ -74,19 +74,6 @@ namespace Nabohjelp.ViewModels
             "Båt",
             "Mannskap/frivillige",
             "Annet"
-        };
-
-        // Landskoder som kan velges. Første i listen er standard.
-        public static readonly List<(string Kode, string Land)> Landskoder = new()
-        {
-            ("+47", "Norge"),
-            ("+46", "Sverige"),
-            ("+45", "Danmark"),
-            ("+358", "Finland"),
-            ("+354", "Island"),
-            ("+44", "Storbritannia"),
-            ("+49", "Tyskland"),
-            ("+48", "Polen")
         };
 
         // Forslag til beskrivelse som fylles ut automatisk når brukeren velger type.
@@ -125,8 +112,8 @@ namespace Nabohjelp.ViewModels
             return TilgjengeligFra == null || TilgjengeligFra >= DateTime.Now.AddMinutes(-1);
         }
 
-        // Disse metodene lager tekst som er enkel å vise i View-ene,
-        // slik at View-ene slipper ?./??/ternary-uttrykk.
+        // Disse metodene lager tekst som er enkel å vise i sidene,
+        // slik at sidene slipper egne if-setninger for tomme felt.
         public string VisTilgjengeligFra()
         {
             if (TilgjengeligFra == null)
@@ -197,7 +184,7 @@ namespace Nabohjelp.ViewModels
             }
 
             lagret = lagret.Trim();
-            foreach (var land in Landskoder)
+            foreach (Land land in Land.Alle)
             {
                 if (lagret.StartsWith(land.Kode + " "))
                 {
@@ -273,7 +260,8 @@ namespace Nabohjelp.ViewModels
             {
                 return Oversetter.Tekst("Ikke valgt på kart");
             }
-            return $"{Breddegrad:0.#####}, {Lengdegrad:0.#####}";
+            // Viser opptil fem desimaler, for eksempel «58.34051, 8.59342».
+            return Breddegrad.Value.ToString("0.#####") + ", " + Lengdegrad.Value.ToString("0.#####");
         }
     }
 }

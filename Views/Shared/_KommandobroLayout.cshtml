@@ -1,9 +1,10 @@
 @{
     // Hvilken side vi er på. Brukes til å markere riktig lenke i menyen.
-    var side = ViewContext.RouteData.Values["controller"]?.ToString();
+    // ("" + verdi gir tom tekst hvis verdien mangler.)
+    string side = "" + ViewContext.RouteData.Values["controller"];
 
     // Tittelen på fanen, oversatt hvis engelsk er valgt.
-    var tittel = ViewData["Title"]?.ToString() ?? "";
+    string tittel = "" + ViewData["Title"];
 }
 <!DOCTYPE html>
 <html lang="@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb")">

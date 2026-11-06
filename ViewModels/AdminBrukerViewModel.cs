@@ -4,7 +4,7 @@ namespace Nabohjelp.ViewModels;
 public class AdminBrukerViewModel
 {
     public string Id { get; set; } = "";
-    public string Epost { get; set; } = "";
+    public string? Epost { get; set; }
     public string Rolle { get; set; } = "";
     public bool TofaErPa { get; set; }
     public bool ErLaast { get; set; }

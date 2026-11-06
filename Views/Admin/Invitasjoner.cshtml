@@ -50,7 +50,7 @@
     <span class="antall">@Model.Count</span>
 </div>
 
-@if (!Model.Any())
+@if (Model.Count == 0)
 {
     <p>@T["Ingen lenker er laget ennå."]</p>
 }
@@ -74,7 +74,7 @@ else
                     string status = T["Aktiv"];
                     if (invitasjon.BruktTid != null)
                     {
-                        status = T["Brukt av {0}", invitasjon.BruktAvEpost ?? ""];
+                        status = T["Brukt av {0}", "" + invitasjon.BruktAvEpost];
                     }
                     else if (invitasjon.UtloperTid <= naa)
                     {

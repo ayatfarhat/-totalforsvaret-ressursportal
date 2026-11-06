@@ -15,7 +15,7 @@
     <p><a asp-action="Create" class="btn btn-success">@T["Legg til ønsket ressurs"]</a></p>
 }
 
-@if (!Model.Any())
+@if (Model.Count == 0)
 {
     <div class="tom-tilstand">
         <h2 class="h3">@T["Ingen ønskede ressurser akkurat nå"]</h2>

@@ -32,7 +32,7 @@ public class BehovController : Controller
         var skjema = new BehovViewModel();
 
         // Brukernavnet er e-postadressen (se AccountController.Register).
-        string? brukernavn = User.Identity?.Name;
+        string? brukernavn = User.FindFirstValue(ClaimTypes.Name);
         if (!string.IsNullOrEmpty(brukernavn) && new EmailAddressAttribute().IsValid(brukernavn))
         {
             skjema.KontaktEpost = brukernavn;
@@ -52,22 +52,14 @@ public class BehovController : Controller
             return View(vm);
         }
 
+        // Status, tidspunkt og eier settes her. Resten kommer fra skjemaet.
         var behov = new Behov
         {
-            Type = vm.Type!.Value,
-            Beskrivelse = vm.Beskrivelse,
-            AnnetType = vm.AnnetTypeForLagring(),
-            Latitude = vm.Latitude!.Value,
-            Longitude = vm.Longitude!.Value,
-            Prioritet = vm.Prioritet!.Value,
-            // Lagres med landskode, for eksempel «+47 12345678».
-            KontaktTelefon = vm.TelefonForLagring(),
-            KontaktEpost = vm.KontaktEpost,
             Status = BehovStatus.New,
             OpprettetTid = DateTime.UtcNow,
-            OpprettetAvBrukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier)
+            OpprettetAvBrukerId = Tilgang.BrukerId(User)
         };
+        vm.KopierTil(behov);
 
         _db.Behovsliste.Add(behov);
         await _db.SaveChangesAsync();
@@ -92,28 +84,29 @@ public class BehovController : Controller
     [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> MineBehov()
     {
-        var brukerId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? brukerId = Tilgang.BrukerId(User);
 
         if (string.IsNullOrEmpty(brukerId))
         {
             return Challenge();
         }
 
-        var sporring = _db.Behovsliste.AsNoTracking();
+        // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
+        // b => ... betyr «for hvert behov b»: Where velger behov, OrderByDescending sorterer.
+        IQueryable<Behov> sporring = _db.Behovsliste.AsNoTracking();
 
-        // Begrens til egne behov for Frivillig.
+        // Frivillige ser bare sine egne behov.
         if (!Tilgang.ErAnsatt(User))
         {
-            sporring = sporring.Where(
-                b => b.OpprettetAvBrukerId == brukerId);
+            sporring = sporring.Where(b => b.OpprettetAvBrukerId == brukerId);
         }
 
-        var behov = await sporring
+        // Nyeste først.
+        List<Behov> behovsliste = await sporring
             .OrderByDescending(b => b.OpprettetTid)
             .ToListAsync();
 
-        return View(behov);
+        return View(behovsliste);
     }
 
     // GET: /Behov/Rediger/5
@@ -122,11 +115,9 @@ public class BehovController : Controller
     [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Rediger(int id)
     {
-        var behov = await _db.Behovsliste
-            .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == id);
+        Behov? behov = await _db.Behovsliste.FindAsync(id);
 
-        if (behov is null)
+        if (behov == null)
         {
             return NotFound();
         }
@@ -152,9 +143,9 @@ public class BehovController : Controller
     [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> Rediger(int id, BehovViewModel vm)
     {
-        var behov = await _db.Behovsliste.FindAsync(id);
+        Behov? behov = await _db.Behovsliste.FindAsync(id);
 
-        if (behov is null)
+        if (behov == null)
         {
             return NotFound();
         }
@@ -177,16 +168,9 @@ public class BehovController : Controller
             return View("Opprett", vm);
         }
 
-        behov.Type = vm.Type!.Value;
-        behov.AnnetType = vm.AnnetTypeForLagring();
-        behov.Beskrivelse = vm.Beskrivelse;
-        behov.Latitude = vm.Latitude!.Value;
-        behov.Longitude = vm.Longitude!.Value;
-        behov.Prioritet = vm.Prioritet!.Value;
-        behov.KontaktTelefon = vm.TelefonForLagring();
-        behov.KontaktEpost = vm.KontaktEpost;
+        vm.KopierTil(behov);
         behov.SistEndretTid = DateTime.UtcNow;
-        behov.SistEndretAvBrukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        behov.SistEndretAvBrukerId = Tilgang.BrukerId(User);
 
         await _db.SaveChangesAsync();
 
@@ -197,13 +181,7 @@ public class BehovController : Controller
     // Den som meldte behovet, og kriseledelsen (Admin og Kommune).
     private bool KanEndre(Behov behov)
     {
-        if (Tilgang.ErAnsatt(User))
-        {
-            return true;
-        }
-
-        var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return !string.IsNullOrEmpty(brukerId) && behov.OpprettetAvBrukerId == brukerId;
+        return Tilgang.KanEndre(User, behov.OpprettetAvBrukerId);
     }
 
     private static string IkkeRedigerbarMelding(BehovStatus status)
@@ -231,16 +209,15 @@ public class BehovController : Controller
     [Authorize(Roles = "Admin,Kommune,Frivillig")]
     public async Task<IActionResult> TrekkTilbake(int id)
     {
-        var behov = await _db.Behovsliste.FindAsync(id);
+        Behov? behov = await _db.Behovsliste.FindAsync(id);
 
-        if (behov is null)
+        if (behov == null)
         {
             return NotFound();
         }
 
         // Bare den som meldte behovet, kan trekke det tilbake.
-        var brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(brukerId) || behov.OpprettetAvBrukerId != brukerId)
+        if (!Tilgang.ErEier(User, behov.OpprettetAvBrukerId))
         {
             return Forbid();
         }
@@ -256,7 +233,7 @@ public class BehovController : Controller
 
         behov.Status = BehovStatus.Withdrawn;
         behov.SistEndretTid = DateTime.UtcNow;
-        behov.SistEndretAvBrukerId = brukerId;
+        behov.SistEndretAvBrukerId = Tilgang.BrukerId(User);
 
         await _db.SaveChangesAsync();
 
@@ -271,7 +248,8 @@ public class BehovController : Controller
     [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
     public async Task<IActionResult> Ko()
     {
-        var liste = await _db.Behovsliste
+        // Henter aktive behov: akutte først (Urgent = 0), deretter de eldste først.
+        List<Behov> aktive = await _db.Behovsliste
             .Where(b => b.Status != BehovStatus.Resolved &&
                         b.Status != BehovStatus.Rejected &&
                         b.Status != BehovStatus.Withdrawn)
@@ -279,22 +257,26 @@ public class BehovController : Controller
             .ThenBy(b => b.OpprettetTid)
             .ToListAsync();
 
-        var visning = liste.Select(b => new BehovKoItem
+        // Lager én rad i køen for hvert behov.
+        var rader = new List<BehovKoItem>();
+        foreach (Behov behov in aktive)
         {
-            Id = b.Id,
-            Type = b.Type,
-            AnnetType = b.AnnetType,
-            Prioritet = b.Prioritet,
-            Status = b.Status,
-            Beskrivelse = b.Beskrivelse,
-            OpprettetTid = b.OpprettetTid,
-            KontaktTelefon = b.KontaktTelefon,
-            KontaktEpost = b.KontaktEpost,
-            MuligeNesteStatuser =
-                BehovStatusflyt.NesteStatuser(b.Status)
-        }).ToList();
+            rader.Add(new BehovKoItem
+            {
+                Id = behov.Id,
+                Type = behov.Type,
+                AnnetType = behov.AnnetType,
+                Prioritet = behov.Prioritet,
+                Status = behov.Status,
+                Beskrivelse = behov.Beskrivelse,
+                OpprettetTid = behov.OpprettetTid,
+                KontaktTelefon = behov.KontaktTelefon,
+                KontaktEpost = behov.KontaktEpost,
+                MuligeNesteStatuser = BehovStatusflyt.NesteStatuser(behov.Status)
+            });
+        }
 
-        return View(visning);
+        return View(rader);
     }
 
     // POST: /Behov/EndreStatus
@@ -306,9 +288,9 @@ public class BehovController : Controller
         int id,
         BehovStatus nyStatus)
     {
-        var behov = await _db.Behovsliste.FindAsync(id);
+        Behov? behov = await _db.Behovsliste.FindAsync(id);
 
-        if (behov is null)
+        if (behov == null)
         {
             return NotFound();
         }
@@ -323,31 +305,36 @@ public class BehovController : Controller
             return RedirectToAction(nameof(Ko));
         }
 
-        // Endringene lagres samlet, så ressursene ikke blir frigjort
-        // hvis lagringen av behovet feiler.
-        await using var transaksjon =
-            await _db.Database.BeginTransactionAsync();
-
         int antallFrigjort = 0;
 
         // Når behovet er løst, trengs ikke ressursene lenger.
         // De blir «Tilgjengelig» igjen, så de kan tildeles nye behov.
         if (nyStatus == BehovStatus.Resolved)
         {
-            antallFrigjort = await _db.Ressurser
-                .Where(r => r.Status == "Tildelt" &&
-                            _db.Tildelinger.Any(t => t.BehovId == id && t.RessursId == r.Id))
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(r => r.Status, "Tilgjengelig"));
+            // Alle tildelingene til dette behovet (t => ... betyr «for hver tildeling t»).
+            List<Tildeling> tildelinger = await _db.Tildelinger
+                .Where(t => t.BehovId == id)
+                .ToListAsync();
+
+            foreach (Tildeling tildeling in tildelinger)
+            {
+                Ressurs? ressurs = await _db.Ressurser.FindAsync(tildeling.RessursId);
+
+                if (ressurs != null && ressurs.Status == "Tildelt")
+                {
+                    ressurs.Status = "Tilgjengelig";
+                    antallFrigjort++;
+                }
+            }
         }
 
         behov.Status = nyStatus;
         behov.SistEndretTid = DateTime.UtcNow;
-        behov.SistEndretAvBrukerId =
-            User.FindFirstValue(ClaimTypes.NameIdentifier);
+        behov.SistEndretAvBrukerId = Tilgang.BrukerId(User);
 
+        // SaveChangesAsync lagrer behovet og ressursene samtidig. Feiler noe,
+        // lagres ingenting, så ressursene blir aldri frigjort uten at behovet er løst.
         await _db.SaveChangesAsync();
-        await transaksjon.CommitAsync();
 
         TempData["Melding"] = LagStatusMelding(nyStatus, antallFrigjort);
         return RedirectToAction(nameof(Ko));

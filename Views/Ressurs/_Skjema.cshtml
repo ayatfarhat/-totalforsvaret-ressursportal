@@ -34,10 +34,10 @@
                 <label asp-for="Kommunenummer" class="form-label">@T["Kommune"]</label>
                 <select asp-for="Kommunenummer" class="form-select" aria-describedby="kommuneHjelp">
                     <option value="">@T["Velg kommune"]</option>
-                    @foreach (var fylke in Kommuner.Fylker)
+                    @foreach (string fylke in Kommuner.Fylker)
                     {
                         <optgroup label="@fylke">
-                            @foreach (var kommune in Kommuner.Alle.Where(k => k.Fylke == fylke))
+                            @foreach (Kommune kommune in Kommuner.IFylke(fylke))
                             {
                                 <option value="@kommune.Nummer">@kommune.Navn</option>
                             }
@@ -120,9 +120,9 @@
                     <label asp-for="Telefon" class="form-label">@T["Telefon"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
                     <div class="telefon-rad">
                         <select asp-for="Landskode" class="form-select" aria-label="@T["Landskode"]">
-                            @foreach (var land in RessursFormViewModel.Landskoder)
+                            @foreach (Land land in Land.Alle)
                             {
-                                <option value="@land.Kode">@land.Kode @T[land.Land]</option>
+                                <option value="@land.Kode">@land.Kode @T[land.Navn]</option>
                             }
                         </select>
                         <input asp-for="Telefon" class="form-control" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="12345678" />

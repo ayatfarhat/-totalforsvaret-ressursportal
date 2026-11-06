@@ -4,7 +4,11 @@
     ViewData["Title"] = T["Tildeling fullført"];
 
     // Resultatet inneholder ressursen som ble tildelt.
-    var ressurs = Model.MatchendeRessurser.FirstOrDefault();
+    MatchendeRessursViewModel? ressurs = null;
+    if (Model.MatchendeRessurser.Count > 0)
+    {
+        ressurs = Model.MatchendeRessurser[0];
+    }
 }
 
 <div class="side-topp">

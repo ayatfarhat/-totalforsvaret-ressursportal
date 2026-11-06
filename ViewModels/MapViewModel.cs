@@ -4,9 +4,9 @@ namespace Nabohjelp.ViewModels;
 // én for ressurser og én for behov.
 public class MapViewModel
 {
-    public List<KartPunkt> Ressurser { get; set; } = new();
+    public List<KartPunkt> Ressurser { get; set; } = new List<KartPunkt>();
 
-    public List<KartPunkt> Behov { get; set; } = new();
+    public List<KartPunkt> Behov { get; set; } = new List<KartPunkt>();
 }
 
 // Ett punkt (en prikk) på kartet. Brukes for både behov og ressurser.
@@ -28,10 +28,10 @@ public class KartPunkt
     public string Farge { get; set; } = "gi";
 
     // Linjene som vises når man trykker på prikken, for eksempel «Status: Ny».
-    public List<KartLinje> Linjer { get; set; } = new();
+    public List<KartLinje> Linjer { get; set; } = new List<KartLinje>();
 
     // Knapper i boksen, for eksempel «Finn ressurs».
-    public List<KartLenke> Lenker { get; set; } = new();
+    public List<KartLenke> Lenker { get; set; } = new List<KartLenke>();
 
     // Legger til en linje, men bare hvis det finnes en verdi å vise.
     public void LeggTilLinje(string etikett, string? verdi)

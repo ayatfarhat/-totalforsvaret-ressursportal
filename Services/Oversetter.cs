@@ -34,6 +34,11 @@ public static class Oversetter
     // Brukes til forslagene som fylles inn i beskrivelsesfeltet.
     public static string Linjer(params string[] linjer)
     {
-        return string.Join("\n", linjer.Select(Tekst));
+        var oversatt = new List<string>();
+        foreach (string linje in linjer)
+        {
+            oversatt.Add(Tekst(linje));
+        }
+        return string.Join("\n", oversatt);
     }
 }

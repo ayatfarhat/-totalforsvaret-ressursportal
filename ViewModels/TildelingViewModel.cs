@@ -22,7 +22,7 @@ public class TildelingViewModel
 
     public double Longitude { get; set; }
 
-    public List<MatchendeRessursViewModel> MatchendeRessurser { get; set; } = new();
+    public List<MatchendeRessursViewModel> MatchendeRessurser { get; set; } = new List<MatchendeRessursViewModel>();
 }
 
 // Representerer én ressurs som matcher behovet.

@@ -33,6 +33,8 @@ public class ApplicationDbContext : IdentityDbContext
         // Beholder Identity-oppsettet for brukere og roller.
         base.OnModelCreating(builder);
 
+        // t => t.Behov betyr «for en tildeling t: egenskapen Behov». EF bruker det
+        // til å vite hvilke felt koblingen gjelder.
         builder.Entity<Tildeling>()
             .HasOne(t => t.Behov)
             .WithMany()

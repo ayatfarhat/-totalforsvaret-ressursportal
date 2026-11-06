@@ -1,13 +1,22 @@
 @{
     ViewData["Title"] = T["Invitasjon"];
 
-    string? kode = ViewBag.Kode;
+    // Verdiene fra AccountController.Invitasjon. ViewBag kan være tom (null).
+    string kode = "";
+    if (ViewBag.Kode != null)
+    {
+        kode = ViewBag.Kode;
+    }
     string? feil = ViewBag.Feil;
-    string? rolle = ViewBag.Rolle;
-    bool erInnlogget = User.Identity?.IsAuthenticated == true;
+    string rolle = "";
+    if (ViewBag.Rolle != null)
+    {
+        rolle = ViewBag.Rolle;
+    }
+    bool erInnlogget = Tilgang.ErInnlogget(User);
 
     // Hit kommer brukeren tilbake etter innlogging eller registrering.
-    string tilbake = Url.Action("Invitasjon", "Account", new { kode }) ?? "/";
+    string tilbake = "/Account/Invitasjon?kode=" + Uri.EscapeDataString(kode);
 }
 
 <div class="auth">
@@ -28,14 +37,14 @@
         }
         else
         {
-            <p>@T["Du er invitert til å bli {0} i BeredskapsPortalen.", T[rolle ?? ""]]</p>
+            <p>@T["Du er invitert til å bli {0} i BeredskapsPortalen.", T[rolle]]</p>
             <p class="form-text">@T["Kommune og Admin ser personopplysninger om andre. Du kan bli bedt om å slå på tofaktorinnlogging (2FA) før du får tilgang."]</p>
 
             @if (erInnlogget)
             {
                 <form asp-action="TaImotInvitasjon" method="post">
                     <input type="hidden" name="kode" value="@kode" />
-                    <p>@T["Du er logget inn som {0}.", User.Identity?.Name ?? ""]</p>
+                    <p>@T["Du er logget inn som {0}.", Tilgang.Epost(User)]</p>
                     <button type="submit" class="btn btn-primary btn-lg">@T["Ta imot rollen"]</button>
                 </form>
             }

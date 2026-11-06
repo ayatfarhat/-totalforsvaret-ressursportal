@@ -18,18 +18,36 @@ public static class Sikkerhet
     // For mange forsøk gir feilkode 429, som vises på Home/Status.
     public static void LeggTilFartsgrense(IServiceCollection tjenester)
     {
-        tjenester.AddRateLimiter(options =>
+        // AddRateLimiter tar imot metoden som setter opp reglene (SettOppFartsgrense under).
+        tjenester.AddRateLimiter(SettOppFartsgrense);
+    }
+
+    private static void SettOppFartsgrense(RateLimiterOptions options)
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.AddPolicy<string>(Innlogging, LagTellerForIpAdresse);
+    }
+
+    // Hver IP-adresse får sin egen teller, så én som prøver mye ikke stopper andre.
+    private static RateLimitPartition<string> LagTellerForIpAdresse(HttpContext context)
+    {
+        string ipAdresse = "ukjent";
+        if (context.Connection.RemoteIpAddress != null)
         {
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddPolicy(Innlogging, context =>
-                RateLimitPartition.GetFixedWindowLimiter(
-                    context.Connection.RemoteIpAddress?.ToString() ?? "ukjent",
-                    _ => new FixedWindowRateLimiterOptions
-                    {
-                        PermitLimit = MaksForsokPerMinutt,
-                        Window = TimeSpan.FromMinutes(1)
-                    }));
-        });
+            ipAdresse = context.Connection.RemoteIpAddress.ToString();
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(ipAdresse, LagRegler);
+    }
+
+    // Reglene for hver teller: maks 10 forsøk, og telleren starter på null hvert minutt.
+    private static FixedWindowRateLimiterOptions LagRegler(string ipAdresse)
+    {
+        return new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = MaksForsokPerMinutt,
+            Window = TimeSpan.FromMinutes(1)
+        };
     }
 
     // Innholdet i Content-Security-Policy: hvor nettleseren får hente skript, stiler og bilder fra.
@@ -56,15 +74,20 @@ public static class Sikkerhet
     //   - skript og bilder bare kan hentes fra stedene i InnholdsRegler.
     public static void LeggTilSikkerhetshoder(WebApplication app)
     {
-        app.Use(async (context, next) =>
-        {
-            var hoder = context.Response.Headers;
-            hoder["X-Frame-Options"] = "DENY";
-            hoder["X-Content-Type-Options"] = "nosniff";
-            hoder["Referrer-Policy"] = "strict-origin-when-cross-origin";
-            hoder["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)";
-            hoder["Content-Security-Policy"] = InnholdsRegler;
-            await next();
-        });
+        // LeggPaHoder kjøres for hver forespørsel, før siden lages.
+        app.Use(LeggPaHoder);
+    }
+
+    // next er resten av appen (controlleren som lager siden). Vi legger på hodene
+    // og sender forespørselen videre.
+    private static async Task LeggPaHoder(HttpContext context, Func<Task> next)
+    {
+        IHeaderDictionary hoder = context.Response.Headers;
+        hoder["X-Frame-Options"] = "DENY";
+        hoder["X-Content-Type-Options"] = "nosniff";
+        hoder["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        hoder["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(self)";
+        hoder["Content-Security-Policy"] = InnholdsRegler;
+        await next();
     }
 }

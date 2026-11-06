@@ -59,7 +59,7 @@
         </p>
     </div>
     <div id="oversiktsKart" role="group" aria-label="@T["Kart over behov og ressurser"]"></div>
-    @if (!Model.Behov.Any() && !Model.Ressurser.Any())
+    @if (Model.Behov.Count == 0 && Model.Ressurser.Count == 0)
     {
         <p class="kb-kartstatus">@T["Ingen behov eller ressurser med posisjon er registrert ennå."]</p>
     }

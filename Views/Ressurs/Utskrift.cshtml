@@ -16,7 +16,7 @@
         <label for="fylke" class="form-label">@T["Fylke"]</label>
         <select id="fylke" name="fylke" class="form-select">
             <option value="">@T["Alle fylker"]</option>
-            @foreach (var fylke in Kommuner.Fylker)
+            @foreach (string fylke in Kommuner.Fylker)
             {
                 <option value="@fylke" selected="@(fylke == Model.ValgtFylke && Model.ValgtKommune == null)">@fylke</option>
             }
@@ -26,10 +26,10 @@
         <label for="kommune" class="form-label">@T["Kommune"] <span class="valgfritt">@T["(går foran fylket)"]</span></label>
         <select id="kommune" name="kommune" class="form-select">
             <option value="">@T["Alle kommuner"]</option>
-            @foreach (var fylke in Kommuner.Fylker)
+            @foreach (string fylke in Kommuner.Fylker)
             {
                 <optgroup label="@fylke">
-                    @foreach (var kommune in Kommuner.Alle.Where(k => k.Fylke == fylke))
+                    @foreach (Kommune kommune in Kommuner.IFylke(fylke))
                     {
                         <option value="@kommune.Nummer" selected="@(kommune.Nummer == Model.ValgtKommune)">@kommune.Navn</option>
                     }
@@ -49,7 +49,7 @@
         <p>@T["BeredskapsPortalen, laget {0}.", Model.Laget.ToString("dd.MM.yyyy HH:mm")] @T[Model.Antall == 1 ? "1 ressurs" : "{0} ressurser", Model.Antall] @T["fordelt på"] @T[Model.Grupper.Count == 1 ? "1 kommune." : "{0} kommuner.", Model.Grupper.Count]</p>
     </div>
 
-    @if (!Model.Grupper.Any())
+    @if (Model.Grupper.Count == 0)
     {
         <div class="tom-tilstand">
             <h3>@T["Ingen ressurser i {0}", Model.VisOmrade()]</h3>

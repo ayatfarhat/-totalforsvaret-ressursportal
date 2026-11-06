@@ -1,5 +1,9 @@
 @{
-    int kode = ViewBag.Kode ?? 0;
+    int kode = 0;
+    if (ViewBag.Kode != null)
+    {
+        kode = ViewBag.Kode;
+    }
 
     // Overskrift og forklaring ut fra feilkoden.
     string tittel = T["Noe gikk galt"];

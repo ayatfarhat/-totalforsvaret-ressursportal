@@ -4,7 +4,6 @@ using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers
@@ -29,30 +28,35 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var sporring = _db.Ressurser.AsNoTracking();
+            // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
+            // r => ... betyr «for hver ressurs r».
+            IQueryable<Ressurs> sporring = _db.Ressurser.AsNoTracking();
 
             bool erKoordinator = Tilgang.ErAnsatt(User);
 
             if (!erKoordinator)
             {
-                var brukerId =
-                    User.FindFirstValue(ClaimTypes.NameIdentifier);
+                string? brukerId = Tilgang.BrukerId(User);
 
                 if (string.IsNullOrEmpty(brukerId))
                 {
                     return Challenge();
                 }
 
-                // Filtrerer i databasen før data hentes.
-                sporring = sporring.Where(
-                    r => r.OpprettetAvBrukerId == brukerId);
+                // Frivillige ser bare sine egne ressurser.
+                sporring = sporring.Where(r => r.OpprettetAvBrukerId == brukerId);
             }
 
-            var ressurser = await sporring
+            // Nyeste først.
+            List<Ressurs> ressurser = await sporring
                 .OrderByDescending(r => r.OpprettetTid)
                 .ToListAsync();
 
-            var modeller = ressurser.Select(TilViewModel).ToList();
+            var modeller = new List<RessursFormViewModel>();
+            foreach (Ressurs ressurs in ressurser)
+            {
+                modeller.Add(TilViewModel(ressurs));
+            }
 
             // Antall ønskede ressurser vises i en egen boks på siden.
             ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
@@ -85,8 +89,7 @@ namespace Nabohjelp.Controllers
             RessursFormViewModel model,
             IFormFile? bildefil)
         {
-            var brukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? brukerId = Tilgang.BrukerId(User);
 
             if (string.IsNullOrEmpty(brukerId))
             {
@@ -132,25 +135,14 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Confirmation(int id)
         {
-            var ressurs = await _db.Ressurser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
                 return NotFound();
             }
 
-            var brukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            bool erEier =
-                !string.IsNullOrEmpty(brukerId) &&
-                ressurs.OpprettetAvBrukerId == brukerId;
-
-            bool erKoordinator = Tilgang.ErAnsatt(User);
-
-            if (!erEier && !erKoordinator)
+            if (!KanEndre(ressurs))
             {
                 return Forbid();
             }
@@ -164,9 +156,7 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var ressurs = await _db.Ressurser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -191,8 +181,7 @@ namespace Nabohjelp.Controllers
             RessursFormViewModel model,
             IFormFile? bildefil)
         {
-            var ressurs = await _db.Ressurser
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -243,9 +232,7 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var ressurs = await _db.Ressurser
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -269,8 +256,7 @@ namespace Nabohjelp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ressurs = await _db.Ressurser
-                .FirstOrDefaultAsync(r => r.Id == id);
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(id);
 
             if (ressurs == null)
             {
@@ -307,15 +293,15 @@ namespace Nabohjelp.Controllers
         [HttpGet]
         public async Task<IActionResult> Utskrift(string? fylke, string? kommune)
         {
-            var ressurser = await _db.Ressurser
-                .AsNoTracking()
-                .ToListAsync();
+            List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking().ToListAsync();
 
-            var modell = RessursUtskriftViewModel.Lag(
-                ressurser.Select(TilViewModel),
-                fylke,
-                kommune,
-                DateTime.Now);
+            var skjemaer = new List<RessursFormViewModel>();
+            foreach (Ressurs ressurs in ressurser)
+            {
+                skjemaer.Add(TilViewModel(ressurs));
+            }
+
+            RessursUtskriftViewModel modell = RessursUtskriftViewModel.Lag(skjemaer, fylke, kommune, DateTime.Now);
 
             return View(modell);
         }
@@ -323,16 +309,7 @@ namespace Nabohjelp.Controllers
         // Eieren av ressursen og kriseledelsen (Kommune og Admin) kan endre og slette.
         private bool KanEndre(Ressurs ressurs)
         {
-            if (Tilgang.ErAnsatt(User))
-            {
-                return true;
-            }
-
-            var brukerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            return !string.IsNullOrEmpty(brukerId) &&
-                   ressurs.OpprettetAvBrukerId == brukerId;
+            return Tilgang.KanEndre(User, ressurs.OpprettetAvBrukerId);
         }
 
         // Gir en forklaring hvis ressursen ikke kan slettes, ellers null.
@@ -372,7 +349,7 @@ namespace Nabohjelp.Controllers
             }
 
             // Landskoden må være en av de som finnes i listen.
-            if (!RessursFormViewModel.Landskoder.Any(l => l.Kode == model.Landskode))
+            if (!Land.KodeFinnes(model.Landskode))
             {
                 ModelState.AddModelError("Landskode", Oversetter.Tekst("Velg en landskode fra listen."));
             }

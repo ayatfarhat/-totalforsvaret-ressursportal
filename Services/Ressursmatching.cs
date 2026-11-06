@@ -38,11 +38,11 @@ public static class Ressursmatching
     // Finner den nærmeste tilgjengelige ressursen som passer til behovet.
     // Ressurser uten posisjon tas ikke med, siden vi ikke vet hvor langt unna de er.
     // Gir null hvis ingen ressurs passer.
-    public static NaermesteRessurs? FinnNaermeste(Behov behov, IEnumerable<Ressurs> ressurser)
+    public static NaermesteRessurs? FinnNaermeste(Behov behov, List<Ressurs> ressurser)
     {
         NaermesteRessurs? naermeste = null;
 
-        foreach (var ressurs in ressurser)
+        foreach (Ressurs ressurs in ressurser)
         {
             if (ressurs.Status != "Tilgjengelig" || !PasserTilBehov(behov.Type, ressurs.Type))
             {
