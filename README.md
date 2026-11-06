@@ -76,19 +76,14 @@ docker compose down -v
 
 ### Testbrukere
 
-Ved oppstart opprettes tre testbrukere:
+Når appen kjører i utviklingsmodus (`Development`, som Docker og `dotnet run` bruker), opprettes tre testbrukere ved oppstart. De lages ikke i produksjon, fordi passordene står her:
 
 | E-post | Passord | Rolle |
 |---|---|---|
 | admin@test.no | Admin123! | Admin |
 | kommune@test.no | Kommune123! | Kommune |
 | privatperson@test.no | Privat123! | Frivillig |
-<!-- | operator@test.no | Operator123! | Operator |
-| public@test.no | Public123! | PublicActor | 
-
-Rollene `Operator` og `PublicActor` kommer fra en tidligere versjon av databaseoppsettet og er ikke lenger i bruk noe sted i applikasjonen – de er kun beholdt som testbrukere inntil videre. All tilgangsstyring i appen (innlogging, Kommandobro, kartet, Behov) bruker `Admin`, `Kommune` og `Frivillig`. -->
-
-Tilgangsstyringen i appen bruker rollene `Admin`, `Kommune` og `Frivillig`. Rollene `Operator` og `PublicActor` fra en tidligere versjon av databaseoppsettet er fjernet.
+Tilgangsstyringen i appen bruker rollene `Admin`, `Kommune` og `Frivillig`.
 
 ### Docker-oppsett
 
@@ -138,15 +133,45 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 
 | Funksjon | Controller | Views | Model / ViewModel |
 |---|---|---|---|
-| Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel` |
+| Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel`, `EndrePassordViewModel`, `SlettKontoViewModel` |
+| Brukeradministrasjon | `AdminController` | `Views/Admin/` | `AdminBrukerViewModel` |
 | Ressurser (registrere, endre, slette, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursUtskriftViewModel`, `Kommuner` |
 | Ønskede ressurser | `OnsketRessursController` | `Views/OnsketRessurs/` | `OnsketRessurs` |
 | Behov (melde, endre, trekke tilbake, kø) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovStatusflyt` |
 | Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
-| Forside | `HomeController` | `Views/Home/` | `HomeViewModel` |
+| Forside, personvern og språkvalg | `HomeController` | `Views/Home/` | – |
 
 Database-tilgangen går gjennom `ApplicationDbContext` i `Data/`, sammen med `SeedData.cs` (testbrukere) og `RoleInitializer.cs` (roller). Selve databasestrukturen styres av migrasjonsfilene i `Migrations/`.
+
+Kode som brukes av flere controllere, ligger i `Services/`:
+
+| Fil | Hva den gjør |
+|---|---|
+| `Tilgang.cs` | Én regel for hvem som er ansatt (Admin/Kommune, med 2FA når det kreves). Brukes av policyene, controllerne og sidene. |
+| `Avstandsberegning.cs` | Luftlinjeavstand mellom behov og ressurs (Haversine-formelen). |
+| `KontoService.cs` | Sletter en konto med data, og lager «Last ned mine data» (GDPR). |
+| `PersonvernOpprydding.cs` | Fjerner kontaktinfo fra gamle, avsluttede behov ved oppstart (GDPR). |
+
+### Filene på toppnivå
+
+| Fil/mappe | Hvorfor den trengs |
+|---|---|
+| `.github/` | GitHub Actions bygger og tester koden ved hver pull request. |
+| `.dockerignore` | Hindrer at `bin/`, `obj/` og opplastede bilder kopieres inn i Docker-bildet. |
+| `.gitignore` | Hindrer at byggefiler og lokale innstillinger havner på GitHub. |
+| `Controllers/`, `Models/`, `ViewModels/`, `Views/` | MVC-delene av appen. |
+| `Data/`, `Migrations/` | Databasen: oppsett, testbrukere, roller og migrasjoner. |
+| `Services/` | Kode som brukes av flere controllere (se over). |
+| `Resources/` | Engelske tekster for språkvalget. |
+| `SharedResource.cs` | Tom klasse som gir oversettelsene et navn. Må ligge utenfor `Resources/`, ellers finner ikke appen de engelske tekstene. |
+| `Nabohjelp.Tests/` | Enhetstestene. |
+| `wwwroot/` | CSS, JavaScript, skrifter, ikoner og bibliotekene Bootstrap og jQuery (bare filene som brukes). |
+| `Properties/launchSettings.json` | Port og miljø når appen startes med `dotnet run`. |
+| `appsettings.json`, `appsettings.Development.json` | Innstillinger, og egne innstillinger under utvikling (for eksempel at 2FA ikke kreves). |
+| `Dockerfile`, `docker-compose.yml` | Bygger og starter appen og MariaDB i Docker. |
+| `Nabohjelp.csproj`, `Nabohjelp.slnx` | Prosjektfilen, og løsningsfilen som åpner appen og testene sammen i Visual Studio/Rider. |
+| `Program.cs` | Starter appen og setter opp database, innlogging, roller og språk. |
 
 ## Kartfunksjonalitet
 

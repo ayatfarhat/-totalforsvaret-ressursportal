@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Ønskede ressurser";
-    bool kanAdministrere = User.IsInRole("Admin") || User.IsInRole("Kommune");
+    bool kanAdministrere = Tilgang.ErAnsatt(User);
 }
 
 <div class="side-topp">

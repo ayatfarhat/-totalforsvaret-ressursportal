@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Nabohjelp.Data;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +56,7 @@ public class BehovController : Controller
         {
             Type = vm.Type!.Value,
             Beskrivelse = vm.Beskrivelse,
-            AnnetType = vm.AnnetType,
+            AnnetType = vm.AnnetTypeForLagring(),
             Latitude = vm.Latitude!.Value,
             Longitude = vm.Longitude!.Value,
             Prioritet = vm.Prioritet!.Value,
@@ -72,7 +73,7 @@ public class BehovController : Controller
         await _db.SaveChangesAsync();
 
         // Admin og Kommune sendes til behovskøen.
-        if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+        if (Tilgang.ErAnsatt(User))
         {
             return RedirectToAction(nameof(Ko));
         }
@@ -102,8 +103,7 @@ public class BehovController : Controller
         var sporring = _db.Behovsliste.AsNoTracking();
 
         // Begrens til egne behov for Frivillig.
-        if (!User.IsInRole("Admin") &&
-            !User.IsInRole("Kommune"))
+        if (!Tilgang.ErAnsatt(User))
         {
             sporring = sporring.Where(
                 b => b.OpprettetAvBrukerId == brukerId);
@@ -178,6 +178,7 @@ public class BehovController : Controller
         }
 
         behov.Type = vm.Type!.Value;
+        behov.AnnetType = vm.AnnetTypeForLagring();
         behov.Beskrivelse = vm.Beskrivelse;
         behov.Latitude = vm.Latitude!.Value;
         behov.Longitude = vm.Longitude!.Value;
@@ -196,7 +197,7 @@ public class BehovController : Controller
     // Den som meldte behovet, og kriseledelsen (Admin og Kommune).
     private bool KanEndre(Behov behov)
     {
-        if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+        if (Tilgang.ErAnsatt(User))
         {
             return true;
         }
@@ -214,7 +215,7 @@ public class BehovController : Controller
     // Kriseledelsen går tilbake til køen, den som meldte behovet til «Mine behov».
     private IActionResult TilbakeEtterRedigering()
     {
-        if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
+        if (Tilgang.ErAnsatt(User))
         {
             return RedirectToAction(nameof(Ko));
         }
@@ -281,6 +282,7 @@ public class BehovController : Controller
         {
             Id = b.Id,
             Type = b.Type,
+            AnnetType = b.AnnetType,
             Prioritet = b.Prioritet,
             Status = b.Status,
             Beskrivelse = b.Beskrivelse,

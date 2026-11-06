@@ -1,4 +1,4 @@
-@model IEnumerable<Nabohjelp.Models.Behov>
+@model IEnumerable<Behov>
 
 @{
     ViewData["Title"] = "Tildeling";
@@ -46,14 +46,14 @@ else
             <tbody>
                 @foreach (var behov in Model)
                 {
-                    <tr class="@(behov.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "rad-akutt" : "")">
+                    <tr class="@(behov.Prioritet == BehovPrioritet.Urgent ? "rad-akutt" : "")">
                         <td data-label="Nr.">@behov.Id</td>
-                        <td data-label="Behov"><strong>@Nabohjelp.Models.Visningstekst.Type(behov.Type)</strong></td>
+                        <td data-label="Behov"><strong>@Visningstekst.Type(behov.Type, behov.AnnetType)</strong></td>
                         <td data-label="Prioritet">
-                            <span class="merke @(behov.Prioritet == Nabohjelp.Models.BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Nabohjelp.Models.Visningstekst.Prioritet(behov.Prioritet)</span>
+                            <span class="merke @(behov.Prioritet == BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Visningstekst.Prioritet(behov.Prioritet)</span>
                         </td>
                         <td data-label="Status">
-                            <span class="merke @(behov.Status == Nabohjelp.Models.BehovStatus.Assigned ? "merke-gi" : behov.Status == Nabohjelp.Models.BehovStatus.UnderReview ? "merke-lys" : "")">@Nabohjelp.Models.Visningstekst.Status(behov.Status)</span>
+                            <span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
                         </td>
 
                         <td data-label="Beskrivelse">

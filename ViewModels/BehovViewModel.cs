@@ -70,6 +70,17 @@ public class BehovViewModel : IValidatableObject
         return Landskode + " " + KontaktTelefon.Trim();
     }
 
+    // Fritekst for «Annet» lagres bare når typen faktisk er «Annet».
+    // Bytter brukeren fra «Annet» til for eksempel «Transport», forsvinner den gamle teksten.
+    public string? AnnetTypeForLagring()
+    {
+        if (Type == BehovType.Annet && !string.IsNullOrWhiteSpace(AnnetType))
+        {
+            return AnnetType.Trim();
+        }
+        return null;
+    }
+
     // Deler et lagret nummer («+47 12345678») opp i landskode og nummer igjen,
     // slik at skjemaet viser det riktig når behovet endres.
     public void LesTelefonFraLagring(string? lagret)
@@ -104,6 +115,7 @@ public class BehovViewModel : IValidatableObject
         {
             Id = behov.Id,
             Type = behov.Type,
+            AnnetType = behov.AnnetType,
             Beskrivelse = behov.Beskrivelse,
             Latitude = behov.Latitude,
             Longitude = behov.Longitude,
@@ -137,6 +149,7 @@ public class BehovKoItem
 {
     public int Id { get; set; }
     public BehovType Type { get; set; }
+    public string? AnnetType { get; set; }
     public BehovPrioritet Prioritet { get; set; }
     public BehovStatus Status { get; set; }
     public string? Beskrivelse { get; set; }

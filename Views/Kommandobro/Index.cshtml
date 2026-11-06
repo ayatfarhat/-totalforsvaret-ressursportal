@@ -40,23 +40,20 @@
             <li><i style="background:#1B6B4B"></i>Ressurs</li>
         </ul>
     </div>
+    @* Avstandsfilteret styres av visOversikt(...) i kart.js. *@
     <div class="mb-3">
-    <label for="avstandFilter">
-        <strong>Filtrer på avstand:</strong>
-    </label>
-
-    <select id="avstandFilter" class="form-select">
-        <option value="alle">Alle avstander</option>
-        <option value="5">Innenfor 5 km</option>
-        <option value="10">Innenfor 10 km</option>
-        <option value="25">Innenfor 25 km</option>
-        <option value="50">Innenfor 50 km</option>
-    </select>
-
-    <p id="filterStatus" aria-live="polite">
-        Viser alle registrerte punkter. Velg en avstand og klikk på kartet for å filtrere.
-    </p>
-</div>
+        <label for="avstandFilter"><strong>Filtrer på avstand:</strong></label>
+        <select id="avstandFilter" class="form-select">
+            <option value="alle">Alle avstander</option>
+            <option value="5">Innenfor 5 km</option>
+            <option value="10">Innenfor 10 km</option>
+            <option value="25">Innenfor 25 km</option>
+            <option value="50">Innenfor 50 km</option>
+        </select>
+        <p id="filterStatus" aria-live="polite">
+            Viser alle registrerte punkter. Velg en avstand og klikk på kartet for å filtrere.
+        </p>
+    </div>
     <div id="oversiktsKart" role="group" aria-label="Kart over behov og ressurser"></div>
     @if (!Model.Behov.Any() && !Model.Ressurser.Any())
     {

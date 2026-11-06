@@ -31,7 +31,7 @@
         {
             <div><dt>Bilde</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="Bilde av ressursen: @Model.Type" /></dd></div>
         }
-        <div><dt>Status</dt><dd><span class="merke @(Model.Status == "Tilgjengelig" ? "merke-gi" : "")">@Model.Status</span></dd></div>
+        <div><dt>Status</dt><dd><span class="merke @Visningstekst.RessursStatusFarge(Model.Status)">@Model.Status</span></dd></div>
     </dl>
 </section>
 

@@ -38,7 +38,7 @@ public class TildelingController : Controller
     }
 
     // GET: /Tildeling/Match/5
-    // Finner tilgjengelige ressurser som passer til behovet.
+    // Finner tilgjengelige ressurser som passer til behovet, naermeste først.
     [HttpGet]
     public async Task<IActionResult> Match(int id)
     {
@@ -62,45 +62,23 @@ public class TildelingController : Controller
             .Where(r => r.Status == "Tilgjengelig")
             .ToListAsync();
 
-        // Matcher etter ressurstype, beregner avstand og sorterer.
-        var matchendeRessurser = ressurser
+        // Beholder ressursene som passer til behovstypen, og sorterer på avstand.
+        // Ressurser uten kjent avstand kommer sist.
+        var matchende = ressurser
             .Where(r => PasserTilBehov(behov.Type, r.Type))
-            .Select(r => new MatchendeRessursViewModel
-            {
-                RessursId = r.Id,
-                Type = r.Type,
-                Posisjon = r.Posisjon,
-                Status = r.Status,
-                Navn = r.Navn,
-                Beskrivelse = r.Beskrivelse,
-
-                AvstandKm = Avstandsberegning.BeregnAvstandKm(
-                    behov.Latitude,
-                    behov.Longitude,
-                    r.Breddegrad,
-                    r.Lengdegrad),
-
-                MatchBegrunnelse = LagMatchBegrunnelse(
-                    behov.Type,
-                    r.Type)
-            })
+            .Select(r => LagMatchendeRessurs(behov, r))
             .OrderBy(r => r.AvstandKm ?? double.MaxValue)
             .ThenBy(r => r.Type)
             .ToList();
 
-        var model = new TildelingViewModel
+        // Den naermeste ressursen med kjent avstand er anbefalt.
+        var naermeste = matchende.FirstOrDefault(r => r.AvstandKm != null);
+        if (naermeste != null)
         {
-            BehovId = behov.Id,
-            BehovType = behov.Type,
-            Prioritet = behov.Prioritet,
-            Status = behov.Status,
-            Beskrivelse = behov.Beskrivelse,
-            Latitude = behov.Latitude,
-            Longitude = behov.Longitude,
-            MatchendeRessurser = matchendeRessurser
-        };
+            naermeste.ErAnbefalt = true;
+        }
 
-        return View(model);
+        return View(LagViewModel(behov, matchende));
     }
 
     // POST: /Tildeling/Tildel
@@ -208,41 +186,43 @@ public class TildelingController : Controller
             return NotFound();
         }
 
-        var model = new TildelingViewModel
+        var tildelt = new List<MatchendeRessursViewModel> { LagMatchendeRessurs(behov, ressurs) };
+        return View(LagViewModel(behov, tildelt));
+    }
+
+    // Samler det sidene trenger å vise om behovet.
+    private static TildelingViewModel LagViewModel(Behov behov, List<MatchendeRessursViewModel> ressurser)
+    {
+        return new TildelingViewModel
         {
             BehovId = behov.Id,
             BehovType = behov.Type,
+            AnnetType = behov.AnnetType,
             Prioritet = behov.Prioritet,
             Status = behov.Status,
             Beskrivelse = behov.Beskrivelse,
             Latitude = behov.Latitude,
             Longitude = behov.Longitude,
-
-            MatchendeRessurser = new List<MatchendeRessursViewModel>
-            {
-                new()
-                {
-                    RessursId = ressurs.Id,
-                    Type = ressurs.Type,
-                    Posisjon = ressurs.Posisjon,
-                    Status = ressurs.Status,
-                    Navn = ressurs.Navn,
-                    Beskrivelse = ressurs.Beskrivelse,
-
-                    AvstandKm = Avstandsberegning.BeregnAvstandKm(
-                        behov.Latitude,
-                        behov.Longitude,
-                        ressurs.Breddegrad,
-                        ressurs.Lengdegrad),
-
-                    MatchBegrunnelse = LagMatchBegrunnelse(
-                        behov.Type,
-                        ressurs.Type)
-                }
-            }
+            MatchendeRessurser = ressurser
         };
+    }
 
-        return View(model);
+    // Gjør én ressurs klar for visning, med avstand til behovet og forklaring.
+    private static MatchendeRessursViewModel LagMatchendeRessurs(Behov behov, Ressurs ressurs)
+    {
+        return new MatchendeRessursViewModel
+        {
+            RessursId = ressurs.Id,
+            Type = ressurs.Type,
+            Posisjon = ressurs.Posisjon,
+            Status = ressurs.Status,
+            Navn = ressurs.Navn,
+            Beskrivelse = ressurs.Beskrivelse,
+            AvstandKm = Avstandsberegning.BeregnAvstandKm(
+                behov.Latitude, behov.Longitude,
+                ressurs.Breddegrad, ressurs.Lengdegrad),
+            MatchBegrunnelse = LagMatchBegrunnelse(behov.Type, ressurs.Type)
+        };
     }
 
     // Bestemmer hvilke ressurstyper som passer til behovstypen.

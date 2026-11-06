@@ -507,4 +507,10 @@
   <data name="Kunne ikke lagre. Prøv igjen." xml:space="preserve">
     <value>Could not save. Please try again.</value>
   </data>
+  <data name="Endre behov" xml:space="preserve">
+    <value>Edit need</value>
+  </data>
+  <data name="Rett opp det som har endret seg. Kriseledelsen ser endringen med en gang." xml:space="preserve">
+    <value>Correct what has changed. The crisis management team sees the change right away.</value>
+  </data>
 </root>

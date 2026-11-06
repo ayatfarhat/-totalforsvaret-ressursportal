@@ -2,7 +2,7 @@
 @{
     // Samme skjema brukes for å melde et nytt behov (Id = 0) og for å endre et behov.
     bool erNy = Model.Id == 0;
-    bool erKoordinator = User.IsInRole("Admin") || User.IsInRole("Kommune");
+    bool erKoordinator = Tilgang.ErAnsatt(User);
     ViewData["Title"] = erNy ? "Meld behov" : "Endre behov";
 }
 
@@ -31,11 +31,11 @@
         <fieldset class="felt-gruppe">
             <legend><span class="trinn" aria-hidden="true">1</span> Hva trenger du? *</legend>
             <div class="type-valg type-valg-hjelp">
-                @foreach (var type in Enum.GetValues<Nabohjelp.Models.BehovType>())
+                @foreach (var type in Enum.GetValues<BehovType>())
                 {
                     <div class="type-valg-element">
-                        <input type="radio" asp-for="Type" value="@type" id="type-@type" data-forslag="@Nabohjelp.ViewModels.BehovViewModel.HentForslag(type)" />
-                        <label for="type-@type">@Nabohjelp.Models.Visningstekst.Type(type)</label>
+                        <input type="radio" asp-for="Type" value="@type" id="type-@type" data-forslag="@BehovViewModel.HentForslag(type)" />
+                        <label for="type-@type">@Visningstekst.Type(type)</label>
                     </div>
                 }
             </div>
@@ -52,11 +52,11 @@
             <legend><span class="trinn" aria-hidden="true">2</span> Hvor haster det? *</legend>
             <div class="type-valg type-valg-hjelp type-valg-bred">
                 <div class="type-valg-element">
-                    <input type="radio" asp-for="Prioritet" value="@Nabohjelp.Models.BehovPrioritet.Urgent" id="prioritet-akutt" />
+                    <input type="radio" asp-for="Prioritet" value="@BehovPrioritet.Urgent" id="prioritet-akutt" />
                     <label for="prioritet-akutt"><span><strong>Akutt</strong><small>Trenger hjelp nå</small></span></label>
                 </div>
                 <div class="type-valg-element">
-                    <input type="radio" asp-for="Prioritet" value="@Nabohjelp.Models.BehovPrioritet.Planned" id="prioritet-planlagt" />
+                    <input type="radio" asp-for="Prioritet" value="@BehovPrioritet.Planned" id="prioritet-planlagt" />
                     <label for="prioritet-planlagt"><span><strong>Planlagt</strong><small>Kan vente</small></span></label>
                 </div>
             </div>
@@ -111,7 +111,7 @@
                     <label asp-for="KontaktTelefon" class="form-label">Telefon</label>
                     <div class="telefon-rad">
                         <select asp-for="Landskode" class="form-select" aria-label="Landskode">
-                            @foreach (var land in Nabohjelp.Models.RessursFormViewModel.Landskoder)
+                            @foreach (var land in RessursFormViewModel.Landskoder)
                             {
                                 <option value="@land.Kode">@land.Kode @land.Land</option>
                             }

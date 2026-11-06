@@ -118,6 +118,16 @@ public class BehovStatusflytTests
     }
 
     [Fact]
+    public void AnnetTekst_LagresBareNaarTypenErAnnet()
+    {
+        var skjema = new BehovViewModel { Type = BehovType.Annet, AnnetType = " steinras " };
+        Assert.Equal("steinras", skjema.AnnetTypeForLagring());
+
+        skjema.Type = BehovType.Transport;
+        Assert.Null(skjema.AnnetTypeForLagring());
+    }
+
+    [Fact]
     public void LesTelefon_GammeltNummerUtenLandskode_BrukerNorge()
     {
         var skjema = new BehovViewModel();

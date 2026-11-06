@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Nabohjelp.Data;
 using Nabohjelp.Models;
 using Nabohjelp.Services;
 
@@ -17,9 +18,6 @@ namespace Nabohjelp.Controllers;
 [Authorize(Policy = "Admin")]
 public class AdminController : Controller
 {
-    // Rollene som finnes i systemet (opprettes i Data/RoleInitializer.cs).
-    public static readonly string[] Roller = { "Admin", "Kommune", "Frivillig" };
-
     private readonly UserManager<IdentityUser> _userManager;
     private readonly KontoService _kontoService;
     private readonly IStringLocalizer<SharedResource> T;
@@ -73,7 +71,7 @@ public class AdminController : Controller
     public async Task<IActionResult> EndreRolle(string id, string rolle)
     {
         // Godtar bare rollene som finnes, i tilfelle noen har endret skjemaet.
-        if (!Roller.Contains(rolle))
+        if (!RoleInitializer.Roller.Contains(rolle))
         {
             return BadRequest();
         }

@@ -9,6 +9,9 @@ public class TildelingViewModel
 
     public BehovType BehovType { get; set; }
 
+    // Det brukeren skrev når behovstypen er «Annet».
+    public string? AnnetType { get; set; }
+
     public BehovPrioritet Prioritet { get; set; }
 
     public BehovStatus Status { get; set; }
@@ -42,4 +45,7 @@ public class MatchendeRessursViewModel
     public double? AvstandKm { get; set; }
 
     public string MatchBegrunnelse { get; set; } = string.Empty;
+
+    // Den nærmeste ressursen får merket «Anbefalt» (settes i TildelingController.Match).
+    public bool ErAnbefalt { get; set; }
 }
