@@ -117,6 +117,7 @@ public class KontoService
                 Type = b.Type.ToString(),
                 b.AnnetType,
                 b.Beskrivelse,
+                b.Kommunenummer,
                 b.Latitude,
                 b.Longitude,
                 Prioritet = b.Prioritet.ToString(),

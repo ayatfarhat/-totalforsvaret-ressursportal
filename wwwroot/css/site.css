@@ -325,13 +325,16 @@ textarea.form-control { min-height: 7rem; }
     color: #E8EEF2;
     font-size: .925rem;
 }
-.nodstripe .container {
+/* Innholdet står midt på. Sidene har plass til språkknappen, som ligger helt
+   ut i høyre hjørne (se .sprakvalg lenger ned). */
+.nodstripe-innhold {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     gap: .15rem 1.4rem;
-    padding-block: .45rem;
+    padding: .45rem 9.5rem;
 }
 .nodstripe p { margin: 0; max-width: none; }
 .nodstripe ul { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; list-style: none; margin: 0; padding: 0; }
@@ -346,11 +349,27 @@ textarea.form-control { min-height: 7rem; }
 .nodstripe a:focus-visible { box-shadow: 0 0 0 2px var(--natt), 0 0 0 5px var(--lys); }
 .nodstripe strong { font-family: var(--font-visning); font-size: 1.05rem; margin-right: .2rem; }
 .nodstripe a strong { margin: 0; }
+/* Mindre skjermer: alt står til venstre, og språkknappen skyves helt til høyre. */
+@media (max-width: 1199.98px) {
+    .nodstripe-innhold { justify-content: flex-start; padding: .45rem 1rem; gap: .4rem 1rem; }
+}
+/* Mobil: teksten og språkknappen på første linje, ring-knappene på linjen under. */
+@media (max-width: 767.98px) {
+    .nodstripe-innhold { display: grid; grid-template-columns: 1fr auto; grid-template-areas: "tekst sprak" "nummer nummer"; align-items: center; }
+    .nodstripe p { grid-area: tekst; }
+    .nodstripe ul { grid-area: nummer; justify-content: flex-start; }
+    .nodstripe .sprakvalg { grid-area: sprak; }
+}
 /* På mobil får de tre knappene plass på én linje: uten ikon og med mindre luft. */
 @media (max-width: 575.98px) {
     .nodstripe ul { flex-wrap: nowrap; gap: .4rem; }
     .nodstripe a { min-height: 44px; padding: .2rem .65rem; font-size: .85rem; }
     .nodstripe a svg { display: none; }
+}
+@media (max-width: 359.98px) {
+    .nodstripe-innhold { padding-inline: .6rem; }
+    .nodstripe ul { gap: .3rem; }
+    .nodstripe a { padding: .2rem .5rem; }
 }
 
 .topp {
@@ -389,10 +408,12 @@ textarea.form-control { min-height: 7rem; }
 }
 .topp .nav-link:hover { background: #EDF1F0; color: var(--natt); }
 .topp .nav-link.active { box-shadow: inset 0 -3px 0 var(--natt); border-radius: var(--radius) var(--radius) 0 0; }
+/* Menyknappen «Kriseledelse» er en <button>, men skal se ut som lenkene ved siden av. */
+.topp button.nav-link { background: none; border: 0; text-align: left; }
 .topp .navbar-nav { gap: .15rem; align-items: center; }
 .topp form { margin: 0; }
 .topp .brukernavn { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: var(--dempet); }
-.topp .btn-rad { min-height: 44px; --bs-btn-padding-y: .45rem; }
+.topp .btn-rad { min-height: 44px; --bs-btn-padding-y: .45rem; white-space: nowrap; }
 
 .navbar-toggler {
     border: 1.5px solid var(--kantlinje);
@@ -401,11 +422,27 @@ textarea.form-control { min-height: 7rem; }
 }
 .navbar-toggler:focus { box-shadow: var(--fokus); }
 
-@media (max-width: 767.98px) {
+/* Brukermenyen: knapp med e-posten som åpner en liste (Bootstrap dropdown). */
+.brukermeny-knapp { display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; }
+.topp .brukermeny-knapp .brukernavn { color: inherit; }
+.brukermeny { --bs-dropdown-min-width: 13rem; --bs-dropdown-padding-y: .4rem; --bs-dropdown-border-color: var(--linje);
+    --bs-dropdown-border-radius: var(--radius); --bs-dropdown-link-active-bg: var(--natt); box-shadow: var(--skygge); }
+.brukermeny .dropdown-item { padding: .6rem 1rem; font-weight: 500; }
+.brukermeny .dropdown-item:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--natt); }
+/* Siden du er på, er markert i menyen. */
+.brukermeny .dropdown-item[aria-current="page"] { font-weight: 700; box-shadow: inset 4px 0 0 var(--natt); }
+
+/* Menyen blir en «hamburger» under 992 px, så lenkene ikke presses sammen. */
+@media (max-width: 991.98px) {
     .topp .navbar-collapse { padding: .75rem 0 .5rem; border-top: 1px solid var(--linje); margin-top: .6rem; }
     .topp .navbar-nav { align-items: stretch; }
     .topp .nav-link.active { box-shadow: inset 4px 0 0 var(--natt); border-radius: var(--radius); }
     .topp .brukerdel { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--linje); }
+    .brukermeny-knapp { width: 100%; justify-content: flex-start; }
+    .brukermeny-knapp::after { margin-left: auto; }
+    .brukermeny-knapp .brukernavn { max-width: none; }
+    /* I den åpne mobilmenyen ligger menyene rett under knappen, uten ramme og skygge. */
+    .topp .brukermeny, .kb .brukermeny { border: 0; box-shadow: none; padding-left: .75rem; }
 }
 
 .sidefot {
@@ -881,8 +918,17 @@ body.kb {
     padding: .45rem 1rem;
     font-size: .925rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 .kb .tilgangsvarsel p { margin: 0 auto; max-width: none; }
+/* Store skjermer: teksten midt på, språkknappen helt til høyre */
+@media (min-width: 768px) {
+    .kb .tilgangsvarsel { position: relative; padding-inline: 9.5rem; }
+    .kb .tilgangsvarsel .sprakvalg { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
+}
+@media (max-width: 767.98px) { .kb .tilgangsvarsel { text-align: left; } .kb .tilgangsvarsel p { margin: 0; } }
 
 .kb .navbar-kommandobro { background: var(--kb-panel); border-bottom: 1px solid var(--kb-linje); padding-block: .6rem; }
 .kb .navbar-kommandobro .navbar-brand { color: #fff; }
@@ -898,8 +944,30 @@ body.kb {
     .kb .navbar-kommandobro .navbar-brand small { font-size: .8rem; }
 }
 .kb .navbar-nav { gap: .15rem; align-items: center; }
-.kb .brukernavn { color: var(--kb-dempet); font-size: .95rem; padding-inline: .5rem; }
-@media (max-width: 767.98px) { .kb .navbar-kommandobro .navbar-nav { align-items: stretch; } }
+.kb .btn-rad { white-space: nowrap; }
+/* Brukermenyen på den mørke menylinjen */
+.kb .brukermeny-knapp { --bs-btn-color: var(--kb-tekst); --bs-btn-border-color: #6F8798; --bs-btn-hover-bg: var(--kb-panel-2);
+    --bs-btn-hover-border-color: #fff; --bs-btn-hover-color: #fff; --bs-btn-active-bg: var(--kb-panel-2); --bs-btn-active-color: #fff;
+    --bs-btn-active-border-color: #fff; min-height: 44px; }
+.kb .brukernavn { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; }
+.kb .navbar-kommandobro form { margin: 0; }
+.kb .navbar-kommandobro .nav-link { white-space: nowrap; }
+/* Menyen som åpnes, er lys: mørk tekst (ellers arver lenkene den lyse fargen til Kommandobro). */
+.kb .brukermeny .dropdown-item { color: var(--natt); }
+/* Litt smalere skjermer: undertittelen i logoen skjules, så lenkene får plass på én linje. */
+@media (min-width: 1200px) and (max-width: 1399.98px) { .kb .navbar-kommandobro .navbar-brand small { display: none; } }
+/* Kommandobro har flere lenker, så menyen blir en «hamburger» allerede under 1200 px. */
+@media (max-width: 1199.98px) {
+    .kb .navbar-kommandobro .navbar-nav { align-items: stretch; }
+    .kb .navbar-kommandobro .navbar-collapse { padding-top: .6rem; }
+    .kb .brukerdel { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid var(--kb-linje); }
+    .kb .brukermeny-knapp { width: 100%; justify-content: flex-start; }
+    .kb .brukermeny-knapp::after { margin-left: auto; }
+    .kb .brukermeny { background: transparent; border: 0; box-shadow: none; padding-left: .75rem; }
+    .kb .brukermeny .dropdown-item { color: var(--kb-tekst); }
+    .kb .brukermeny .dropdown-item:hover, .kb .brukermeny .dropdown-item:focus { background: var(--kb-panel-2); color: #fff; }
+    .kb .brukermeny .dropdown-divider { border-color: var(--kb-linje); }
+}
 
 .kort-kommandobro {
     background: var(--kb-panel);
@@ -1109,18 +1177,35 @@ a[href^="tel:"] { white-space: nowrap; }
    Språkvalg, admin-side, infosider, søk og cookie-informasjon
    --------------------------------------------------------------- */
 
-/* Språkknappen helt til høyre i menyen: globus og navnet på det andre språket. */
-.sprakvalg { margin-left: .5rem; }
+/* Språkknappen: globus og navnet på det andre språket, helt ut i høyre hjørne av
+   stripa øverst (nødnumrene, eller den gule stripa på Kommandobro). */
+.sprakvalg { margin: 0 0 0 auto; }
 .sprakvalg button {
     display: inline-flex; align-items: center; gap: .4rem;
-    min-height: 44px; padding: 0 .9rem; border-radius: 999px;
-    border: 1px solid var(--kantlinje); background: var(--bakgrunn); color: var(--natt);
-    font-weight: 600; font-size: .9rem; cursor: pointer;
+    min-height: 36px; padding: 0 .85rem; border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, .45); background: transparent; color: #fff;
+    font-weight: 600; font-size: .875rem; cursor: pointer; white-space: nowrap;
 }
-.sprakvalg button:hover { background: var(--natt); border-color: var(--natt); color: #fff; }
-.kb .sprakvalg button { background: transparent; border-color: #5C7385; color: #fff; }
-.kb .sprakvalg button:hover { background: #fff; color: var(--natt); }
-@media (max-width: 767.98px) { .sprakvalg { margin: .5rem 0 0; } }
+.sprakvalg button:hover { background: #fff; border-color: #fff; color: var(--natt); }
+.sprakvalg button:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--natt), 0 0 0 5px var(--lys); }
+.sprakvalg .sprak-kode { display: none; }
+@media (min-width: 1200px) {
+    .nodstripe .sprakvalg { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
+}
+/* Nettbrett og mobil: bare koden (EN/NO), så alt får plass på linjen. */
+@media (max-width: 991.98px) {
+    .sprakvalg .sprak-navn { display: none; }
+    .sprakvalg .sprak-kode { display: inline; }
+    .nodstripe-innhold { flex-wrap: nowrap; }
+    .nodstripe .nod-ring { display: none; }
+}
+@media (max-width: 767.98px) {
+    .sprakvalg button { min-height: 44px; }
+    .nodstripe .nod-ring { display: inline; }
+}
+/* På den gule stripa på Kommandobro: mørk tekst og kant */
+.kb .tilgangsvarsel .sprakvalg button { border-color: var(--natt); color: var(--natt); }
+.kb .tilgangsvarsel .sprakvalg button:hover { background: var(--natt); color: #fff; }
 
 /* Skjult felt mot søppelpost (se Views/Shared/_Honningkrukke.cshtml). Flyttes ut av
    skjermen i stedet for display: none, fordi noen roboter hopper over skjulte felt. */
@@ -1191,6 +1276,28 @@ a[href^="tel:"] { white-space: nowrap; }
 .faner a.valgt { color: var(--natt); border-bottom-color: var(--natt); }
 
 .knapperad { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+/* Tallet på hver fane (hvor mange som ligger i kategorien) */
+.faner { flex-wrap: wrap; }
+.fane-antall { display: inline-block; min-width: 1.6rem; margin-left: .3rem; padding: 0 .4rem; border-radius: 999px; background: var(--linje); color: var(--natt); font-size: .85rem; text-align: center; }
+.faner a.valgt .fane-antall { background: var(--natt); color: #fff; }
+
+/* Filteret over behovskøen, «Mine behov» og ressurslisten: feltene på én rad, knappene til slutt */
+.behov-filter { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: flex-end; margin-bottom: 1.75rem;
+    padding: 1rem 1.25rem; background: var(--flate); border: 1px solid var(--linje); border-radius: var(--radius); }
+.behov-filter .felt { flex: 1 1 11rem; min-width: 0; margin: 0; }
+.behov-filter-knapper { display: flex; gap: .5rem; align-items: center; }
+
+/* Posisjon i listene: kommune, adresse og kartlenke under hverandre */
+.posisjon-celle { display: grid; gap: .15rem; min-width: 0; }
+.posisjon-celle a { font-size: .95rem; white-space: nowrap; }
+.merke-stabel { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .3rem; }
+@media (max-width: 767.98px) { .merke-stabel { flex-direction: row; flex-wrap: wrap; } }
+
+/* Boksen «Skriv inn koordinater selv» på behovsskjemaet */
+.koordinater { margin-top: 1rem; }
+.koordinater summary { cursor: pointer; font-weight: 600; color: var(--dempet); padding: .35rem 0; }
+.koordinater summary:focus-visible { outline: none; box-shadow: var(--fokus); border-radius: 4px; }
 
 /* Informasjon om cookies, nederst i vinduet til brukeren trykker «OK».
    «sticky» i stedet for «fixed»: helt nederst på siden legger den seg under

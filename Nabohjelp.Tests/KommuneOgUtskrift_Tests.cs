@@ -41,15 +41,44 @@ public class KommuneOgUtskriftTests
     // =====================================
     // ----- Kommune på ressursskjemaet -----
     // =====================================
-    [Fact]
-    public void Skjema_KommuneErPakrevd()
+    [Theory]
+    [InlineData("", true)]               // alt fylt ut
+    [InlineData("KommuneNavn", false)]   // det viktigste er påkrevd:
+    [InlineData("Telefon", false)]
+    [InlineData("Navn", false)]
+    [InlineData("Beskrivelse", false)]
+    [InlineData("TilgjengeligFra", false)]
+    public void Skjema_DetViktigsteErPakrevd(string tomtFelt, bool forventet)
     {
         RessursFormViewModel skjema = GyldigSkjema();
-        Assert.True(ErGyldig(skjema));
-        Assert.Equal("Lillesand", skjema.VisKommune());
+        if (tomtFelt == "KommuneNavn") skjema.KommuneNavn = null;
+        if (tomtFelt == "Telefon") skjema.Telefon = null;
+        if (tomtFelt == "Navn") skjema.Navn = null;
+        if (tomtFelt == "Beskrivelse") skjema.Beskrivelse = null;
+        if (tomtFelt == "TilgjengeligFra") skjema.TilgjengeligFra = null;
 
-        skjema.Kommunenummer = null;
-        Assert.False(ErGyldig(skjema));
+        Assert.Equal(forventet, ErGyldig(skjema));
+        Assert.Equal("Lillesand", skjema.VisKommune());
+    }
+
+    [Theory]
+    [InlineData("Grimstad", "4202")]
+    [InlineData(" grimstad kommune ", "4202")]   // små bokstaver og «kommune» bak
+    [InlineData("4215", "4215")]                 // nummeret går også
+    [InlineData("Atlantis", null)]
+    [InlineData("", null)]
+    public void FinnFraTekst_ForstarNavnOgNummer(string tekst, string? nummer)
+    {
+        Kommune? kommune = Kommuner.FinnFraTekst(tekst);
+
+        if (nummer == null)
+        {
+            Assert.Null(kommune);
+        }
+        else
+        {
+            Assert.Equal(nummer, kommune!.Nummer);
+        }
     }
 
     // =====================================
@@ -112,7 +141,11 @@ public class KommuneOgUtskriftTests
         {
             Type = "Båt",
             Posisjon = "Havna, Lillesand",
+            KommuneNavn = "Lillesand",
             Kommunenummer = "4215",
+            TilgjengeligFra = DateTime.Now.AddHours(2),
+            Beskrivelse = "Type og lengde: snekke, 18 fot",
+            Navn = "Kari Nordmann",
             Landskode = "+47",
             Telefon = "41234567"
         };

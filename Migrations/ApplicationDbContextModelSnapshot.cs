@@ -238,6 +238,10 @@ namespace Nabohjelp.Migrations
                     b.Property<string>("KontaktTelefon")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("Kommunenummer")
+                        .HasMaxLength(4)
+                        .HasColumnType("varchar(4)");
+
                     b.Property<double>("Latitude")
                         .HasColumnType("double");
 

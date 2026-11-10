@@ -73,6 +73,7 @@
                  data-lengde="#Longitude"
                  data-status="#valgtPosisjon"
                  data-knapp="#minPosisjon"
+                 data-kommune="#KommuneNavn"
                  data-nal="hjelp"
                  role="group"
                  aria-label="@T["Kart. Trykk for å velge posisjon."]"></div>
@@ -80,20 +81,37 @@
                 <button type="button" id="minPosisjon" class="btn btn-outline-secondary btn-sm">@T["Bruk min posisjon"]</button>
                 <p id="valgtPosisjon" class="valgt" aria-live="polite">@T["Ingen posisjon valgt ennå."]</p>
             </div>
-            <p class="kart-tips">@T["Trykk på kartet, bruk posisjonen din, eller skriv inn koordinatene under."]</p>
+            <p class="kart-tips">@T["Trykk på kartet eller bruk posisjonen din. Da fyller vi inn kommunen."]</p>
 
-            <div class="felt-par mt-3">
-                <div class="felt">
-                    <label asp-for="Latitude" class="form-label">@T["Breddegrad *"]</label>
-                    <input asp-for="Latitude" class="form-control" inputmode="decimal" placeholder="58.14656" />
-                    <span asp-validation-for="Latitude"></span>
-                </div>
-                <div class="felt">
-                    <label asp-for="Longitude" class="form-label">@T["Lengdegrad *"]</label>
-                    <input asp-for="Longitude" class="form-control" inputmode="decimal" placeholder="7.99560" />
-                    <span asp-validation-for="Longitude"></span>
-                </div>
+            <div class="felt mt-3">
+                <label asp-for="KommuneNavn" class="form-label">@T["Kommune"] <span class="valgfritt">@T["(fylles inn fra kartet, eller skriv selv)"]</span></label>
+                <input asp-for="KommuneNavn" class="form-control" list="kommuneliste" autocomplete="off" placeholder="@T["For eksempel Grimstad"]" />
+                <partial name="_Kommuneliste" />
+                <span asp-validation-for="KommuneNavn"></span>
             </div>
+
+            @* Koordinatene fylles inn av kartet. Den som ikke kan bruke kartet, kan skrive dem selv.
+               Boksen er åpen hvis koordinatene mangler eller er feil, så feilmeldingen synes. *@
+            @{
+                var ugyldig = Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid;
+                bool koordinatFeil = ViewData.ModelState.GetFieldValidationState("Latitude") == ugyldig
+                    || ViewData.ModelState.GetFieldValidationState("Longitude") == ugyldig;
+            }
+            <details class="koordinater" open="@koordinatFeil">
+                <summary>@T["Skriv inn koordinater selv"]</summary>
+                <div class="felt-par mt-2">
+                    <div class="felt">
+                        <label asp-for="Latitude" class="form-label">@T["Breddegrad *"]</label>
+                        <input asp-for="Latitude" class="form-control" inputmode="decimal" placeholder="58.14656" />
+                        <span asp-validation-for="Latitude"></span>
+                    </div>
+                    <div class="felt">
+                        <label asp-for="Longitude" class="form-label">@T["Lengdegrad *"]</label>
+                        <input asp-for="Longitude" class="form-control" inputmode="decimal" placeholder="7.99560" />
+                        <span asp-validation-for="Longitude"></span>
+                    </div>
+                </div>
+            </details>
         </fieldset>
 
         <fieldset class="felt-gruppe">

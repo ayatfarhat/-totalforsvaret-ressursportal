@@ -10,6 +10,10 @@ public class Behov
     public BehovType Type { get; set; }
     public string? Beskrivelse { get; set; }
     public string? AnnetType { get; set; }
+    // Kommunenummeret, for eksempel «4202» for Grimstad (se Models/Kommuner.cs).
+    // Valgfritt: fylles ut fra kartet eller av brukeren. Tomt for eldre behov.
+    [System.ComponentModel.DataAnnotations.MaxLength(4)]
+    public string? Kommunenummer { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public BehovPrioritet Prioritet { get; set; }

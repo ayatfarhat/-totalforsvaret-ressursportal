@@ -75,6 +75,12 @@ namespace Nabohjelp.Controllers
                 Beskrivelse = Forkort(behov.Beskrivelse)
             };
 
+            // Kommunen står foran tidspunktet når den er kjent.
+            if (Kommuner.Finnes(behov.Kommunenummer))
+            {
+                punkt.Undertekst = Kommuner.VisNavn(behov.Kommunenummer) + " · " + punkt.Undertekst;
+            }
+
             string prioritetFarge = "merke-lys";
             if (behov.Prioritet == BehovPrioritet.Urgent)
             {

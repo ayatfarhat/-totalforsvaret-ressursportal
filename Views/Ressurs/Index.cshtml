@@ -4,8 +4,8 @@
     ViewData["Title"] = T["Ressurser og behov"];
     bool erInnlogget = Tilgang.ErInnlogget(User);
 
-    // Controlleren gir Admin og Kommune alle ressurser, og frivillige bare
-    // sine egne. Derfor kan adresse og kontaktinfo vises for alt i lista.
+    // Lista viser bare brukerens egne ressurser. Kriseledelsen (Admin og Kommune)
+    // får i tillegg lenker til behovskøen og ressurslisten med alle ressursene.
     bool erKoordinator = ViewBag.ErKoordinator is bool k && k;
 }
 
@@ -50,15 +50,19 @@
 
 @if (erKoordinator)
 {
-    @* Bare for kriseledelsen: behovene har en egen liste med kontaktinformasjon. *@
-    <section class="spor-kort onsket-boks" aria-labelledby="behov-tittel">
-        <h2 id="behov-tittel">@T["Meldte behov"]</h2>
-        <p>@T["Aktive behov akkurat nå:"] <strong>@ViewBag.AntallAktiveBehov</strong>. @T["I behovskøen ser du alle behov med kontaktinformasjon, og kan endre status."]</p>
-        <div class="knapperad">
+    @* Bare for kriseledelsen: behovene og ressursene har hver sin liste med kontaktinformasjon. *@
+    <div class="spor">
+        <section class="spor-kort" aria-labelledby="behov-tittel">
+            <h2 id="behov-tittel">@T["Meldte behov"]</h2>
+            <p>@T["Aktive behov akkurat nå:"] <strong>@ViewBag.AntallAktiveBehov</strong>. @T["I behovskøen ser du alle behov med kontaktinformasjon, og kan endre status."]</p>
             <a class="btn btn-outline-secondary" asp-controller="Behov" asp-action="Ko">@T["Åpne behovskø"]</a>
-            <a class="btn btn-link" asp-controller="Behov" asp-action="Ko" asp-route-visning="alle">@T["Se alle behov"]</a>
-        </div>
-    </section>
+        </section>
+        <section class="spor-kort" aria-labelledby="ressursliste-tittel">
+            <h2 id="ressursliste-tittel">@T["Alle ressurser"]</h2>
+            <p>@T["Tilgjengelige ressurser akkurat nå:"] <strong>@ViewBag.AntallTilgjengeligeRessurser</strong>. @T["I ressurslisten ser du alle ressursene med kontaktinformasjon."]</p>
+            <a class="btn btn-outline-secondary" asp-action="Oversikt">@T["Åpne ressurslisten"]</a>
+        </section>
+    </div>
 }
 
 @if (TempData["Feil"] is string feil)
@@ -68,7 +72,7 @@
 
 <section aria-labelledby="liste-tittel">
     <div class="liste-topp">
-        <h2 id="liste-tittel">@(erKoordinator ? T["Registrerte ressurser"] : T["Dine ressurser"])</h2>
+        <h2 id="liste-tittel">@T["Dine ressurser"]</h2>
         @if (Model.Count > 0)
         {
             <span class="antall">@Model.Count</span>
@@ -85,16 +89,7 @@
     }
     else
     {
-        @if (!erKoordinator)
-        {
-            <p class="kart-tips">@T["Her ser du ressursene du selv har registrert. Du kan endre eller slette dem. Kommunen og kriseledelsen ser alle."]</p>
-        }
-        else
-        {
-            <div class="liste-handling">
-                <a class="btn btn-outline-secondary" asp-action="Utskrift">@T["Skriv ut ressursliste per kommune"]</a>
-            </div>
-        }
+        <p class="kart-tips">@T["Her ser du ressursene du selv har registrert. Du kan endre eller slette dem. Kommunen og kriseledelsen ser alle."]</p>
         <div class="table-responsive">
             <table class="table stablet align-middle">
                 <thead>

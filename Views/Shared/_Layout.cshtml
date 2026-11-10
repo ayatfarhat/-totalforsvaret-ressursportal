@@ -8,8 +8,9 @@
     // og aria-current="page", så skjermlesere sier at det er siden du er på.
     bool paForside = side == "Home" && handling == "Index";
     bool paBehovsko = side == "Behov" && handling == "Ko";
-    bool paRessurser = (side == "Ressurs" || side == "Behov" || side == "OnsketRessurs") && !paBehovsko;
-    bool paKommandobro = side == "Kommandobro" || side == "Tildeling";
+    bool paRessursliste = side == "Ressurs" && (handling == "Oversikt" || handling == "Utskrift");
+    bool paRessurser = (side == "Ressurs" || side == "Behov" || side == "OnsketRessurs") && !paBehovsko && !paRessursliste;
+    bool paKriseledelse = paBehovsko || paRessursliste || side == "Kommandobro" || side == "Tildeling" || side == "Admin";
 
     // Tittelen på fanen, oversatt hvis engelsk er valgt.
     string tittel = "" + ViewData["Title"];
@@ -38,20 +39,22 @@
     <a class="hopp-lenke" href="#innhold">@T["Hopp til innhold"]</a>
 
     <header>
-        @* Nødnumrene ligger alltid øverst. Et trykk ringer nummeret (tel:-lenke). *@
+        @* Nødnumrene ligger alltid øverst. Et trykk ringer nummeret (tel:-lenke).
+           Språkknappen står helt ut i høyre hjørne av stripa. *@
         <div class="nodstripe">
-            <div class="container">
-                <p><strong>@T["Akutt fare for liv og helse?"]</strong> @T["Ring først:"]</p>
+            <div class="nodstripe-innhold">
+                <p><strong>@T["Akutt fare for liv og helse?"]</strong> <span class="nod-ring">@T["Ring først:"]</span></p>
                 <ul>
                     <li><a href="tel:110" aria-label="@T["Ring {0}, {1}", "110", T["Brann"]]"><partial name="_Telefonikon" /><strong>110</strong> @T["Brann"]</a></li>
                     <li><a href="tel:112" aria-label="@T["Ring {0}, {1}", "112", T["Politi"]]"><partial name="_Telefonikon" /><strong>112</strong> @T["Politi"]</a></li>
                     <li><a href="tel:113" aria-label="@T["Ring {0}, {1}", "113", T["Ambulanse"]]"><partial name="_Telefonikon" /><strong>113</strong> @T["Ambulanse"]</a></li>
                 </ul>
+                <partial name="_SprakValg" />
             </div>
         </div>
 
         <div class="topp">
-            <nav class="navbar navbar-expand-md" aria-label="@T["Hovedmeny"]">
+            <nav class="navbar navbar-expand-lg" aria-label="@T["Hovedmeny"]">
                 <div class="container">
 
                     <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
@@ -70,7 +73,7 @@
                     </button>
 
                     <div class="collapse navbar-collapse justify-content-between" id="hovedmeny">
-                        <ul class="navbar-nav ms-md-3">
+                        <ul class="navbar-nav ms-lg-3">
                             <li class="nav-item">
                                 <a class="nav-link @(paForside ? "active" : "")" aria-current="@(paForside ? "page" : null)"
                                    asp-area="" asp-controller="Home" asp-action="Index">@T["Forside"]</a>
@@ -81,20 +84,22 @@
                             </li>
                             @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link @(paBehovsko ? "active" : "")" aria-current="@(paBehovsko ? "page" : null)"
-                                       asp-area="" asp-controller="Behov" asp-action="Ko">@T["Behov"]</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link @(paKommandobro ? "active" : "")" aria-current="@(paKommandobro ? "page" : null)"
-                                       asp-area="" asp-controller="Kommandobro" asp-action="Index">@T["Kommandobro"]</a>
-                                </li>
-                            }
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link @(side == "Admin" ? "active" : "")" aria-current="@(side == "Admin" ? "page" : null)"
-                                       asp-area="" asp-controller="Admin" asp-action="Index">@T["Brukere"]</a>
+                                @* Sidene for kriseledelsen ligger samlet i én meny (dropdown), så
+                                   menylinjen ikke blir for trang. Admin har også «Brukere» her. *@
+                                <li class="nav-item dropdown">
+                                    <button type="button" class="nav-link dropdown-toggle @(paKriseledelse ? "active" : "")"
+                                            data-bs-toggle="dropdown" aria-expanded="false">@T["Kriseledelse"]</button>
+                                    <ul class="dropdown-menu brukermeny">
+                                        <li><a class="dropdown-item" aria-current="@(paBehovsko ? "page" : null)" asp-area="" asp-controller="Behov" asp-action="Ko">@T["Behovskø"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(paRessursliste ? "page" : null)" asp-area="" asp-controller="Ressurs" asp-action="Oversikt">@T["Ressursliste"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(side == "Tildeling" ? "page" : null)" asp-area="" asp-controller="Tildeling" asp-action="Index">@T["Tildeling"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(side == "Kommandobro" ? "page" : null)" asp-area="" asp-controller="Kommandobro" asp-action="Index">@T["Kommandobro"]</a></li>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li><a class="dropdown-item" aria-current="@(side == "Admin" ? "page" : null)" asp-area="" asp-controller="Admin" asp-action="Index">@T["Brukere"]</a></li>
+                                        }
+                                    </ul>
                                 </li>
                             }
                             <li class="nav-item">

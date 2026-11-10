@@ -1,0 +1,71 @@
+@model BehovListeViewModel
+@* Fanene (Åpne / Pågår / Lukket / Alle) og filteret over listen. Brukes av behovskøen og
+   «Mine behov». Alt sendes i adressen (GET), så filteret virker uten JavaScript og kan
+   lagres som bokmerke. Fanene tar med filteret, og filteret tar med valgt fane. *@
+@{
+    string handling = "" + ViewContext.RouteData.Values["action"];
+
+    // Fanene: kategori, tekst og antall.
+    var faner = new List<(string Kategori, string Tekst, int Antall)>
+    {
+        (BehovStatusflyt.KategoriApne, T["Åpne"], Model.AntallApne),
+        (BehovStatusflyt.KategoriPagar, T["Pågår"], Model.AntallPagar),
+        (BehovStatusflyt.KategoriLukket, T["Lukket"], Model.AntallLukket),
+        (BehovStatusflyt.KategoriAlle, T["Alle"], Model.AntallAlle)
+    };
+}
+
+<nav class="faner" aria-label="@T["Velg hvilke behov som vises"]">
+    @foreach (var fane in faner)
+    {
+        bool valgt = Model.Kategori == fane.Kategori;
+        <a asp-action="@handling" asp-route-kategori="@fane.Kategori"
+           asp-route-type="@Model.Type" asp-route-prioritet="@Model.Prioritet"
+           asp-route-kommune="@Model.Kommune" asp-route-sortering="@Model.Sortering"
+           class="@(valgt ? "valgt" : "")" aria-current="@(valgt ? "page" : null)">
+            @fane.Tekst <span class="fane-antall">@fane.Antall</span>
+        </a>
+    }
+</nav>
+<p class="kart-tips">@T["Åpne: nye behov. Pågår: under vurdering eller tildelt. Lukket: løst, avvist eller trukket tilbake."]</p>
+
+<form asp-action="@handling" method="get" class="behov-filter" aria-label="@T["Filtrer behovene"]">
+    <input type="hidden" name="kategori" value="@Model.Kategori" />
+    <div class="felt">
+        <label for="filter-type" class="form-label">@T["Type"]</label>
+        <select id="filter-type" name="type" class="form-select">
+            <option value="">@T["Alle typer"]</option>
+            @foreach (BehovType type in Enum.GetValues<BehovType>())
+            {
+                <option value="@type" selected="@(Model.Type == type)">@Visningstekst.Type(type)</option>
+            }
+        </select>
+    </div>
+    <div class="felt">
+        <label for="filter-prioritet" class="form-label">@T["Hast"]</label>
+        <select id="filter-prioritet" name="prioritet" class="form-select">
+            <option value="">@T["Akutt og planlagt"]</option>
+            <option value="@BehovPrioritet.Urgent" selected="@(Model.Prioritet == BehovPrioritet.Urgent)">@T["Akutt"]</option>
+            <option value="@BehovPrioritet.Planned" selected="@(Model.Prioritet == BehovPrioritet.Planned)">@T["Planlagt"]</option>
+        </select>
+    </div>
+    <div class="felt">
+        <label for="filter-kommune" class="form-label">@T["Kommune"]</label>
+        <input id="filter-kommune" name="kommune" value="@Model.Kommune" class="form-control" list="kommuneliste" autocomplete="off" placeholder="@T["Alle kommuner"]" />
+        <partial name="_Kommuneliste" />
+    </div>
+    <div class="felt">
+        <label for="filter-sortering" class="form-label">@T["Sorter"]</label>
+        <select id="filter-sortering" name="sortering" class="form-select">
+            <option value="nyeste" selected="@(Model.Sortering == "nyeste")">@T["Nyeste først"]</option>
+            <option value="akutte" selected="@(Model.Sortering == "akutte")">@T["Akutte først"]</option>
+        </select>
+    </div>
+    <div class="behov-filter-knapper">
+        <button type="submit" class="btn btn-primary">@T["Bruk filter"]</button>
+        @if (Model.HarFilter())
+        {
+            <a asp-action="@handling" asp-route-kategori="@Model.Kategori" class="btn btn-link">@T["Nullstill"]</a>
+        }
+    </div>
+</form>

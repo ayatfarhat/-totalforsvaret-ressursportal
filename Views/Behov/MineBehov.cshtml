@@ -1,4 +1,4 @@
-@model List<Nabohjelp.Models.Behov>
+@model BehovListeViewModel
 @using System.Security.Claims
 @using Nabohjelp.Models
 
@@ -34,12 +34,14 @@
     <p class="ingress">@T["Her ser du hvor langt hvert behov har kommet: fra det er meldt, til kommunen vurderer det, sender en ressurs og markerer det som løst."]</p>
 </div>
 
+<partial name="_BehovFilter" model="Model" />
+
 @if (TempData["Feil"] is string feil)
 {
     <div class="alert alert-danger" role="alert">@feil</div>
 }
 
-@if (Model.Count == 0)
+@if (Model.Liste.Count == 0 && Model.AntallAlle == 0 && !Model.HarFilter())
 {
     <div class="tom-tilstand">
         <h2 class="h3">@T["Ingen behov er registrert"]</h2>
@@ -47,15 +49,22 @@
         <a class="btn btn-danger" asp-controller="Behov" asp-action="Opprett">@T["Meld et behov"]</a>
     </div>
 }
+else if (Model.Liste.Count == 0)
+{
+    <div class="tom-tilstand">
+        <h2 class="h3">@T["Ingen behov her"]</h2>
+        <p>@T["Ingen behov passer filteret. Prøv en annen fane eller nullstill filteret."]</p>
+    </div>
+}
 else
 {
     <div class="liste-topp">
         <h2>@(erAnsatt ? T["Behov"] : T["Dine behov"])</h2>
-        <span class="antall">@Model.Count</span>
+        <span class="antall">@Model.Liste.Count</span>
     </div>
 
     <div class="behov-liste">
-        @foreach (var behov in Model)
+        @foreach (Behov behov in Model.Liste)
         {
             int steg = BehovStatusflyt.StegNummer(behov.Status);
             bool erEgen = !string.IsNullOrEmpty(brukerId) && behov.OpprettetAvBrukerId == brukerId;
@@ -67,7 +76,13 @@ else
                     <span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
                 </div>
 
-                <p class="behov-meta">@T["Meldt {0}", behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")]</p>
+                <p class="behov-meta">
+                    @T["Meldt {0}", behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")]
+                    @if (Kommuner.Finnes(behov.Kommunenummer))
+                    {
+                        <text> · @Kommuner.VisNavn(behov.Kommunenummer)</text>
+                    }
+                </p>
 
                 @if (!string.IsNullOrWhiteSpace(behov.Beskrivelse))
                 {

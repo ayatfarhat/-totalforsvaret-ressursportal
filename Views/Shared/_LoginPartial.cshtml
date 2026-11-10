@@ -1,16 +1,32 @@
-@* Høyre side av menyen. Viser «Logg inn» eller hvem som er logget inn, og språkvalget helt til høyre. *@
+@* Høyre side av menyen. Ikke innlogget: «Logg inn» og «Registrer deg».
+   Innlogget: en knapp med e-posten som åpner en meny (dropdown) med kontoen,
+   registreringene og «Logg ut». Menyen styres av Bootstrap og virker med tastatur
+   (Enter åpner, piltastene flytter, Esc lukker). Språkknappen står i stripa øverst. *@
 
 <ul class="navbar-nav brukerdel">
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
-        <li class="nav-item">
-            <a class="nav-link brukernavn" asp-controller="Account" asp-action="Index" title="@T["Min konto"]">@User.Identity.Name</a>
-        </li>
-        <li class="nav-item">
-            @* Utlogging er et skjema (POST), ikke en vanlig lenke *@
-            <form asp-controller="Account" asp-action="Logout" method="post">
-                <button type="submit" class="btn btn-outline-secondary btn-rad">@T["Logg ut"]</button>
-            </form>
+        <li class="nav-item dropdown">
+            <button type="button" class="btn btn-outline-secondary btn-rad dropdown-toggle brukermeny-knapp"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8" />
+                    <path d="M4 20c1.5-4 4.4-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                <span class="brukernavn">@User.Identity.Name</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end brukermeny">
+                <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">@T["Min konto"]</a></li>
+                <li><a class="dropdown-item" asp-controller="Behov" asp-action="MineBehov">@T["Mine behov"]</a></li>
+                <li><a class="dropdown-item" asp-controller="Ressurs" asp-action="Index">@T["Mine ressurser"]</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    @* Utlogging er et skjema (POST), ikke en vanlig lenke *@
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="dropdown-item">@T["Logg ut"]</button>
+                    </form>
+                </li>
+            </ul>
         </li>
     }
     else
@@ -22,7 +38,4 @@
             <a class="btn btn-primary btn-rad" asp-controller="Account" asp-action="Register">@T["Registrer deg"]</a>
         </li>
     }
-    <li class="nav-item">
-        <partial name="_SprakValg" />
-    </li>
 </ul>

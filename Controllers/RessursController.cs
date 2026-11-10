@@ -25,26 +25,18 @@ namespace Nabohjelp.Controllers
             _miljo = miljo;
         }
 
-        // Frivillige ser egne ressurser.
-        // Admin og Kommune ser alle.
+        // «Ressurser og behov»: valg mellom å melde behov og registrere ressurs,
+        // og lista over brukerens egne ressurser (også for Kommune og Admin).
+        // Kriseledelsen ser alle ressursene i Ressurslisten (Oversikt under).
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
-            // r => ... betyr «for hver ressurs r».
-            IQueryable<Ressurs> sporring = _db.Ressurser.AsNoTracking();
-
             bool erKoordinator = Tilgang.ErAnsatt(User);
+            string brukerId = Tilgang.BrukerId(User);
 
-            // Frivillige ser bare sine egne ressurser.
-            if (!erKoordinator)
-            {
-                string brukerId = Tilgang.BrukerId(User);
-                sporring = sporring.Where(r => r.OpprettetAvBrukerId == brukerId);
-            }
-
-            // Nyeste først.
-            List<Ressurs> ressurser = await sporring
+            // Egne ressurser, nyeste først (r => ... betyr «for hver ressurs r»).
+            List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking()
+                .Where(r => r.OpprettetAvBrukerId == brukerId)
                 .OrderByDescending(r => r.OpprettetTid)
                 .ToListAsync();
 
@@ -62,7 +54,29 @@ namespace Nabohjelp.Controllers
                     .CountAsync();
             }
 
+            if (erKoordinator)
+            {
+                ViewBag.AntallTilgjengeligeRessurser = await _db.Ressurser
+                    .Where(r => r.Status == "Tilgjengelig")
+                    .CountAsync();
+            }
+
             return View(TilViewModeller(ressurser));
+        }
+
+        // GET: /Ressurs/Oversikt
+        // Ressurslisten for kriseledelsen: alle ressurser, som behovskøen.
+        // Kategori og filter kommer fra adressen (se ViewModels/RessursListeViewModel.cs).
+        [HttpGet]
+        [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
+        public async Task<IActionResult> Oversikt(RessursListeViewModel liste)
+        {
+            List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking()
+                .OrderByDescending(r => r.OpprettetTid)
+                .ToListAsync();
+
+            liste.Fyll(TilViewModeller(ressurser));
+            return View(liste);
         }
 
         // Viser skjemaet for innloggede brukere.
@@ -337,10 +351,20 @@ namespace Nabohjelp.Controllers
                 ModelState.AddModelError("AnnetType", Oversetter.Tekst("Skriv hva slags ressurs det er."));
             }
 
-            // Kommunen må finnes i listen over norske kommuner.
-            if (!string.IsNullOrEmpty(model.Kommunenummer) && !Kommuner.Finnes(model.Kommunenummer))
+            // Kommunen brukeren skrev, må finnes i listen over norske kommuner.
+            // Den lagres som kommunenummer.
+            Kommune? kommune = Kommuner.FinnFraTekst(model.KommuneNavn);
+            if (kommune != null)
             {
-                ModelState.AddModelError("Kommunenummer", Oversetter.Tekst("Velg en kommune fra listen."));
+                model.Kommunenummer = kommune.Nummer;
+            }
+            else
+            {
+                model.Kommunenummer = null;
+                if (!string.IsNullOrWhiteSpace(model.KommuneNavn))
+                {
+                    ModelState.AddModelError("KommuneNavn", Oversetter.Tekst("Fant ikke kommunen. Velg en kommune fra listen."));
+                }
             }
 
             // Landskoden må være en av de som finnes i listen.

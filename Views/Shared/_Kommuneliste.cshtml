@@ -1,0 +1,9 @@
+@* Alle kommunene som forslag i kommunefeltet (<datalist>). Mens brukeren skriver,
+   foreslår nettleseren kommuner som passer, men man kan også skrive selv.
+   data-nummer brukes av kartet (wwwroot/js/kart.js) til å fylle inn kommunen ut fra posisjonen. *@
+<datalist id="kommuneliste">
+    @foreach (Kommune kommune in Kommuner.Alle)
+    {
+        <option value="@kommune.Navn" data-nummer="@kommune.Nummer">@kommune.Fylke</option>
+    }
+</datalist>
