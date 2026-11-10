@@ -1,0 +1,92 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Vilkår for bruk";
+
+    // Siden er lang, så vi skriver den på begge språk her (som Personvern).
+    bool engelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+}
+
+@* Vilkår for bruk: hva tjenesten er, hva brukeren lover, og hva kommunen kan gjøre. *@
+
+<article class="infoside">
+@if (!engelsk)
+{
+    <h1>Vilkår for bruk</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
+    <p class="ingress">Ved å lage en konto eller registrere noe i BeredskapsPortalen godtar du disse vilkårene. BeredskapsPortalen er et studentprosjekt i IS-200 ved Universitetet i Agder.</p>
+
+    <h2>Dette er ikke en nødtjeneste</h2>
+    <p>Er det akutt fare for liv og helse, ring 110 (brann), 112 (politi) eller 113 (ambulanse) først. Det er ingen garanti for at et behov du melder her, blir fulgt opp med en gang.</p>
+
+    <h2>Hvem kan bruke tjenesten</h2>
+    <ul>
+        <li>Alle kan lese sidene. For å melde behov eller registrere ressurser trenger du en konto.</li>
+        <li>Rollene Kommune og Admin er for ansatte i kommunen og kriseledelsen. De får rollen gjennom en invitasjonslenke.</li>
+        <li>Du er ansvarlig for kontoen din. Hold passordet hemmelig, og slå gjerne på tofaktor-innlogging.</li>
+    </ul>
+
+    <h2>Det du registrerer</h2>
+    <ul>
+        <li>Opplysningene skal være riktige. Registrer bare ressurser du faktisk kan stille med, og meld bare behov som finnes.</li>
+        <li>Ikke legg inn andres personopplysninger uten at de har sagt ja.</li>
+        <li>Bilder skal vise ressursen og ikke personer, bilskilt eller annet som ikke trengs.</li>
+        <li>Det er frivillig å stille med en ressurs. Du kan endre eller slette den når du vil.</li>
+    </ul>
+
+    <h2>Hva kommunen og kriseledelsen kan gjøre</h2>
+    <ul>
+        <li>Kontakte deg om behov og ressurser du har registrert.</li>
+        <li>Avvise behov og fjerne registreringer som er feil, falske eller ikke hører hjemme her.</li>
+        <li>Stenge kontoer som misbrukes, for eksempel til søppelpost.</li>
+    </ul>
+
+    <h2>Ansvar</h2>
+    <p>Tjenesten kan være nede eller ha feil. Vi er ikke ansvarlige for skade på utstyr som lånes ut. Avtal bruk, transport og tilbakelevering direkte med kriseledelsen.</p>
+
+    <h2>Personvern og cookies</h2>
+    <p>Hvordan vi behandler opplysningene dine, står i <a asp-action="Personvern">personvernerklæringen</a>. Hvilke cookies vi bruker, står på siden om <a asp-action="Cookies">cookies</a>.</p>
+
+    <h2>Endringer</h2>
+    <p>Vilkårene kan endres. Datoen øverst viser når de sist ble endret.</p>
+}
+else
+{
+    <h1>Terms of use</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
+    <p class="ingress">By creating an account or registering anything in BeredskapsPortalen, you accept these terms. BeredskapsPortalen is a student project in IS-200 at the University of Agder.</p>
+
+    <h2>This is not an emergency service</h2>
+    <p>If there is immediate danger to life and health, call 110 (fire), 112 (police) or 113 (ambulance) first. There is no guarantee that a need you report here is followed up right away.</p>
+
+    <h2>Who can use the service</h2>
+    <ul>
+        <li>Anyone can read the pages. You need an account to report needs or register resources.</li>
+        <li>The roles Kommune and Admin are for staff in the municipality and emergency management. They get the role through an invitation link.</li>
+        <li>You are responsible for your account. Keep your password secret, and consider turning on two-factor authentication.</li>
+    </ul>
+
+    <h2>What you register</h2>
+    <ul>
+        <li>The information must be correct. Only register resources you can actually offer, and only report needs that are real.</li>
+        <li>Do not add other people's personal data without their permission.</li>
+        <li>Pictures should show the resource, not people, number plates or anything else that is not needed.</li>
+        <li>Offering a resource is voluntary. You can edit or delete it whenever you want.</li>
+    </ul>
+
+    <h2>What the municipality and emergency management can do</h2>
+    <ul>
+        <li>Contact you about needs and resources you have registered.</li>
+        <li>Reject needs and remove registrations that are wrong, fake or do not belong here.</li>
+        <li>Close accounts that are misused, for example for spam.</li>
+    </ul>
+
+    <h2>Liability</h2>
+    <p>The service may be down or have errors. We are not responsible for damage to equipment that is lent out. Agree on use, transport and return directly with emergency management.</p>
+
+    <h2>Privacy and cookies</h2>
+    <p>How we handle your data is described in the <a asp-action="Personvern">privacy policy</a>. The cookies we use are listed on the <a asp-action="Cookies">cookies</a> page.</p>
+
+    <h2>Changes</h2>
+    <p>The terms may change. The date at the top shows when they were last changed.</p>
+}
+</article>

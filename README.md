@@ -17,6 +17,10 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 - **Ressursliste per kommune:** Kommune og Admin kan filtrere på fylke eller kommune og skrive ut listen (eller lagre som PDF).
 - **Ønskede ressurser:** kriseledelsen legger ut hva de trenger, og frivillige kan registrere en ressurs rett fra ønsket.
 - **Kommandobro:** kart og tall over aktive behov og ressurser for kriseledelsen.
+- **«Annet» med egen tekst:** finnes ikke typen i lista, velger brukeren «Annet» og skriver hva det er. Gjelder behov, ressurser og ønskede ressurser.
+- **Søk** (`/Sok`): alle kan søke i sidene og i «Spørsmål og svar». Innloggede får også treff i behov og ressurser: frivillige i sine egne, Kommune og Admin i alle.
+- **Infosider:** spørsmål og svar, personvernerklæring, vilkår for bruk og cookies, med «Sist oppdatert»-dato. En egen side for «Siden finnes ikke» (404) har søk og lenker videre.
+- **Nødnumre:** 110, 112 og 113 øverst på alle sider er knapper som ringer nummeret på mobil.
 
 ## Gruppemedlemmer og Roller
 
@@ -141,7 +145,8 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 | Behov (melde, endre, trekke tilbake, kø) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovStatusflyt` |
 | Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
-| Forside, personvern og språkvalg | `HomeController` | `Views/Home/` | – |
+| Forside, infosider (personvern, vilkår, cookies, spørsmål og svar), feilsider og språkvalg | `HomeController` | `Views/Home/` | `VanligeSporsmal` |
+| Søk på nettsiden | `SokController` | `Views/Sok/` | `SokViewModel` |
 
 `Models/` inneholder det som lagres i databasen (`Behov`, `Ressurs`, `Tildeling`, `OnsketRessurs`) og regler som hører til dem (`BehovStatusflyt`, `Kommuner`, `Visningstekst`). `ViewModels/` inneholder klassene som bare brukes til å vise sider og ta imot skjemaer, slik at brukeren aldri sender inn felt som eier, status eller ID direkte til databasen.
 
@@ -155,10 +160,12 @@ Kode som brukes av flere controllere, ligger i `Services/`:
 | `Avstandsberegning.cs` | Luftlinjeavstand mellom behov og ressurs (Haversine-formelen). |
 | `KontoService.cs` | Sletter en konto med data, og lager «Last ned mine data» (GDPR). |
 | `Ressursbilder.cs` | Sjekker, lagrer, finner og sletter bildene til ressursene (`wwwroot/uploads/ressurser`). Brukes av RessursController og KontoService. |
-| `PersonvernOpprydding.cs` | Fjerner kontaktinfo fra gamle, avsluttede behov ved oppstart (GDPR). |
+| `PersonvernOpprydding.cs` | Fjerner kontaktinfo fra gamle, avsluttede behov og sletter gamle invitasjonslenker ved oppstart (GDPR). |
+| `Nettstedsok.cs` | Søket på nettsiden: sidene, spørsmål og svar, behov og ressurser. |
+| `Nettsted.cs` | Datoen nettsiden sist ble oppdatert (vises nederst), og navnet på cookien for cookie-informasjonen. |
 | `Ressursmatching.cs` | Hvilke ressurstyper som passer til hvilke behov, og nærmeste ledige ressurs. Brukes av tildelingen og Kommandobro-kartet. |
 | `Invitasjonsregler.cs` | Lager og sjekker invitasjonslenker som gir rollen Kommune eller Admin. |
-| `Sikkerhet.cs` | Sikkerhetshoder og fartsgrense for innlogging (se «Sikkerhetstiltak» under). |
+| `Sikkerhet.cs` | Sikkerhetshoder, fartsgrenser og beskyttelse mot søppelpost (se «Sikkerhetstiltak» under). |
 | `Oversetter.cs` | Gir tekst på valgt språk i kode som ikke har `T["..."]`, for eksempel modeller og tjenester. |
 
 ### Filene på toppnivå
@@ -215,6 +222,13 @@ Navigasjonsmenyen tilpasser seg størrelsen på skjermen. På mindre skjermer vi
 
 Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det tilpasser seg forskjellige skjermstørrelser.
 
+### Universell utforming (WCAG 2.1 AA)
+
+- **Tastatur:** alt kan brukes med Tab, Enter og mellomrom. Den første lenken på hver side er «Hopp til innhold», og alt som får fokus, får en tydelig ramme. Spørsmål og svar bruker `<details>`, som virker med tastatur uten JavaScript.
+- **Skjermleser:** valgt side i menyen har `aria-current="page"`, ikoner er skjult med `aria-hidden`, og nødnummer-knappene leses opp som «Ring 110, Brann».
+- **Kontrast:** tekst har minst 4,5:1 mot bakgrunnen, og kanter rundt felt minst 3:1. Teksten i tomme felt (placeholder) er gjort mørkere for å nå kravet.
+- **Sjekket med** [axe-core](https://github.com/dequelabs/axe-core) på alle sidene for alle roller (WCAG 2.1 A og AA): ingen feil.
+
 ## Innlogging, roller, personvern og språk
 
 Ansvarlig: Hassan.
@@ -250,6 +264,7 @@ Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.
 | Farlige filer lastet opp som bilder | Sjekk av filtype, størrelse (maks 5 MB) og de første bytene i filen. Filnavnet lages av appen | `Services/Ressursbilder.cs` |
 | Videresending til falske nettsider etter innlogging | Bare adresser på egen side godtas (`Url.IsLocalUrl`) | `AccountController`, `HomeController` |
 | Misbruk av invitasjonslenker | Tilfeldig kode på 32 byte, lagret som SHA-256, kan brukes én gang og går ut | `Services/Invitasjonsregler.cs` |
+| Søppelpost fra roboter | Et skjult felt («honningkrukke») i registrering, behov og ressurser. Er det fylt ut, avvises skjemaet. Maks 20 nye behov eller ressurser per minutt for hver bruker | `Services/Sikkerhet.cs`, `Views/Shared/_Honningkrukke.cshtml` |
 | Informasjon om serveren | Svarhodet `Server` er fjernet, og feilsider viser ingen detaljer i drift | `Program.cs` |
 
 Tiltakene testes av enhetstestene og systemtestene (se «Testing»).
@@ -275,13 +290,14 @@ Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den sist
 
 | Krav i GDPR | Slik er det løst |
 |---|---|
-| Informasjon om behandlingen | Personvernerklæring på `/Home/Personvern`, lenket fra bunnen av alle sider |
-| Samtykke | Avkrysning for personvernerklæringen ved registrering |
+| Informasjon om behandlingen | Personvernerklæring på `/Home/Personvern`, vilkår for bruk på `/Home/Vilkar` og cookie-erklæring på `/Home/Cookies`, lenket fra bunnen av alle sider |
+| Samtykke | Avkrysning for vilkårene og personvernerklæringen ved registrering |
+| Cookies | Bare nødvendige cookies, så samtykke trengs ikke (ekomloven § 3-15). En boks nederst forteller om dem til brukeren trykker «OK» (`Views/Shared/_CookieInfo.cshtml`) |
 | Rett til innsyn og dataportabilitet | «Last ned mine data» på Min konto gir en JSON-fil med alt som er lagret om brukeren |
 | Rett til sletting | «Slett konto» sletter kontoen, behovene, ressursene og bildene |
-| Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager` |
+| Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager`. Invitasjonslenker slettes like mange dager etter at de er brukt eller har gått ut, fordi de inneholder e-posten til den som brukte dem |
 | Tilgangskontroll | Bare eieren, Kommune og Admin ser kontaktinformasjon |
-| Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. Bare nødvendige cookies brukes |
+| Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. Navn og telefon på ressurser er valgfritt. Bare nødvendige cookies brukes |
 
 Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når brukeren sletter seg selv og når admin sletter en bruker. Tildelinger er historikk for kriseledelsen, så en konto med tildelinger må håndteres manuelt av administrator.
 
@@ -320,7 +336,7 @@ Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatis
 
 Testene ligger i `Nabohjelp.Tests/` (xUnit) og er av to slag.
 
-**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs og at alle tekster har engelsk oversettelse.
+**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs, søket, beskyttelsen mot søppelpost, sletting av gamle invitasjoner og at alle tekster har engelsk oversettelse.
 
 ```bash
 dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtest&Kategori!=Fartsgrense"
@@ -335,6 +351,7 @@ dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtes
 | `Frivillig_FarIkkeTilgangTilKriseledelsensSider` | Frivillige kommer ikke inn på Kommandobro, behovskø, tildeling, utskrift og admin |
 | `Kommune_FarIkkeTilgangTilBrukeradministrasjon` | Kommune kommer inn på Kommandobro, men ikke på admin |
 | `Skjema_UtenAntiForgeryToken_Avvises` | Skjema uten token avvises (CSRF) |
+| `Skjema_MedSkjultFeltUtfylt_AvvisesSomSoppelpost` | Et behov med det skjulte feltet utfylt (slik roboter gjør) avvises med 400 |
 | `FeilPassord_GirFeilmeldingOgIngenInnlogging` | Feil passord gir feilmelding |
 | `Hovedflyt_MeldeBehov_RegistrereRessurs_Tildele` | Frivillig melder behov og registrerer aggregat, kommunen tildeler, og statusen blir «Tildelt» |
 | `Invitasjonslenke_GirRollenEnGang` | En ny bruker får rollen Kommune fra lenken, og lenken virker ikke en gang til |

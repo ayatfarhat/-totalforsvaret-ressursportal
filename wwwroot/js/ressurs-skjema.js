@@ -1,6 +1,6 @@
-// Små hjelpefunksjoner for skjemaene "Registrer en ressurs" og "Meld behov".
-// Autofyllen virker på alle typevalg med data-forslag. Bildedelen gjør
-// ingenting på sider uten bildefelt.
+// Små hjelpefunksjoner for skjemaene "Registrer en ressurs", "Meld behov"
+// og "Legg til ønsket ressurs". Autofyllen virker på alle typevalg med
+// data-forslag. Hver del gjør ingenting på sider som mangler feltene sine.
 (function () {
     // ---- 1) Autofyll av beskrivelse når brukeren velger type ----
     var beskrivelse = document.getElementById("Beskrivelse");
@@ -55,5 +55,21 @@
             visning.src = URL.createObjectURL(fil);
             visning.hidden = false;
         });
+    }
+
+    // ---- 3) Fritekst for «Annet»: feltet vises bare når «Annet» er valgt ----
+    var annetFelt = document.getElementById("annet-felt");
+    var typeKnapper = document.querySelectorAll('input[name="Type"]');
+
+    function visAnnetFelt() {
+        var valgt = document.querySelector('input[name="Type"]:checked');
+        annetFelt.hidden = !valgt || valgt.value !== "Annet";
+    }
+
+    if (annetFelt) {
+        for (var j = 0; j < typeKnapper.length; j++) {
+            typeKnapper[j].addEventListener("change", visAnnetFelt);
+        }
+        visAnnetFelt();
     }
 })();

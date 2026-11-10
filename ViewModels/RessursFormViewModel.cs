@@ -9,6 +9,10 @@ namespace Nabohjelp.ViewModels
         [Required(ErrorMessage = "Du må velge type ressurs.")]
         public string Type { get; set; } = string.Empty;
 
+        // Fylles ut når typen er «Annet»: hva slags ressurs det er.
+        [StringLength(100, ErrorMessage = "Teksten kan ikke være lengre enn 100 tegn.")]
+        public string? AnnetType { get; set; }
+
         [Required(ErrorMessage = "Posisjon er påkrevd.")]
         [StringLength(200, ErrorMessage = "Posisjonen kan ikke være lengre enn 200 tegn.")]
         public string Posisjon { get; set; } = string.Empty;
@@ -102,6 +106,23 @@ namespace Nabohjelp.ViewModels
                     // Gjelder kjøretøy og maskiner (ATV, traktor, lastebil osv.)
                     return Oversetter.Linjer("Modell og størrelse:", "Tilstand:", "Kan du kjøre den selv (ja/nei):");
             }
+        }
+
+        // Fritekst for «Annet» lagres bare når typen faktisk er «Annet».
+        // Brukes også av ønskede ressurser (OnsketRessursController).
+        public static string? AnnetTypeForLagring(string type, string? annetType)
+        {
+            if (type == "Annet" && !string.IsNullOrWhiteSpace(annetType))
+            {
+                return annetType.Trim();
+            }
+            return null;
+        }
+
+        // Typen slik den vises i lister, for eksempel «Annet: Vannpumpe».
+        public string VisType()
+        {
+            return Visningstekst.RessursType(Type, AnnetType);
         }
 
         public bool ErValidTilgjengeligFra()
@@ -215,6 +236,7 @@ namespace Nabohjelp.ViewModels
                 Id = ressurs.Id,
                 OpprettetAvBrukerId = ressurs.OpprettetAvBrukerId,
                 Type = ressurs.Type,
+                AnnetType = ressurs.AnnetType,
                 Posisjon = ressurs.Posisjon,
                 Kommunenummer = ressurs.Kommunenummer,
                 Breddegrad = ressurs.Breddegrad,
@@ -239,6 +261,7 @@ namespace Nabohjelp.ViewModels
         public void KopierTil(Ressurs ressurs)
         {
             ressurs.Type = Type;
+            ressurs.AnnetType = AnnetTypeForLagring(Type, AnnetType);
             ressurs.Posisjon = Posisjon;
             ressurs.Kommunenummer = Kommunenummer;
             ressurs.Breddegrad = Breddegrad;

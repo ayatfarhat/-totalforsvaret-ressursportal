@@ -84,7 +84,7 @@
                     @foreach (var ressurs in gruppe.Ressurser)
                     {
                         <tr>
-                            <td><strong>@T[ressurs.Type]</strong></td>
+                            <td><strong>@ressurs.VisType()</strong></td>
                             <td>@ressurs.Posisjon</td>
                             <td>@T[ressurs.Status]</td>
                             <td>@ressurs.VisTilgjengeligFra()</td>

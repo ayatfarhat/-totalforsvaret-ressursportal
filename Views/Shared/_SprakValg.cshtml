@@ -1,14 +1,23 @@
 @using System.Globalization
 @{
-    // Hvilket språk som er valgt nå ("nb" eller "en").
-    string sprak = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb";
+    // Språket som er valgt nå. Knappen bytter til det andre språket.
+    bool erEngelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    string annetSprak = erEngelsk ? "nb" : "en";
+    string annetNavn = erEngelsk ? "Norsk" : "English";
 
     // Siden brukeren er på, så hen kommer tilbake hit etter byttet.
     string tilbake = Context.Request.Path + Context.Request.QueryString;
 }
 
-@* Knapper for å bytte språk. Valget lagres i en cookie (se HomeController.VelgSprak). *@
-<form asp-controller="Home" asp-action="VelgSprak" asp-route-returnUrl="@tilbake" method="post" class="sprakvalg" aria-label="@T["Velg språk"]">
-    <button type="submit" name="sprak" value="nb" lang="nb" class="@(sprak == "nb" ? "valgt" : "")" aria-pressed="@(sprak == "nb" ? "true" : "false")" title="@T["Norsk"]">NO</button>
-    <button type="submit" name="sprak" value="en" lang="en" class="@(sprak == "en" ? "valgt" : "")" aria-pressed="@(sprak == "en" ? "true" : "false")" title="@T["English"]">EN</button>
+@* Én knapp som bytter språk. Navnet står på det språket man bytter til, så de som
+   ikke forstår siden, kjenner det igjen. Valget lagres i en cookie (se HomeController.VelgSprak). *@
+<form asp-controller="Home" asp-action="VelgSprak" asp-route-returnUrl="@tilbake" method="post" class="sprakvalg">
+    <button type="submit" name="sprak" value="@annetSprak" lang="@annetSprak"
+            aria-label="@T["Bytt språk til {0}", annetNavn]">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8" />
+            <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" />
+        </svg>
+        <span>@annetNavn</span>
+    </button>
 </form>

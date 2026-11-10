@@ -1,0 +1,36 @@
+@model List<VanligSporsmal>
+@{
+    ViewData["Title"] = "Spørsmål og svar";
+}
+
+@* Spørsmålene står i Models/VanligeSporsmal.cs. <details> kan åpnes med mus,
+   tastatur (Tab og Enter) og skjermleser uten JavaScript. Hvert spørsmål har en
+   id (sporsmal-1, sporsmal-2 ...), så søket kan lenke rett til det. *@
+
+<article class="infoside">
+    <h1>@T["Spørsmål og svar"]</h1>
+    <p class="ingress">@T["Svar på det folk ofte lurer på. Finner du ikke svaret, kan du søke på hele nettsiden."]</p>
+
+    <partial name="_Sokefelt" model="@("")" />
+
+    <div class="sporsmal-liste">
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <details id="sporsmal-@(i + 1)">
+                <summary>@T[Model[i].Sporsmal]</summary>
+                <p>@T[Model[i].Svar]</p>
+            </details>
+        }
+    </div>
+</article>
+
+@section Scripts {
+    @* Kommer brukeren fra en lenke til ett spørsmål (#sporsmal-3), åpnes det spørsmålet. *@
+    <script>
+        (function () {
+            if (location.hash.indexOf("#sporsmal-") !== 0) { return; }
+            var valgt = document.getElementById(location.hash.substring(1));
+            if (valgt) { valgt.open = true; }
+        })();
+    </script>
+}

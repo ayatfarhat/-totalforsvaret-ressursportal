@@ -42,7 +42,7 @@
 @if (Model.Count == 0)
 {
     <div class="tom-tilstand">
-        <h3>@T["Ingen behov er registrert"]</h3>
+        <h2 class="h3">@T["Ingen behov er registrert"]</h2>
         <p>@T["Behov du melder, vises her med status."]</p>
         <a class="btn btn-danger" asp-controller="Behov" asp-action="Opprett">@T["Meld et behov"]</a>
     </div>

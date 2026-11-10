@@ -25,7 +25,7 @@
     <section class="sammendrag-boks" aria-labelledby="sammendrag-tittel">
         <h2 id="sammendrag-tittel">@T["Sammendrag"]</h2>
         <dl class="sammendrag">
-            <div><dt>@T["Type"]</dt><dd>@T[Model.Type]</dd></div>
+            <div><dt>@T["Type"]</dt><dd>@Model.VisType()</dd></div>
             <div><dt>@T["Kommune"]</dt><dd>@Model.VisKommune()</dd></div>
             <div><dt>@T["Posisjon"]</dt><dd>@Model.Posisjon</dd></div>
             <div><dt>@T["Koordinater"]</dt><dd>@Model.VisKoordinater()</dd></div>
@@ -33,7 +33,7 @@
             <div><dt>@T["Beskrivelse"]</dt><dd>@Model.VisBeskrivelse()</dd></div>
             @if (!string.IsNullOrEmpty(Model.BildeSti))
             {
-                <div><dt>@T["Bilde"]</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Bilde av ressursen: {0}", T[Model.Type]]" /></dd></div>
+                <div><dt>@T["Bilde"]</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Bilde av ressursen: {0}", Model.VisType()]" /></dd></div>
             }
             <div><dt>@T["Navn"]</dt><dd>@Model.VisNavn()</dd></div>
             <div><dt>@T["Telefon"]</dt><dd>@Model.VisTelefon()</dd></div>

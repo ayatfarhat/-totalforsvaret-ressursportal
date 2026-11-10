@@ -35,6 +35,25 @@ public class PersonvernTests
         Assert.True(PersonvernOpprydding.SkalFjerneKontaktinfo(behov, Naa, 90));
     }
 
+    // ===================================================
+    // ----- Sletting av gamle invitasjonslenker (90 dager) -----
+    // ===================================================
+    [Theory]
+    [InlineData(-100, null, true)]     // gikk ut for 100 dager siden, aldri brukt
+    [InlineData(-10, null, false)]     // gikk ut nylig
+    [InlineData(5, -100, true)]        // brukt for 100 dager siden
+    [InlineData(5, null, false)]       // fortsatt gyldig
+    public void SkalSletteInvitasjon_BareGamleOgFerdige(int utloperOmDager, int? bruktForDager, bool forventet)
+    {
+        var invitasjon = new Invitasjon { UtloperTid = Naa.AddDays(utloperOmDager) };
+        if (bruktForDager != null)
+        {
+            invitasjon.BruktTid = Naa.AddDays(bruktForDager.Value);
+        }
+
+        Assert.Equal(forventet, PersonvernOpprydding.SkalSletteInvitasjon(invitasjon, Naa, 90));
+    }
+
     // ===========================
     // ----- Passordregler -----
     // ===========================

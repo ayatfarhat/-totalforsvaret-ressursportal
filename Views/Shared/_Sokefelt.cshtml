@@ -1,0 +1,9 @@
+@model string
+@* Søkefeltet. Brukes på søkesiden og på siden «Siden finnes ikke».
+   Modellen er teksten som allerede står i feltet (kan være tom). *@
+<form asp-controller="Sok" asp-action="Index" method="get" class="sokefelt" role="search">
+    <label for="sok-q" class="visually-hidden">@T["Søk på nettsiden"]</label>
+    <input type="search" id="sok-q" name="q" value="@Model" class="form-control" maxlength="100"
+           placeholder="@T["Søk etter sider, spørsmål eller registreringer"]" />
+    <button type="submit" class="btn btn-primary">@T["Søk"]</button>
+</form>

@@ -1,9 +1,6 @@
-@* Høyre side av menyen. Viser «Logg inn» eller hvem som er logget inn, og språkvalget. *@
+@* Høyre side av menyen. Viser «Logg inn» eller hvem som er logget inn, og språkvalget helt til høyre. *@
 
 <ul class="navbar-nav brukerdel">
-    <li class="nav-item">
-        <partial name="_SprakValg" />
-    </li>
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         <li class="nav-item">
@@ -25,4 +22,7 @@
             <a class="btn btn-primary btn-rad" asp-controller="Account" asp-action="Register">@T["Registrer deg"]</a>
         </li>
     }
+    <li class="nav-item">
+        <partial name="_SprakValg" />
+    </li>
 </ul>

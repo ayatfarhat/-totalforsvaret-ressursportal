@@ -10,6 +10,10 @@ namespace Nabohjelp.Models
         [Required(ErrorMessage = "Du må velge type ressurs.")]
         public string Type { get; set; } = string.Empty;
 
+        // Det kommunen skrev selv når typen er «Annet», for eksempel «Vannpumpe».
+        [StringLength(100, ErrorMessage = "Teksten kan ikke være lengre enn 100 tegn.")]
+        public string? AnnetType { get; set; }
+
         [Range(1, 999, ErrorMessage = "Antall må være mellom 1 og 999.")]
         public int Antall { get; set; } = 1;
 

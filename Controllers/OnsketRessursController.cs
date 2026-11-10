@@ -55,6 +55,12 @@ namespace Nabohjelp.Controllers
                 ModelState.AddModelError("Type", Oversetter.Tekst("Du må velge type ressurs."));
             }
 
+            // Velges «Annet», må det stå hva dere trenger.
+            if (model.Type == "Annet" && string.IsNullOrWhiteSpace(model.AnnetType))
+            {
+                ModelState.AddModelError("AnnetType", Oversetter.Tekst("Skriv hva slags ressurs det er."));
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -64,6 +70,7 @@ namespace Nabohjelp.Controllers
             var onsket = new OnsketRessurs
             {
                 Type = model.Type,
+                AnnetType = RessursFormViewModel.AnnetTypeForLagring(model.Type, model.AnnetType),
                 Antall = model.Antall,
                 Sted = model.Sted,
                 Beskrivelse = model.Beskrivelse,

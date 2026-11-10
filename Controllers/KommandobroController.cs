@@ -92,7 +92,7 @@ namespace Nabohjelp.Controllers
             if (naermeste != null)
             {
                 punkt.Fremhevet = T["Nærmeste ressurs: {0}, {1} km unna",
-                    T[naermeste.Ressurs.Type], naermeste.AvstandKm.ToString("0.0")];
+                    Visningstekst.RessursType(naermeste.Ressurs.Type, naermeste.Ressurs.AnnetType), naermeste.AvstandKm.ToString("0.0")];
                 punkt.FremhevetErFunnet = true;
             }
             else
@@ -124,7 +124,7 @@ namespace Nabohjelp.Controllers
             var punkt = new KartPunkt
             {
                 Slag = T["Ressurs"],
-                Tittel = T[ressurs.Type],
+                Tittel = Visningstekst.RessursType(ressurs.Type, ressurs.AnnetType),
                 Farge = "opptatt",
                 Undertekst = Kommuner.VisNavn(ressurs.Kommunenummer) + " · " + ressurs.Posisjon,
                 Beskrivelse = Forkort(ressurs.Beskrivelse)

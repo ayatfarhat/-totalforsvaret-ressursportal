@@ -53,6 +53,26 @@ public class OversettelseTests
             }
         }
 
+        // Spørsmål og svar og sidene i søket står i lister, ikke som T["..."].
+        var listetekster = new List<string>();
+        foreach (Models.VanligSporsmal sporsmal in Models.VanligeSporsmal.Alle)
+        {
+            listetekster.Add(sporsmal.Sporsmal);
+            listetekster.Add(sporsmal.Svar);
+        }
+        foreach (ViewModels.SokTreff side in Nettstedsok.Sider)
+        {
+            listetekster.Add(side.Tittel);
+            listetekster.Add(side.Tekst);
+        }
+        foreach (string tekst in listetekster)
+        {
+            if (!engelsk.Contains(tekst))
+            {
+                mangler.Add("liste: " + tekst);
+            }
+        }
+
         // Feiler testen, står tekstene som mangler engelsk oversettelse i meldingen.
         Assert.Empty(mangler.Distinct());
     }

@@ -10,6 +10,7 @@
 <div class="skjema-rutenett">
     <form asp-action="@(erNy ? "Create" : "Edit")" asp-route-id="@(erNy ? "" : Model.Id.ToString())" method="post" class="skjema" enctype="multipart/form-data" novalidate>
         <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+        <partial name="_Honningkrukke" />
 
         <fieldset class="felt-gruppe">
             <legend><span class="trinn" aria-hidden="true">1</span> @T["Hva kan du stille med?"]</legend>
@@ -25,6 +26,13 @@
                 }
             </div>
             <span asp-validation-for="Type"></span>
+
+            @* Vises bare når «Annet» er valgt (se wwwroot/js/ressurs-skjema.js). *@
+            <div class="felt mt-3" id="annet-felt" hidden>
+                <label asp-for="AnnetType" class="form-label">@T["Hva slags ressurs?"]</label>
+                <input asp-for="AnnetType" class="form-control" placeholder="@T["For eksempel vannpumpe, varmeovn eller tilhenger"]" />
+                <span asp-validation-for="AnnetType"></span>
+            </div>
         </fieldset>
 
         <fieldset class="felt-gruppe">
@@ -96,7 +104,7 @@
                 @if (!erNy && !string.IsNullOrEmpty(Model.BildeSti))
                 {
                     <span class="form-label d-block">@T["Nåværende bilde"]</span>
-                    <img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Nåværende bilde av ressursen: {0}", T[Model.Type]]" />
+                    <img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Nåværende bilde av ressursen: {0}", Model.VisType()]" />
                     <div class="form-check mt-2 mb-3">
                         <input asp-for="FjernBilde" class="form-check-input" type="checkbox" />
                         <label asp-for="FjernBilde" class="form-check-label">@T["Fjern bildet"]</label>

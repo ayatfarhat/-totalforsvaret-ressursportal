@@ -57,6 +57,25 @@ public class RessursOgOnsketTests
         Assert.Equal("Ingen", onsket.VisBeskrivelse());
     }
 
+    // =====================================
+    // ----- «Annet» med egen tekst -----
+    // =====================================
+    [Fact]
+    public void KopierTil_LagrerAnnetTekstBareNaarTypenErAnnet()
+    {
+        var ressurs = new Ressurs();
+        var skjema = new RessursFormViewModel { Type = "Annet", AnnetType = " vannpumpe ", Posisjon = "Grimstad" };
+
+        skjema.KopierTil(ressurs);
+        Assert.Equal("vannpumpe", ressurs.AnnetType);
+        Assert.Equal("Annet: vannpumpe", RessursFormViewModel.FraRessurs(ressurs, null).VisType());
+
+        skjema.Type = "Båt";
+        skjema.KopierTil(ressurs);
+        Assert.Null(ressurs.AnnetType);
+        Assert.Equal("Båt", RessursFormViewModel.FraRessurs(ressurs, null).VisType());
+    }
+
     // Kjører de samme valideringsreglene som ASP.NET bruker på skjemaet.
     private static bool ErGyldig(object modell)
     {

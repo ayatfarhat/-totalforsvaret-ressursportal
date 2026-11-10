@@ -13,6 +13,14 @@ public static class Sikkerhet
     // Hvor mange forsøk samme IP-adresse får per minutt.
     private const int MaksForsokPerMinutt = 10;
 
+    // Fartsgrense for nye behov og ressurser: maks 20 per minutt for hver bruker.
+    // Ingen vanlig bruker melder så mange, men en robot med en konto stoppes.
+    public const string NyRegistrering = "NyRegistrering";
+    private const int MaksRegistreringerPerMinutt = 20;
+
+    // Navnet på det skjulte feltet i skjemaene (se Views/Shared/_Honningkrukke.cshtml).
+    public const string HonningkrukkeFelt = "Nettside";
+
     // Begrenser hvor mange ganger samme IP-adresse kan prøve å logge inn, registrere seg
     // eller bruke en invitasjon. Det gjør det mye tregere å gjette passord eller koder.
     // For mange forsøk gir feilkode 429, som vises på Home/Status.
@@ -26,6 +34,37 @@ public static class Sikkerhet
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         options.AddPolicy<string>(Innlogging, LagTellerForIpAdresse);
+        options.AddPolicy<string>(NyRegistrering, LagTellerForBruker);
+    }
+
+    // Én teller per innlogget bruker (ikke per IP-adresse, fordi mange mobiler
+    // kan dele samme IP-adresse hos mobiloperatøren).
+    private static RateLimitPartition<string> LagTellerForBruker(HttpContext context)
+    {
+        string brukerId = Tilgang.BrukerId(context.User);
+        return RateLimitPartition.GetFixedWindowLimiter("bruker-" + brukerId, LagRegistreringsRegler);
+    }
+
+    private static FixedWindowRateLimiterOptions LagRegistreringsRegler(string bruker)
+    {
+        return new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = MaksRegistreringerPerMinutt,
+            Window = TimeSpan.FromMinutes(1)
+        };
+    }
+
+    // Beskyttelse mot søppelpost («honningkrukke»): skjemaene har et felt som er skjult
+    // for mennesker. Roboter fyller ut alle felt de finner. Er feltet fylt ut, er det
+    // nesten sikkert en robot, og controlleren avviser skjemaet.
+    public static bool ErRobot(HttpRequest request)
+    {
+        if (!request.HasFormContentType)
+        {
+            return false;
+        }
+        string verdi = request.Form[HonningkrukkeFelt].ToString();
+        return verdi.Trim() != "";
     }
 
     // Hver IP-adresse får sin egen teller, så én som prøver mye ikke stopper andre.

@@ -96,7 +96,7 @@ else
                 <div class="card h-100">
                     <div class="card-body">
                         <h3 class="h5">
-                            @T[ressurs.Type]
+                            @Visningstekst.RessursType(ressurs.Type, ressurs.AnnetType)
                             @if (ressurs.ErAnbefalt)
                             {
                                 <span class="badge bg-success ms-2">@T["Anbefalt"]</span>

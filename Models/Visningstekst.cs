@@ -67,6 +67,17 @@ public static class Visningstekst
         }
     }
 
+    // Ressurstypene er tekst (se RessursFormViewModel.Typer). Som for behov
+    // vises det brukeren skrev når typen er «Annet», for eksempel «Annet: Vannpumpe».
+    public static string RessursType(string type, string? annetType)
+    {
+        if (type == "Annet" && !string.IsNullOrWhiteSpace(annetType))
+        {
+            return Oversetter.Tekst("Annet") + ": " + annetType.Trim();
+        }
+        return Oversetter.Tekst(type);
+    }
+
     // Ressurser har status som tekst. «Tilgjengelig» vises grønt.
     public static string RessursStatusFarge(string status)
     {

@@ -1,0 +1,19 @@
+@* Informasjon om cookies nederst på siden. Vi bruker bare nødvendige cookies,
+   så det er ingenting å godta. «OK» lagrer en cookie som gjør at boksen ikke
+   vises igjen (se HomeController.LestCookieInfo). Virker uten JavaScript. *@
+@if (!Context.Request.Cookies.ContainsKey(Nettsted.CookieInfoNavn))
+{
+    string tilbake = Context.Request.Path + Context.Request.QueryString;
+
+    <section class="cookie-info" aria-labelledby="cookie-info-tittel">
+        <div class="container">
+            <div>
+                <h2 id="cookie-info-tittel">@T["Cookies"]</h2>
+                <p>@T["Vi bruker bare cookies som trengs for at siden skal virke: innlogging, språkvalg og sikre skjemaer. Ingen sporing eller reklame."] <a asp-controller="Home" asp-action="Cookies">@T["Les mer om cookies"]</a></p>
+            </div>
+            <form asp-controller="Home" asp-action="LestCookieInfo" asp-route-returnUrl="@tilbake" method="post">
+                <button type="submit" class="btn btn-primary">@T["OK"]</button>
+            </form>
+        </div>
+    </section>
+}

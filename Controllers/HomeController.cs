@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers;
@@ -40,6 +41,45 @@ public class HomeController : Controller
         return View();
     }
 
+    // Vilkår for bruk: reglene for å bruke tjenesten.
+    [HttpGet]
+    public IActionResult Vilkar()
+    {
+        return View();
+    }
+
+    // Hvilke cookies siden bruker, og hvorfor.
+    [HttpGet]
+    public IActionResult Cookies()
+    {
+        return View();
+    }
+
+    // Spørsmål og svar. Spørsmålene står i Models/VanligeSporsmal.cs.
+    [HttpGet]
+    public IActionResult Sporsmal()
+    {
+        return View(VanligeSporsmal.Alle);
+    }
+
+    // «OK» på cookie-informasjonen nederst på siden (Views/Shared/_CookieInfo.cshtml).
+    // Vi bruker bare nødvendige cookies, så det er ingenting å godta eller avslå.
+    // Cookien sørger bare for at informasjonen ikke vises igjen.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult LestCookieInfo(string? returnUrl)
+    {
+        Response.Cookies.Append(Nettsted.CookieInfoNavn, "lest", new CookieOptions
+        {
+            Expires = DateTimeOffset.UtcNow.AddYears(1),
+            IsEssential = true,
+            HttpOnly = true,
+            SameSite = SameSiteMode.Lax
+        });
+
+        return TilbakeTil(returnUrl);
+    }
+
     // Bytter språk mellom norsk ("nb") og engelsk ("en").
     // Valget lagres i en cookie i ett år, og brukeren sendes tilbake til samme side.
     [HttpPost]
@@ -62,7 +102,13 @@ public class HomeController : Controller
                 SameSite = SameSiteMode.Lax
             });
 
-        // Bare adresser på vår egen side, så lenken ikke kan sende brukeren videre til en annen nettside.
+        return TilbakeTil(returnUrl);
+    }
+
+    // Sender brukeren tilbake til siden hen var på. Bare adresser på vår egen side,
+    // så lenken ikke kan sende brukeren videre til en annen nettside.
+    private IActionResult TilbakeTil(string? returnUrl)
+    {
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
         {
             return LocalRedirect(returnUrl);
