@@ -35,6 +35,11 @@ public class BehovViewModel : IValidatableObject
     [Required(ErrorMessage = "Velg prioritet.")]
     public BehovPrioritet? Prioritet { get; set; }
 
+    // Kommunen, slik brukeren skrev den eller kartet fylte den inn (for eksempel «Grimstad»).
+    // Valgfri. Gjøres om til kommunenummer i KopierTil.
+    [MaxLength(60)]
+    public string? KommuneNavn { get; set; }
+
     // Landskoden velges i en egen liste (se Models/Land.cs). +47 er standard.
     public string Landskode { get; set; } = "+47";
 
@@ -70,6 +75,12 @@ public class BehovViewModel : IValidatableObject
                 new[] { nameof(Landskode) }));
         }
 
+        if (!string.IsNullOrWhiteSpace(KommuneNavn) && Kommuner.FinnFraTekst(KommuneNavn) == null)
+        {
+            feil.Add(new ValidationResult("Fant ikke kommunen. Velg en kommune fra listen.",
+                new[] { nameof(KommuneNavn) }));
+        }
+
         return feil;
     }
 
@@ -98,6 +109,17 @@ public class BehovViewModel : IValidatableObject
         }
 
         behov.AnnetType = AnnetTypeForLagring();
+
+        // Kommunen lagres som nummer. Tomt felt gir ingen kommune.
+        Kommune? kommune = Kommuner.FinnFraTekst(KommuneNavn);
+        if (kommune == null)
+        {
+            behov.Kommunenummer = null;
+        }
+        else
+        {
+            behov.Kommunenummer = kommune.Nummer;
+        }
         behov.Beskrivelse = Beskrivelse;
         behov.KontaktTelefon = TelefonForLagring();
         behov.KontaktEpost = KontaktEpost;
@@ -163,6 +185,7 @@ public class BehovViewModel : IValidatableObject
             Latitude = behov.Latitude,
             Longitude = behov.Longitude,
             Prioritet = behov.Prioritet,
+            KommuneNavn = Kommuner.NavnEllerTomt(behov.Kommunenummer),
             KontaktEpost = behov.KontaktEpost
         };
         skjema.LesTelefonFraLagring(behov.KontaktTelefon);
@@ -187,21 +210,4 @@ public class BehovViewModel : IValidatableObject
                 return "";
         }
     }
-}
-
-// Én rad i behovskøen (Views/Behov/Ko.cshtml).
-public class BehovKoItem
-{
-    public int Id { get; set; }
-    public BehovType Type { get; set; }
-    public string? AnnetType { get; set; }
-    public BehovPrioritet Prioritet { get; set; }
-    public BehovStatus Status { get; set; }
-    public string? Beskrivelse { get; set; }
-    public DateTime OpprettetTid { get; set; }
-    public string? KontaktTelefon { get; set; }
-    public string? KontaktEpost { get; set; }
-
-    // Statusene behovet kan flyttes til herfra (en knapp for hver).
-    public List<BehovStatus> MuligeNesteStatuser { get; set; } = new List<BehovStatus>();
 }

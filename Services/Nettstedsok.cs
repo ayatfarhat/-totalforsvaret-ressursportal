@@ -32,7 +32,8 @@ public static class Nettstedsok
         Side("Vilkår for bruk", "Reglene for å bruke BeredskapsPortalen.", "/Home/Vilkar", ForAlle),
         Side("Cookies", "Hvilke cookies siden bruker, og hvorfor.", "/Home/Cookies", ForAlle),
         Side("Kommandobro", "Kart over behov og ressurser for kriseledelsen.", "/Kommandobro", ForAnsatte),
-        Side("Behovsliste", "Alle meldte behov med kontaktinformasjon og status.", "/Behov/Ko", ForAnsatte),
+        Side("Behovskø", "Alle meldte behov med kontaktinformasjon og status.", "/Behov/Ko", ForAnsatte),
+        Side("Ressursliste", "Alle registrerte ressurser med kontaktinformasjon og status.", "/Ressurs/Oversikt", ForAnsatte),
         Side("Tildeling", "Koble et behov med en ressurs i nærheten.", "/Tildeling", ForAnsatte),
         Side("Skriv ut ressursliste per kommune", "Ressursliste for utskrift, sortert på fylke og kommune.", "/Ressurs/Utskrift", ForAnsatte),
         Side("Legg til ønsket ressurs", "Fortell innbyggerne hva dere trenger.", "/OnsketRessurs/Create", ForAnsatte),
@@ -143,8 +144,9 @@ public static class Nettstedsok
             string type = Visningstekst.Type(behov.Type, behov.AnnetType);
             string status = Visningstekst.Status(behov.Status);
             string prioritet = Visningstekst.Prioritet(behov.Prioritet);
+            string kommune = Kommuner.VisNavn(behov.Kommunenummer);
 
-            if (Passer(sok, new List<string?> { type, status, prioritet, behov.Beskrivelse }))
+            if (Passer(sok, new List<string?> { type, status, prioritet, kommune, behov.Beskrivelse }))
             {
                 treff.Add(new SokTreff
                 {

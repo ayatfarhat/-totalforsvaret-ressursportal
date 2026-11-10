@@ -10,9 +10,12 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 
 ### Hovedfunksjoner
 
-- **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
-- **Behov:** innbyggere melder behov med type, hast, posisjon og kontaktinfo. Beskrivelsen får forslag etter type. Behovet kan endres og trekkes tilbake så lenge det ikke er tildelt, og statusen følges under «Mine behov».
-- **Behovskø og statusflyt:** Kommune og Admin ser akutte behov først og flytter dem gjennom Ny → Under vurdering → Tildelt → Løst (eller Avvist). Reglene ligger i `Models/BehovStatusflyt.cs`.
+- **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Det viktigste er påkrevd: type, kommune, adresse, når ressursen er tilgjengelig, beskrivelse, og navn og telefon til en kontaktperson. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
+- **Behov:** innbyggere melder behov med type, hast, posisjon, kommune og kontaktinfo. Beskrivelsen får forslag etter type. Behovet kan endres og trekkes tilbake så lenge det ikke er tildelt, og statusen følges under «Mine behov».
+- **Behovskø og statusflyt:** Kommune og Admin ser alle behov med posisjon (kommune og punkt på kart), nyeste først, og flytter dem gjennom Ny → Under vurdering → Tildelt → Løst (eller Avvist). Køen er delt i fanene Åpne, Pågår og Lukket, og kan filtreres på type, hast og kommune og sorteres med akutte først. Reglene ligger i `Models/BehovStatusflyt.cs`.
+- **Ressursliste** (`/Ressurs/Oversikt`): Kommune og Admin ser alle ressursene, delt i Tilgjengelige og Tildelte, med filter på type og kommune.
+- **Kommune fra kartet:** når brukeren trykker «Bruk min posisjon» eller på kartet, slår siden opp kommunen og nærmeste adresse hos Kartverket og fyller dem inn. Kommunen kan også skrives inn selv (med forslag mens man skriver).
+- **Menyer:** innloggede har en brukermeny (Min konto, Mine behov, Mine ressurser, Logg ut). Kommune og Admin har i tillegg menyen «Kriseledelse» med behovskø, ressursliste, tildeling og Kommandobro.
 - **Tildeling og matching:** løsningen foreslår ressurser som passer til behovstypen. Når et behov markeres som løst, blir ressursene ledige igjen.
 - **Ressursliste per kommune:** Kommune og Admin kan filtrere på fylke eller kommune og skrive ut listen (eller lagre som PDF).
 - **Ønskede ressurser:** kriseledelsen legger ut hva de trenger, og frivillige kan registrere en ressurs rett fra ønsket.
@@ -127,6 +130,7 @@ Prosjektet bruker:
 - Bootstrap
 - Leaflet
 - OpenStreetMap
+- Kartverkets åpne API-er (kommune og adresse fra et punkt på kartet)
 - MariaDB
 - Entity Framework Core (migrasjoner)
 - Docker og Docker Compose
@@ -140,9 +144,9 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 |---|---|---|---|
 | Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel`, `EndrePassordViewModel`, `SlettKontoViewModel` |
 | Brukeradministrasjon | `AdminController` | `Views/Admin/` | `AdminBrukerViewModel` |
-| Ressurser (registrere, endre, slette, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursUtskriftViewModel`, `Kommuner` |
+| Ressurser (registrere, endre, slette, ressursliste, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursListeViewModel`, `RessursUtskriftViewModel`, `Kommuner` |
 | Ønskede ressurser | `OnsketRessursController` | `Views/OnsketRessurs/` | `OnsketRessurs` |
-| Behov (melde, endre, trekke tilbake, kø) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovStatusflyt` |
+| Behov (melde, endre, trekke tilbake, kø med faner og filter) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovListeViewModel`, `BehovStatusflyt` |
 | Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
 | Forside, infosider (personvern, vilkår, cookies, spørsmål og svar), feilsider og språkvalg | `HomeController` | `Views/Home/` | `VanligeSporsmal` |
@@ -297,7 +301,7 @@ Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den sist
 | Rett til sletting | «Slett konto» sletter kontoen, behovene, ressursene og bildene |
 | Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager`. Invitasjonslenker slettes like mange dager etter at de er brukt eller har gått ut, fordi de inneholder e-posten til den som brukte dem |
 | Tilgangskontroll | Bare eieren, Kommune og Admin ser kontaktinformasjon |
-| Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. Navn og telefon på ressurser er valgfritt. Bare nødvendige cookies brukes |
+| Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. På ressurser spør vi bare om det kriseledelsen trenger (kontaktperson og telefon). Bare nødvendige cookies brukes |
 
 Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når brukeren sletter seg selv og når admin sletter en bruker. Tildelinger er historikk for kriseledelsen, så en konto med tildelinger må håndteres manuelt av administrator.
 
@@ -336,7 +340,7 @@ Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatis
 
 Testene ligger i `Nabohjelp.Tests/` (xUnit) og er av to slag.
 
-**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs, søket, beskyttelsen mot søppelpost, sletting av gamle invitasjoner og at alle tekster har engelsk oversettelse.
+**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs, fanene og filteret i behovskøen og ressurslisten, søket, beskyttelsen mot søppelpost, sletting av gamle invitasjoner og at alle tekster har engelsk oversettelse.
 
 ```bash
 dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtest&Kategori!=Fartsgrense"

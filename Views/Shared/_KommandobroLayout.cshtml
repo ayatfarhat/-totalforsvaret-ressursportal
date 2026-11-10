@@ -33,11 +33,13 @@
     <a class="hopp-lenke" href="#innhold">@T["Hopp til innhold"]</a>
 
     <header>
+        @* Språkknappen står helt ut i høyre hjørne av stripa, som på resten av siden. *@
         <div class="tilgangsvarsel">
             <p>@T["Kun for nødetater, politi og kriseledelse. Ikke for privatpersoner."]</p>
+            <partial name="_SprakValg" />
         </div>
 
-        <nav class="navbar navbar-expand-md navbar-kommandobro" aria-label="@T["Kommandobro-meny"]">
+        <nav class="navbar navbar-expand-xl navbar-kommandobro" aria-label="@T["Kommandobro-meny"]">
             <div class="container">
                 <a class="navbar-brand" asp-controller="Kommandobro" asp-action="Index">
                     <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
@@ -54,14 +56,17 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <div class="collapse navbar-collapse justify-content-between" id="kbmeny">
-                    <ul class="navbar-nav ms-md-3">
+                <div class="collapse navbar-collapse" id="kbmeny">
+                    <ul class="navbar-nav ms-xl-3 me-auto">
                         <li class="nav-item">
                             <a class="nav-link @(side == "Kommandobro" ? "active" : "")"
                                asp-controller="Kommandobro" asp-action="Index">@T["Oversikt"]</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Behov" asp-action="Ko">@T["Behovskø"]</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Ressurs" asp-action="Oversikt">@T["Ressursliste"]</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Tildeling" asp-action="Index">@T["Tildeling"]</a>
@@ -71,18 +76,9 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index">@T["Til BeredskapsPortalen"]</a>
                         </li>
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <form asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit" class="btn btn-outline-secondary btn-omriss btn-rad">@T["Logg ut"]</button>
-                                </form>
-                            </li>
-                        }
-                        <li class="nav-item">
-                            <partial name="_SprakValg" />
-                        </li>
                     </ul>
+                    @* Samme brukermeny som på resten av siden, med «Logg ut». *@
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>

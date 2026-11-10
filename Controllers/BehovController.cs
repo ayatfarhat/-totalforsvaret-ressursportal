@@ -86,11 +86,12 @@ public class BehovController : Controller
     // GET: /Behov/MineBehov
     // Frivillige ser bare egne behov.
     // Admin og Kommune ser alle behov.
+    // Kategori og filter kommer fra adressen (se ViewModels/BehovListeViewModel.cs).
     [HttpGet]
-    public async Task<IActionResult> MineBehov()
+    public async Task<IActionResult> MineBehov(BehovListeViewModel liste)
     {
         // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
-        // b => ... betyr «for hvert behov b»: Where velger behov, OrderByDescending sorterer.
+        // b => ... betyr «for hvert behov b»: Where velger behov.
         IQueryable<Behov> sporring = _db.Behovsliste.AsNoTracking();
 
         // Frivillige ser bare sine egne behov.
@@ -100,12 +101,9 @@ public class BehovController : Controller
             sporring = sporring.Where(b => b.OpprettetAvBrukerId == brukerId);
         }
 
-        // Nyeste først.
-        List<Behov> behovsliste = await sporring
-            .OrderByDescending(b => b.OpprettetTid)
-            .ToListAsync();
-
-        return View(behovsliste);
+        // Her vises alle kategorier hvis ingen er valgt.
+        liste.Fyll(await sporring.ToListAsync(), BehovStatusflyt.KategoriAlle);
+        return View(liste);
     }
 
     // GET: /Behov/Rediger/5
@@ -237,52 +235,16 @@ public class BehovController : Controller
         return RedirectToAction(nameof(MineBehov));
     }
 
-    // GET: /Behov/Ko           (aktive behov)
-    // GET: /Behov/Ko?visning=alle (alle behov, også løste, avviste og trukket tilbake)
-    // Kun Admin og Kommune har tilgang.
+    // GET: /Behov/Ko
+    // Kun Admin og Kommune har tilgang. Viser åpne behov hvis ingen kategori er valgt.
+    // Kategori og filter kommer fra adressen (se ViewModels/BehovListeViewModel.cs).
     [HttpGet]
     [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
-    public async Task<IActionResult> Ko(string? visning)
+    public async Task<IActionResult> Ko(BehovListeViewModel liste)
     {
-        bool visAlle = visning == "alle";
-        IQueryable<Behov> sporring = _db.Behovsliste.AsNoTracking();
-
-        // Vanligvis vises bare behov som ikke er avsluttet.
-        if (!visAlle)
-        {
-            sporring = sporring.Where(b => b.Status != BehovStatus.Resolved &&
-                                           b.Status != BehovStatus.Rejected &&
-                                           b.Status != BehovStatus.Withdrawn);
-        }
-
-        // Akutte først (Urgent = 0), deretter de eldste først.
-        List<Behov> behovsliste = await sporring
-            .OrderBy(b => b.Prioritet)
-            .ThenBy(b => b.OpprettetTid)
-            .ToListAsync();
-
-        ViewBag.VisAlle = visAlle;
-
-        // Lager én rad i køen for hvert behov.
-        var rader = new List<BehovKoItem>();
-        foreach (Behov behov in behovsliste)
-        {
-            rader.Add(new BehovKoItem
-            {
-                Id = behov.Id,
-                Type = behov.Type,
-                AnnetType = behov.AnnetType,
-                Prioritet = behov.Prioritet,
-                Status = behov.Status,
-                Beskrivelse = behov.Beskrivelse,
-                OpprettetTid = behov.OpprettetTid,
-                KontaktTelefon = behov.KontaktTelefon,
-                KontaktEpost = behov.KontaktEpost,
-                MuligeNesteStatuser = BehovStatusflyt.NesteStatuser(behov.Status)
-            });
-        }
-
-        return View(rader);
+        List<Behov> alle = await _db.Behovsliste.AsNoTracking().ToListAsync();
+        liste.Fyll(alle, BehovStatusflyt.KategoriApne);
+        return View(liste);
     }
 
     // POST: /Behov/EndreStatus
@@ -292,7 +254,8 @@ public class BehovController : Controller
     [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
     public async Task<IActionResult> EndreStatus(
         int id,
-        BehovStatus nyStatus)
+        BehovStatus nyStatus,
+        string? tilbake)
     {
         Behov? behov = await _db.Behovsliste.FindAsync(id);
 
@@ -308,7 +271,7 @@ public class BehovController : Controller
                 Visningstekst.Status(behov.Status),
                 Visningstekst.Status(nyStatus));
 
-            return RedirectToAction(nameof(Ko));
+            return TilbakeTilKoen(tilbake);
         }
 
         int antallFrigjort = 0;
@@ -343,6 +306,17 @@ public class BehovController : Controller
         await _db.SaveChangesAsync();
 
         TempData["Melding"] = LagStatusMelding(nyStatus, antallFrigjort);
+        return TilbakeTilKoen(tilbake);
+    }
+
+    // Tilbake til køen med samme kategori og filter som før (adressen kommer fra skjemaet).
+    // Bare adresser på vår egen side godtas, så lenken ikke kan sende brukeren til en annen nettside.
+    private IActionResult TilbakeTilKoen(string? tilbake)
+    {
+        if (!string.IsNullOrEmpty(tilbake) && Url.IsLocalUrl(tilbake))
+        {
+            return LocalRedirect(tilbake);
+        }
         return RedirectToAction(nameof(Ko));
     }
 

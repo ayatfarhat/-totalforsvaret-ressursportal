@@ -849,9 +849,6 @@
   <data name="Fortell hva dere trenger. Innbyggerne ser lista i BeredskapsPortalen og kan registrere akkurat dette." xml:space="preserve">
     <value>Say what you need. Residents see the list in BeredskapsPortalen and can register exactly this.</value>
   </data>
-  <data name="Fortell hva du kan stille med og hvor det finnes. Type, kommune og posisjon må fylles ut, resten er valgfritt." xml:space="preserve">
-    <value>Say what you can offer and where it is. Type, municipality and location are required, the rest is optional.</value>
-  </data>
   <data name="Fortell hva du trenger og hvor du er. Kriseledelsen ser meldingen med en gang." xml:space="preserve">
     <value>Say what you need and where you are. The crisis management team sees your report right away.</value>
   </data>
@@ -972,9 +969,6 @@
   <data name="Ingen" xml:space="preserve">
     <value>None</value>
   </data>
-  <data name="Ingen aktive behov" xml:space="preserve">
-    <value>No active needs</value>
-  </data>
   <data name="Ingen behov eller ressurser med posisjon er registrert ennå." xml:space="preserve">
     <value>No needs or resources with a location have been registered yet.</value>
   </data>
@@ -1085,9 +1079,6 @@
   </data>
   <data name="Kopier lenken og send den til personen, for eksempel på e-post." xml:space="preserve">
     <value>Copy the link and send it to the person, for example by e-mail.</value>
-  </data>
-  <data name="Kriseledelsen bruker kommunen til å skrive ut ressurslister per område." xml:space="preserve">
-    <value>The crisis management team uses the municipality to print resource lists per area.</value>
   </data>
   <data name="Kriseledelsen kan koble den til et behov i nærheten." xml:space="preserve">
     <value>The crisis management team can link it to a need nearby.</value>
@@ -1272,9 +1263,6 @@
   <data name="Registrert" xml:space="preserve">
     <value>Registered</value>
   </data>
-  <data name="Registrerte ressurser" xml:space="preserve">
-    <value>Registered resources</value>
-  </data>
   <data name="Rekkevidde og flytid:" xml:space="preserve">
     <value>Range and flight time:</value>
   </data>
@@ -1316,9 +1304,6 @@
   </data>
   <data name="Ressurstypen «{0}» passer til behovstypen «{1}»." xml:space="preserve">
     <value>The resource type «{0}» fits the need type «{1}».</value>
-  </data>
-  <data name="Rett opp det som har endret seg. Type, kommune og posisjon må fylles ut, resten er valgfritt." xml:space="preserve">
-    <value>Correct whatever has changed. Type, municipality and location are required, the rest is optional.</value>
   </data>
   <data name="Ring først. BeredskapsPortalen er ikke en nødtjeneste, og du får ikke svar umiddelbart." xml:space="preserve">
     <value>Call first. BeredskapsPortalen is not an emergency service, and you will not get an answer immediately.</value>
@@ -1506,9 +1491,6 @@
   <data name="Velg behovstype." xml:space="preserve">
     <value>Choose a type of need.</value>
   </data>
-  <data name="Velg en kommune fra listen." xml:space="preserve">
-    <value>Choose a municipality from the list.</value>
-  </data>
   <data name="Velg en landskode fra listen." xml:space="preserve">
     <value>Choose a country code from the list.</value>
   </data>
@@ -1523,12 +1505,6 @@
   </data>
   <data name="Velg fylke eller kommune, og skriv ut listen eller lagre den som PDF. Listen viser alle registrerte ressurser, også de som er tildelt." xml:space="preserve">
     <value>Choose a county or municipality, and print the list or save it as PDF. The list shows all registered resources, including assigned ones.</value>
-  </data>
-  <data name="Velg kommune" xml:space="preserve">
-    <value>Choose municipality</value>
-  </data>
-  <data name="Velg kommunen ressursen står i." xml:space="preserve">
-    <value>Choose the municipality the resource is in.</value>
   </data>
   <data name="Velg prioritet." xml:space="preserve">
     <value>Choose a priority.</value>
@@ -1598,12 +1574,6 @@
   </data>
   <data name="Kartet kunne ikke lastes. Fyll ut feltene i stedet." xml:space="preserve">
     <value>The map could not be loaded. Fill in the fields instead.</value>
-  </data>
-  <data name="Valgt posisjon: {0}, {1}" xml:space="preserve">
-    <value>Selected location: {0}, {1}</value>
-  </data>
-  <data name="Valgt på kart ({0}, {1})" xml:space="preserve">
-    <value>Chosen on map ({0}, {1})</value>
   </data>
   <data name="Nettleseren din støtter ikke posisjon. Trykk på kartet i stedet." xml:space="preserve">
     <value>Your browser does not support location. Tap the map instead.</value>
@@ -1719,12 +1689,6 @@
   <data name="Aktive behov akkurat nå:" xml:space="preserve">
     <value>Active needs right now:</value>
   </data>
-  <data name="Alle behov" xml:space="preserve">
-    <value>All needs</value>
-  </data>
-  <data name="Alle behov som er meldt inn, med de akutte først. Bare kommunen og kriseledelsen ser denne lista." xml:space="preserve">
-    <value>All needs that have been reported, with the urgent ones first. Only the municipality and emergency management can see this list.</value>
-  </data>
   <data name="Cookies" xml:space="preserve">
     <value>Cookies</value>
   </data>
@@ -1733,9 +1697,6 @@
   </data>
   <data name="I behovskøen ser du alle behov med kontaktinformasjon, og kan endre status." xml:space="preserve">
     <value>In the needs queue you see all needs with contact details, and you can change their status.</value>
-  </data>
-  <data name="Ingen behov er meldt ennå" xml:space="preserve">
-    <value>No needs have been reported yet</value>
   </data>
   <data name="La dette feltet stå tomt" xml:space="preserve">
     <value>Leave this field empty</value>
@@ -1751,9 +1712,6 @@
   </data>
   <data name="Om tjenesten" xml:space="preserve">
     <value>About the service</value>
-  </data>
-  <data name="Se alle behov" xml:space="preserve">
-    <value>See all needs</value>
   </data>
   <data name="Sist oppdatert:" xml:space="preserve">
     <value>Last updated:</value>
@@ -1829,9 +1787,6 @@
   </data>
   <data name="Kart over behov og ressurser for kriseledelsen." xml:space="preserve">
     <value>Map of needs and resources for emergency management.</value>
-  </data>
-  <data name="Behovsliste" xml:space="preserve">
-    <value>List of needs</value>
   </data>
   <data name="Alle meldte behov med kontaktinformasjon og status." xml:space="preserve">
     <value>All reported needs with contact details and status.</value>
@@ -1925,5 +1880,164 @@
   </data>
   <data name="Invitasjoner" xml:space="preserve">
     <value>Invitations</value>
+  </data>
+  <data name="(fylles inn fra kartet, eller skriv selv)" xml:space="preserve">
+    <value>(filled in from the map, or type it yourself)</value>
+  </data>
+  <data name="Akutt og planlagt" xml:space="preserve">
+    <value>Urgent and planned</value>
+  </data>
+  <data name="Akutte først" xml:space="preserve">
+    <value>Urgent first</value>
+  </data>
+  <data name="Alle" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Alle behov som er meldt inn, nyeste først. Bare kommunen og kriseledelsen ser denne lista." xml:space="preserve">
+    <value>All needs that have been reported, newest first. Only the municipality and emergency management can see this list.</value>
+  </data>
+  <data name="Alle ressurser" xml:space="preserve">
+    <value>All resources</value>
+  </data>
+  <data name="Alle ressurser som er registrert, nyeste først. Bare kommunen og kriseledelsen ser denne lista." xml:space="preserve">
+    <value>All resources that have been registered, newest first. Only the municipality and emergency management can see this list.</value>
+  </data>
+  <data name="Alle typer" xml:space="preserve">
+    <value>All types</value>
+  </data>
+  <data name="Bruk filter" xml:space="preserve">
+    <value>Apply filter</value>
+  </data>
+  <data name="Fant ikke kommunen. Velg en kommune fra listen." xml:space="preserve">
+    <value>Could not find the municipality. Choose a municipality from the list.</value>
+  </data>
+  <data name="Filtrer behovene" xml:space="preserve">
+    <value>Filter the needs</value>
+  </data>
+  <data name="Filtrer ressursene" xml:space="preserve">
+    <value>Filter the resources</value>
+  </data>
+  <data name="For eksempel Grimstad" xml:space="preserve">
+    <value>For example Grimstad</value>
+  </data>
+  <data name="Hast" xml:space="preserve">
+    <value>Urgency</value>
+  </data>
+  <data name="I ressurslisten ser du alle ressursene med kontaktinformasjon." xml:space="preserve">
+    <value>In the resource list you see all resources with contact details.</value>
+  </data>
+  <data name="Ingen behov her" xml:space="preserve">
+    <value>No needs here</value>
+  </data>
+  <data name="Ingen behov passer filteret. Prøv en annen fane eller nullstill filteret." xml:space="preserve">
+    <value>No needs match the filter. Try another tab or reset the filter.</value>
+  </data>
+  <data name="Ingen ressurser her" xml:space="preserve">
+    <value>No resources here</value>
+  </data>
+  <data name="Ingen ressurser passer filteret. Prøv en annen fane eller nullstill filteret." xml:space="preserve">
+    <value>No resources match the filter. Try another tab or reset the filter.</value>
+  </data>
+  <data name="Lukket" xml:space="preserve">
+    <value>Closed</value>
+  </data>
+  <data name="Navn på kontaktperson" xml:space="preserve">
+    <value>Name of contact person</value>
+  </data>
+  <data name="Nullstill" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Nye behov som meldes inn, dukker opp under «Åpne»." xml:space="preserve">
+    <value>New needs that are reported appear under “Open”.</value>
+  </data>
+  <data name="Nyeste først" xml:space="preserve">
+    <value>Newest first</value>
+  </data>
+  <data name="Pågår" xml:space="preserve">
+    <value>In progress</value>
+  </data>
+  <data name="Ressurser som innbyggerne registrerer, dukker opp her." xml:space="preserve">
+    <value>Resources that citizens register appear here.</value>
+  </data>
+  <data name="Ressursliste" xml:space="preserve">
+    <value>Resource list</value>
+  </data>
+  <data name="Skriv eller velg kommunen ressursen står i." xml:space="preserve">
+    <value>Type or choose the municipality where the resource is.</value>
+  </data>
+  <data name="Skriv en kort beskrivelse av ressursen." xml:space="preserve">
+    <value>Write a short description of the resource.</value>
+  </data>
+  <data name="Skriv inn koordinater selv" xml:space="preserve">
+    <value>Enter coordinates yourself</value>
+  </data>
+  <data name="Skriv inn telefonnummeret ditt." xml:space="preserve">
+    <value>Enter your phone number.</value>
+  </data>
+  <data name="Skriv kommunen, eller pek ut stedet på kartet under, så fyller vi inn kommune og adresse." xml:space="preserve">
+    <value>Type the municipality, or point out the place on the map below, and we fill in municipality and address.</value>
+  </data>
+  <data name="Skriv navnet på kontaktpersonen." xml:space="preserve">
+    <value>Enter the name of the contact person.</value>
+  </data>
+  <data name="Sorter" xml:space="preserve">
+    <value>Sort</value>
+  </data>
+  <data name="Tildelte" xml:space="preserve">
+    <value>Assigned</value>
+  </data>
+  <data name="Tilgjengelige" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="Tilgjengelige ressurser akkurat nå:" xml:space="preserve">
+    <value>Available resources right now:</value>
+  </data>
+  <data name="Trykk på kartet eller bruk posisjonen din. Da fyller vi inn kommunen." xml:space="preserve">
+    <value>Press the map or use your position. We then fill in the municipality.</value>
+  </data>
+  <data name="Velg hvilke ressurser som vises" xml:space="preserve">
+    <value>Choose which resources to show</value>
+  </data>
+  <data name="Velg når ressursen er tilgjengelig." xml:space="preserve">
+    <value>Choose when the resource is available.</value>
+  </data>
+  <data name="Vis på kart" xml:space="preserve">
+    <value>Show on map</value>
+  </data>
+  <data name="Vis {0} på kart (åpnes i ny fane)" xml:space="preserve">
+    <value>Show {0} on map (opens in a new tab)</value>
+  </data>
+  <data name="Åpne" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Åpne ressurslisten" xml:space="preserve">
+    <value>Open the resource list</value>
+  </data>
+  <data name="Åpne: nye behov. Pågår: under vurdering eller tildelt. Lukket: løst, avvist eller trukket tilbake." xml:space="preserve">
+    <value>Open: new needs. In progress: under review or assigned. Closed: resolved, rejected or withdrawn.</value>
+  </data>
+  <data name="Posisjon valgt." xml:space="preserve">
+    <value>Position selected.</value>
+  </data>
+  <data name="Finner kommunen ..." xml:space="preserve">
+    <value>Finding the municipality ...</value>
+  </data>
+  <data name="Posisjon valgt i {0} kommune." xml:space="preserve">
+    <value>Position selected in {0} municipality.</value>
+  </data>
+  <data name="Posisjon valgt. Fant ikke kommunen, skriv den inn selv." xml:space="preserve">
+    <value>Position selected. Could not find the municipality, please type it yourself.</value>
+  </data>
+  <data name="Alle registrerte ressurser med kontaktinformasjon og status." xml:space="preserve">
+    <value>All registered resources with contact details and status.</value>
+  </data>
+  <data name="Kriseledelse" xml:space="preserve">
+    <value>Emergency management</value>
+  </data>
+  <data name="Fortell hva du kan stille med og hvor det finnes. Alle felt må fylles ut, unntatt kartet og bildet." xml:space="preserve">
+    <value>Tell us what you can offer and where it is. All fields must be filled in, except the map and the picture.</value>
+  </data>
+  <data name="Rett opp det som har endret seg. Alle felt må fylles ut, unntatt kartet og bildet." xml:space="preserve">
+    <value>Correct what has changed. All fields must be filled in, except the map and the picture.</value>
   </data>
 </root>
