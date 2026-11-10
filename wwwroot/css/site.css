@@ -225,7 +225,7 @@ a:hover { color: var(--gi-mork); }
     border-radius: var(--radius);
 }
 textarea.form-control { min-height: 7rem; }
-.form-control::placeholder { color: #6B7A82; }
+.form-control::placeholder { color: #5E6D75; } /* minst 4,5:1 mot hvit (WCAG AA) */
 .form-control:hover, .form-select:hover { border-color: var(--natt); }
 .form-control:focus, .form-select:focus {
     border-color: var(--natt);
@@ -334,10 +334,24 @@ textarea.form-control { min-height: 7rem; }
     padding-block: .45rem;
 }
 .nodstripe p { margin: 0; max-width: none; }
-.nodstripe ul { display: flex; gap: 1.1rem; list-style: none; margin: 0; padding: 0; }
-.nodstripe a { color: #fff; text-decoration: none; padding: .15rem 0; }
-.nodstripe a:hover { color: var(--lys); text-decoration: underline; }
+.nodstripe ul { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; list-style: none; margin: 0; padding: 0; }
+/* Ring-knappene: tydelige knapper, store nok til å trykke på mobil (44 px). */
+.nodstripe a {
+    display: inline-flex; align-items: center; gap: .35rem;
+    min-height: 36px; padding: .2rem .8rem; border-radius: 999px;
+    background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .35);
+    color: #fff; text-decoration: none;
+}
+.nodstripe a:hover { background: var(--hjelp); border-color: var(--hjelp); color: #fff; }
+.nodstripe a:focus-visible { box-shadow: 0 0 0 2px var(--natt), 0 0 0 5px var(--lys); }
 .nodstripe strong { font-family: var(--font-visning); font-size: 1.05rem; margin-right: .2rem; }
+.nodstripe a strong { margin: 0; }
+/* På mobil får de tre knappene plass på én linje: uten ikon og med mindre luft. */
+@media (max-width: 575.98px) {
+    .nodstripe ul { flex-wrap: nowrap; gap: .4rem; }
+    .nodstripe a { min-height: 44px; padding: .2rem .65rem; font-size: .85rem; }
+    .nodstripe a svg { display: none; }
+}
 
 .topp {
     background: var(--flate);
@@ -402,13 +416,14 @@ textarea.form-control { min-height: 7rem; }
     padding: 2.75rem 0 1.5rem;
 }
 .sidefot a { color: #fff; }
-.sidefot .fot-rutenett { display: grid; gap: 2rem; grid-template-columns: 1.4fr 1fr; align-items: start; }
+.sidefot .fot-rutenett { display: grid; gap: 2rem; grid-template-columns: 1.4fr 1fr 1fr; align-items: start; }
 .sidefot .fot-merke { display: flex; align-items: center; gap: .65rem; font-family: var(--font-visning); font-weight: 700; font-size: 1.3rem; color: #fff; }
 .sidefot p { margin: .75rem 0 0; max-width: 40ch; }
 .sidefot h2 { font-size: 1rem; color: #fff; margin: 0 0 .6rem; letter-spacing: 0; }
 .sidefot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
 .sidefot ul a { display: inline-block; padding-block: .25rem; } /* stor nok trykkflate på mobil */
 .sidefot .fot-bunn { margin-top: 2rem; padding-top: 1.1rem; border-top: 1px solid #2B4357; font-size: .9rem; max-width: none; }
+@media (max-width: 767.98px) { .sidefot .fot-rutenett { grid-template-columns: 1fr 1fr; } .sidefot .fot-rutenett > :first-child { grid-column: 1 / -1; } }
 @media (max-width: 575.98px) { .sidefot .fot-rutenett { grid-template-columns: 1fr; } }
 
 
@@ -572,15 +587,6 @@ textarea.form-control { min-height: 7rem; }
 }
 .steg h3 { margin: 0 0 .35rem; }
 .steg p { margin: 0; color: var(--dempet); }
-
-.deleliste { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .55rem; }
-.deleliste li {
-    background: var(--flate);
-    border: 1.5px solid var(--linje);
-    border-radius: 999px;
-    padding: .4rem 1rem;
-    font-weight: 500;
-}
 
 @media (max-width: 991.98px) {
     .hero { grid-template-columns: 1fr; }
@@ -779,7 +785,7 @@ textarea.form-control { min-height: 7rem; }
     padding: 2.25rem 1.5rem;
     text-align: center;
 }
-.tom-tilstand h3 { margin: 0 0 .4rem; }
+.tom-tilstand h2, .tom-tilstand h3 { margin: 0 0 .4rem; }
 .tom-tilstand p { margin: 0 auto 1.25rem; color: var(--dempet); }
 
 /* På mobil blir tabellrader til små kort med merkelapper */
@@ -1100,16 +1106,25 @@ a[href^="tel:"] { white-space: nowrap; }
 }
 
 /* ---------------------------------------------------------------
-   Språkvalg, admin-side og personvern
+   Språkvalg, admin-side, infosider, søk og cookie-informasjon
    --------------------------------------------------------------- */
 
-/* NO / EN-knappene i menyen */
-.sprakvalg { display: inline-flex; border: 1px solid var(--linje); border-radius: 999px; overflow: hidden; margin: 0 .5rem; }
-.sprakvalg button { border: 0; background: transparent; color: inherit; font-weight: 600; font-size: .85rem; min-width: 44px; min-height: 36px; padding: 0 .6rem; cursor: pointer; }
-.sprakvalg button.valgt { background: var(--natt); color: #fff; }
-.sprakvalg button:focus-visible { outline: 3px solid var(--lys, #F4B740); outline-offset: -3px; }
-.kb .sprakvalg { border-color: #2B4357; }
-.kb .sprakvalg button.valgt { background: #fff; color: var(--natt); }
+/* Språkknappen helt til høyre i menyen: globus og navnet på det andre språket. */
+.sprakvalg { margin-left: .5rem; }
+.sprakvalg button {
+    display: inline-flex; align-items: center; gap: .4rem;
+    min-height: 44px; padding: 0 .9rem; border-radius: 999px;
+    border: 1px solid var(--kantlinje); background: var(--bakgrunn); color: var(--natt);
+    font-weight: 600; font-size: .9rem; cursor: pointer;
+}
+.sprakvalg button:hover { background: var(--natt); border-color: var(--natt); color: #fff; }
+.kb .sprakvalg button { background: transparent; border-color: #5C7385; color: #fff; }
+.kb .sprakvalg button:hover { background: #fff; color: var(--natt); }
+@media (max-width: 767.98px) { .sprakvalg { margin: .5rem 0 0; } }
+
+/* Skjult felt mot søppelpost (se Views/Shared/_Honningkrukke.cshtml). Flyttes ut av
+   skjermen i stedet for display: none, fordi noen roboter hopper over skjulte felt. */
+.honningkrukke { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
 /* Samtykke ved registrering */
 .samtykke .form-check-label { font-size: .95rem; }
@@ -1133,7 +1148,64 @@ a[href^="tel:"] { white-space: nowrap; }
 .admin-rolle select { width: auto; min-width: 10rem; }
 @media (max-width: 767.98px) { .admin-knapper { justify-content: flex-start; } }
 
-/* Personvernerklæringen */
-.personvern { max-width: 46rem; margin: 2rem 0 3rem; }
-.personvern h2 { font-size: 1.35rem; margin-top: 2rem; }
-.personvern li { margin-bottom: .4rem; }
+/* Infosidene: personvern, vilkår, cookies og spørsmål og svar */
+.infoside { max-width: 46rem; margin: 2rem 0 3rem; }
+.infoside h2 { font-size: 1.35rem; margin-top: 2rem; }
+.infoside li { margin-bottom: .4rem; }
+.infoside .ingress { margin-bottom: 1.25rem; }
+.sist-oppdatert { color: var(--dempet); font-size: .95rem; margin: -.2rem 0 1rem; }
+
+/* Spørsmål og svar: hvert spørsmål kan åpnes og lukkes */
+.sporsmal-liste { margin-top: 1.75rem; border-top: 1px solid var(--linje); }
+.sporsmal-liste details { border-bottom: 1px solid var(--linje); }
+.sporsmal-liste summary {
+    cursor: pointer; padding: .95rem 2rem .95rem 0; position: relative;
+    font-family: var(--font-visning); font-weight: 600; font-size: 1.1rem; list-style: none;
+}
+.sporsmal-liste summary::-webkit-details-marker { display: none; }
+/* Pluss som blir til minus når spørsmålet er åpent */
+.sporsmal-liste summary::after { content: "+"; position: absolute; right: .25rem; top: .7rem; font-size: 1.5rem; line-height: 1; color: var(--dempet); }
+.sporsmal-liste details[open] summary::after { content: "\2212"; }
+.sporsmal-liste summary:focus-visible { outline: none; box-shadow: var(--fokus); border-radius: 4px; }
+.sporsmal-liste details p { margin: 0 0 1.1rem; color: var(--dempet); }
+
+/* Søkefeltet (søkesiden, spørsmål og svar og «Siden finnes ikke») */
+.sokefelt { display: flex; gap: .5rem; max-width: 36rem; }
+.sokefelt .form-control { flex: 1; min-width: 0; }
+.sok-antall { margin: 1.5rem 0 .5rem; color: var(--dempet); }
+.sok-gruppe { margin-top: 1.75rem; max-width: 46rem; }
+.sok-gruppe h2 { font-size: 1.25rem; display: flex; gap: .6rem; align-items: baseline; }
+.sok-gruppe ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linje); }
+.sok-gruppe li { padding: .8rem 0; border-bottom: 1px solid var(--linje); }
+.sok-gruppe a { font-weight: 600; font-size: 1.05rem; }
+.sok-gruppe p { margin: .2rem 0 0; color: var(--dempet); }
+
+/* Lenker under «Siden finnes ikke» */
+.melding-side .sokefelt { margin: 0 auto 1.25rem; }
+.melding-lenker { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.25rem; }
+
+/* Valg mellom «Aktive behov» og «Alle behov» i behovskøen */
+.faner { display: flex; gap: .25rem; border-bottom: 1px solid var(--linje); margin-bottom: 1.5rem; }
+.faner a { padding: .6rem 1rem; color: var(--dempet); text-decoration: none; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.faner a:hover { color: var(--natt); }
+.faner a.valgt { color: var(--natt); border-bottom-color: var(--natt); }
+
+.knapperad { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+/* Informasjon om cookies, nederst i vinduet til brukeren trykker «OK».
+   «sticky» i stedet for «fixed»: helt nederst på siden legger den seg under
+   bunnteksten i stedet for å dekke den. */
+.cookie-info {
+    position: sticky; bottom: 0; z-index: 1050;
+    background: var(--natt); color: #E8EEF2;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid #2B4357;
+    box-shadow: 0 -4px 20px rgba(18, 33, 45, .25);
+}
+.cookie-info .container { display: flex; align-items: center; justify-content: space-between; gap: 1rem 2rem; padding-block: 1rem; }
+.cookie-info h2 { font-size: 1rem; color: #fff; margin: 0 0 .2rem; }
+.cookie-info p { margin: 0; max-width: 60ch; }
+.cookie-info a { color: #fff; }
+.cookie-info form { margin: 0; flex-shrink: 0; }
+.cookie-info .btn-primary { --bs-btn-bg: #fff; --bs-btn-color: var(--natt); --bs-btn-border-color: #fff; --bs-btn-hover-bg: var(--lys); --bs-btn-hover-border-color: var(--lys); --bs-btn-hover-color: var(--natt); min-width: 6rem; }
+@media (max-width: 575.98px) { .cookie-info .container { flex-direction: column; align-items: stretch; } }

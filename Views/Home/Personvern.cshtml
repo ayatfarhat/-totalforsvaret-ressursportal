@@ -9,10 +9,11 @@
 @* Personvernerklæringen (GDPR). Beskriver hva vi lagrer, hvorfor, hvem som ser det,
    hvordan det beskyttes, hvor lenge det lagres og hvilke rettigheter brukeren har. *@
 
-<article class="personvern">
+<article class="infoside">
 @if (!engelsk)
 {
     <h1>Personvernerklæring</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
     <p class="ingress">Her forklarer vi hvilke personopplysninger BeredskapsPortalen lagrer, hvorfor, og hva du kan gjøre med dem. BeredskapsPortalen er et studentprosjekt i IS-200 ved Universitetet i Agder.</p>
 
     <h2>Hva vi lagrer</h2>
@@ -20,7 +21,8 @@
         <li><strong>Brukerkonto:</strong> e-postadresse, rolle (Frivillig, Kommune eller Admin), om tofaktor er slått på, og nøkkelen til autentiseringsappen. Passordet lagres aldri, bare en sikker hash av det.</li>
         <li><strong>Behov du melder:</strong> type, beskrivelse, posisjon på kartet, og telefon og e-post hvis du fyller det ut.</li>
         <li><strong>Ressurser du registrerer:</strong> type, posisjon, kommune, beskrivelse, navn, telefon og eventuelt bilde.</li>
-        <li><strong>Cookies:</strong> bare de som trengs for at siden skal virke: innlogging, valgt språk og beskyttelse av skjemaer. Vi bruker ikke sporing eller reklame.</li>
+        <li><strong>Cookies:</strong> bare de som trengs for at siden skal virke: innlogging, valgt språk og beskyttelse av skjemaer. Vi bruker ikke sporing eller reklame. Se <a asp-action="Cookies">alle cookiene vi bruker</a>.</li>
+        <li><strong>Ikke mer enn nødvendig:</strong> vi spør ikke etter fødselsnummer, adresse på kontoen eller annet vi ikke trenger. Navn og telefon på ressurser er valgfritt.</li>
     </ul>
 
     <h2>Hvorfor vi lagrer det</h2>
@@ -39,7 +41,7 @@
         <li>Tilgang styres med roller. Kommandobroen og brukeradministrasjonen er bare for Kommune og Admin.</li>
         <li>Passord lagres som hash. Kontoen låses etter fem feil passord på rad.</li>
         <li>Du kan slå på tofaktor-innlogging (2FA). Ansatte kan kreves å bruke 2FA.</li>
-        <li>Alle skjemaer er beskyttet mot falske innsendinger fra andre nettsider.</li>
+        <li>Alle skjemaer er beskyttet mot falske innsendinger fra andre nettsider og mot søppelpost fra roboter.</li>
     </ul>
 
     <h2>Hvor lenge vi lagrer dem</h2>
@@ -47,6 +49,7 @@
         <li>Kontoen og registreringene dine lagres til du sletter kontoen.</li>
         <li>Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager. Selve behovet beholdes uten kontaktinformasjon, slik at kommunen har oversikt over hva som har skjedd.</li>
         <li>Tildelinger (hvilken ressurs som ble sendt til hvilket behov) er historikk for kriseledelsen og slettes ikke automatisk.</li>
+        <li>Invitasjonslenker slettes automatisk 90 dager etter at de er brukt eller har gått ut.</li>
     </ul>
 
     <h2>Dine rettigheter</h2>
@@ -60,6 +63,7 @@
 else
 {
     <h1>Privacy policy</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
     <p class="ingress">This page explains which personal data BeredskapsPortalen stores, why, and what you can do with it. BeredskapsPortalen is a student project in IS-200 at the University of Agder.</p>
 
     <h2>What we store</h2>
@@ -67,7 +71,8 @@ else
         <li><strong>User account:</strong> email address, role (Frivillig, Kommune or Admin), whether two-factor authentication is turned on, and the key for the authenticator app. Your password is never stored, only a secure hash of it.</li>
         <li><strong>Needs you report:</strong> type, description, position on the map, and phone and email if you fill them in.</li>
         <li><strong>Resources you register:</strong> type, position, municipality, description, name, phone and an optional picture.</li>
-        <li><strong>Cookies:</strong> only the ones the site needs to work: login, chosen language and protection of forms. We do not use tracking or advertising.</li>
+        <li><strong>Cookies:</strong> only the ones the site needs to work: login, chosen language and protection of forms. We do not use tracking or advertising. See <a asp-action="Cookies">all the cookies we use</a>.</li>
+        <li><strong>No more than needed:</strong> we do not ask for national ID numbers, an address on the account or anything else we do not need. Name and phone on resources are optional.</li>
     </ul>
 
     <h2>Why we store it</h2>
@@ -86,7 +91,7 @@ else
         <li>Access is controlled with roles. Kommandobro and user administration are only for Kommune and Admin.</li>
         <li>Passwords are stored as hashes. The account is locked after five wrong passwords in a row.</li>
         <li>You can turn on two-factor authentication (2FA). Staff can be required to use 2FA.</li>
-        <li>All forms are protected against fake submissions from other websites.</li>
+        <li>All forms are protected against fake submissions from other websites and against spam from bots.</li>
     </ul>
 
     <h2>How long we keep it</h2>
@@ -94,6 +99,7 @@ else
         <li>Your account and registrations are kept until you delete your account.</li>
         <li>Phone and email on needs that are resolved, rejected or withdrawn are deleted automatically after 90 days. The need itself is kept without contact details, so the municipality has an overview of what happened.</li>
         <li>Assignments (which resource was sent to which need) are history for emergency management and are not deleted automatically.</li>
+        <li>Invitation links are deleted automatically 90 days after they were used or expired.</li>
     </ul>
 
     <h2>Your rights</h2>

@@ -168,9 +168,6 @@
   <data name="Studentprosjekt i IS-200, gruppe 15. BeredskapsPortalen erstatter ikke nødnumrene." xml:space="preserve">
     <value>Student project in IS-200, group 15. BeredskapsPortalen does not replace the emergency numbers.</value>
   </data>
-  <data name="Velg språk" xml:space="preserve">
-    <value>Choose language</value>
-  </data>
   <data name="Noe gikk galt" xml:space="preserve">
     <value>Something went wrong</value>
   </data>
@@ -230,9 +227,6 @@
   </data>
   <data name="Meldingen vises på kartet til kriseledelsen med en gang, og de kobler behov med ressurser." xml:space="preserve">
     <value>The report appears on the crisis management map right away, and they match needs with resources.</value>
-  </data>
-  <data name="Dette kan du stille med" xml:space="preserve">
-    <value>What you can offer</value>
   </data>
   <data name="Gå til Min konto" xml:space="preserve">
     <value>Go to My account</value>
@@ -344,9 +338,6 @@
   </data>
   <data name="personvernerklæringen" xml:space="preserve">
     <value>privacy policy</value>
-  </data>
-  <data name="og godtar at e-posten min lagres for å lage kontoen." xml:space="preserve">
-    <value>and agree that my email is stored to create the account.</value>
   </data>
   <data name="Opprett konto" xml:space="preserve">
     <value>Create account</value>
@@ -554,9 +545,6 @@
   </data>
   <data name="Aktive behov" xml:space="preserve">
     <value>Active needs</value>
-  </data>
-  <data name="Aktive behov, med de akutte først." xml:space="preserve">
-    <value>Active needs, urgent ones first.</value>
   </data>
   <data name="Aktivt behov" xml:space="preserve">
     <value>Active need</value>
@@ -1697,5 +1685,245 @@
   </data>
   <data name="Fra" xml:space="preserve">
     <value>From</value>
+  </data>
+  <data name="Bytt språk til {0}" xml:space="preserve">
+    <value>Switch language to {0}</value>
+  </data>
+  <data name="Ring {0}, {1}" xml:space="preserve">
+    <value>Call {0}, {1}</value>
+  </data>
+  <data name="Hva slags ressurs?" xml:space="preserve">
+    <value>What kind of resource?</value>
+  </data>
+  <data name="For eksempel vannpumpe, varmeovn eller tilhenger" xml:space="preserve">
+    <value>For example a water pump, heater or trailer</value>
+  </data>
+  <data name="Skriv hva slags ressurs det er." xml:space="preserve">
+    <value>Write what kind of resource it is.</value>
+  </data>
+  <data name="Teksten kan ikke være lengre enn 100 tegn." xml:space="preserve">
+    <value>The text cannot be longer than 100 characters.</value>
+  </data>
+  <data name=", og godtar at e-posten min lagres for å lage kontoen." xml:space="preserve">
+    <value>, and agree that my email address is stored to create the account.</value>
+  </data>
+  <data name="1 treff på «{0}»." xml:space="preserve">
+    <value>1 result for “{0}”.</value>
+  </data>
+  <data name="{0} treff på «{1}»." xml:space="preserve">
+    <value>{0} results for “{1}”.</value>
+  </data>
+  <data name="Ingen treff på «{0}». Prøv et annet ord, eller se spørsmål og svar." xml:space="preserve">
+    <value>No results for “{0}”. Try another word, or see questions and answers.</value>
+  </data>
+  <data name="Aktive behov akkurat nå:" xml:space="preserve">
+    <value>Active needs right now:</value>
+  </data>
+  <data name="Alle behov" xml:space="preserve">
+    <value>All needs</value>
+  </data>
+  <data name="Alle behov som er meldt inn, med de akutte først. Bare kommunen og kriseledelsen ser denne lista." xml:space="preserve">
+    <value>All needs that have been reported, with the urgent ones first. Only the municipality and emergency management can see this list.</value>
+  </data>
+  <data name="Cookies" xml:space="preserve">
+    <value>Cookies</value>
+  </data>
+  <data name="Forsiden" xml:space="preserve">
+    <value>Home page</value>
+  </data>
+  <data name="I behovskøen ser du alle behov med kontaktinformasjon, og kan endre status." xml:space="preserve">
+    <value>In the needs queue you see all needs with contact details, and you can change their status.</value>
+  </data>
+  <data name="Ingen behov er meldt ennå" xml:space="preserve">
+    <value>No needs have been reported yet</value>
+  </data>
+  <data name="La dette feltet stå tomt" xml:space="preserve">
+    <value>Leave this field empty</value>
+  </data>
+  <data name="Les mer om cookies" xml:space="preserve">
+    <value>Read more about cookies</value>
+  </data>
+  <data name="Meldte behov" xml:space="preserve">
+    <value>Reported needs</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Om tjenesten" xml:space="preserve">
+    <value>About the service</value>
+  </data>
+  <data name="Se alle behov" xml:space="preserve">
+    <value>See all needs</value>
+  </data>
+  <data name="Sist oppdatert:" xml:space="preserve">
+    <value>Last updated:</value>
+  </data>
+  <data name="Spørsmål og svar" xml:space="preserve">
+    <value>Questions and answers</value>
+  </data>
+  <data name="Svar på det folk ofte lurer på. Finner du ikke svaret, kan du søke på hele nettsiden." xml:space="preserve">
+    <value>Answers to what people often wonder about. If you cannot find the answer, you can search the whole website.</value>
+  </data>
+  <data name="Søk etter sider, spørsmål eller registreringer" xml:space="preserve">
+    <value>Search for pages, questions or registrations</value>
+  </data>
+  <data name="Søk i sidene og i spørsmål og svar. Logg inn for å søke i dine egne behov og ressurser." xml:space="preserve">
+    <value>Search the pages and the questions and answers. Log in to search your own needs and resources.</value>
+  </data>
+  <data name="Søk i sidene, i spørsmål og svar og i alle behov og ressurser." xml:space="preserve">
+    <value>Search the pages, the questions and answers, and all needs and resources.</value>
+  </data>
+  <data name="Søk i sidene, i spørsmål og svar og i dine egne behov og ressurser." xml:space="preserve">
+    <value>Search the pages, the questions and answers, and your own needs and resources.</value>
+  </data>
+  <data name="Søk på nettsiden" xml:space="preserve">
+    <value>Search the website</value>
+  </data>
+  <data name="Velg hvilke behov som vises" xml:space="preserve">
+    <value>Choose which needs to show</value>
+  </data>
+  <data name="Vi bruker bare cookies som trengs for at siden skal virke: innlogging, språkvalg og sikre skjemaer. Ingen sporing eller reklame." xml:space="preserve">
+    <value>We only use cookies the site needs to work: login, language choice and secure forms. No tracking or advertising.</value>
+  </data>
+  <data name="Vilkår for bruk" xml:space="preserve">
+    <value>Terms of use</value>
+  </data>
+  <data name="og" xml:space="preserve">
+    <value>and</value>
+  </data>
+  <data name="vilkårene" xml:space="preserve">
+    <value>the terms</value>
+  </data>
+  <data name="Hva BeredskapsPortalen er, og hvordan den virker." xml:space="preserve">
+    <value>What BeredskapsPortalen is, and how it works.</value>
+  </data>
+  <data name="Velg om du trenger hjelp eller kan hjelpe, og se ressursene dine." xml:space="preserve">
+    <value>Choose whether you need help or can help, and see your resources.</value>
+  </data>
+  <data name="Be om hjelp, for eksempel transport, strøm eller evakuering." xml:space="preserve">
+    <value>Ask for help, for example transport, power or evacuation.</value>
+  </data>
+  <data name="Se, endre eller trekk tilbake behov du har meldt." xml:space="preserve">
+    <value>See, edit or withdraw needs you have reported.</value>
+  </data>
+  <data name="Registrer utstyr, kjøretøy, lokaler eller innsats du kan stille med." xml:space="preserve">
+    <value>Register equipment, vehicles, premises or effort you can offer.</value>
+  </data>
+  <data name="Ressurser kommunen og kriseledelsen ønsker at innbyggere registrerer." xml:space="preserve">
+    <value>Resources the municipality and emergency management want citizens to register.</value>
+  </data>
+  <data name="Bytt passord, slå på tofaktor, last ned dataene dine eller slett kontoen." xml:space="preserve">
+    <value>Change password, turn on two-factor, download your data or delete the account.</value>
+  </data>
+  <data name="Svar på det folk ofte lurer på om BeredskapsPortalen." xml:space="preserve">
+    <value>Answers to what people often wonder about BeredskapsPortalen.</value>
+  </data>
+  <data name="Hvilke personopplysninger vi lagrer, hvorfor og hvor lenge." xml:space="preserve">
+    <value>Which personal data we store, why and for how long.</value>
+  </data>
+  <data name="Reglene for å bruke BeredskapsPortalen." xml:space="preserve">
+    <value>The rules for using BeredskapsPortalen.</value>
+  </data>
+  <data name="Hvilke cookies siden bruker, og hvorfor." xml:space="preserve">
+    <value>Which cookies the site uses, and why.</value>
+  </data>
+  <data name="Kart over behov og ressurser for kriseledelsen." xml:space="preserve">
+    <value>Map of needs and resources for emergency management.</value>
+  </data>
+  <data name="Behovsliste" xml:space="preserve">
+    <value>List of needs</value>
+  </data>
+  <data name="Alle meldte behov med kontaktinformasjon og status." xml:space="preserve">
+    <value>All reported needs with contact details and status.</value>
+  </data>
+  <data name="Koble et behov med en ressurs i nærheten." xml:space="preserve">
+    <value>Match a need with a nearby resource.</value>
+  </data>
+  <data name="Ressursliste for utskrift, sortert på fylke og kommune." xml:space="preserve">
+    <value>Resource list for printing, sorted by county and municipality.</value>
+  </data>
+  <data name="Fortell innbyggerne hva dere trenger." xml:space="preserve">
+    <value>Tell citizens what you need.</value>
+  </data>
+  <data name="Se brukerne og endre roller." xml:space="preserve">
+    <value>See the users and change roles.</value>
+  </data>
+  <data name="Lag invitasjonslenker som gir en rolle." xml:space="preserve">
+    <value>Create invitation links that give a role.</value>
+  </data>
+  <data name="Hva er BeredskapsPortalen?" xml:space="preserve">
+    <value>What is BeredskapsPortalen?</value>
+  </data>
+  <data name="En nettside der innbyggere kan melde behov for hjelp og registrere utstyr, kjøretøy eller innsats de kan stille med under en krise. Kommunen og kriseledelsen kobler behovene med ressursene." xml:space="preserve">
+    <value>A website where citizens can report a need for help and register equipment, vehicles or effort they can offer during a crisis. The municipality and emergency management match the needs with the resources.</value>
+  </data>
+  <data name="Er dette en nødtjeneste?" xml:space="preserve">
+    <value>Is this an emergency service?</value>
+  </data>
+  <data name="Nei. Er det akutt fare for liv og helse, ring 110 (brann), 112 (politi) eller 113 (ambulanse) først. Knappene øverst på siden ringer nummeret direkte fra mobilen." xml:space="preserve">
+    <value>No. If there is immediate danger to life and health, call 110 (fire), 112 (police) or 113 (ambulance) first. The buttons at the top of the page call the number directly from your phone.</value>
+  </data>
+  <data name="Må jeg ha en konto?" xml:space="preserve">
+    <value>Do I need an account?</value>
+  </data>
+  <data name="Du kan lese sidene uten konto. For å melde et behov eller registrere en ressurs må du lage en gratis konto med e-post og passord." xml:space="preserve">
+    <value>You can read the pages without an account. To report a need or register a resource, you need a free account with email and password.</value>
+  </data>
+  <data name="Hvem ser telefonnummeret og e-posten min?" xml:space="preserve">
+    <value>Who can see my phone number and email?</value>
+  </data>
+  <data name="Bare du selv, og kommunen og kriseledelsen (rollene Kommune og Admin). Andre innbyggere ser ikke kontaktinformasjonen din." xml:space="preserve">
+    <value>Only you, and the municipality and emergency management (the roles Kommune and Admin). Other citizens cannot see your contact details.</value>
+  </data>
+  <data name="Ressursen min finnes ikke i lista. Hva gjør jeg?" xml:space="preserve">
+    <value>My resource is not in the list. What do I do?</value>
+  </data>
+  <data name="Velg «Annet» og skriv hva det er, for eksempel «vannpumpe». Det samme gjelder når du melder et behov." xml:space="preserve">
+    <value>Choose “Other” and write what it is, for example “water pump”. The same goes for reporting a need.</value>
+  </data>
+  <data name="Hvordan endrer eller sletter jeg en ressurs?" xml:space="preserve">
+    <value>How do I edit or delete a resource?</value>
+  </data>
+  <data name="Gå til Ressurser. Der ser du ressursene du har registrert, med knappene Endre og Slett." xml:space="preserve">
+    <value>Go to Resources. There you see the resources you have registered, with the buttons Edit and Delete.</value>
+  </data>
+  <data name="Hva betyr statusene på et behov?" xml:space="preserve">
+    <value>What do the statuses on a need mean?</value>
+  </data>
+  <data name="Ny: behovet er mottatt. Under vurdering: kommunen ser på det. Tildelt: en ressurs er sendt. Løst: behovet er dekket. Avvist eller Trukket tilbake: behovet følges ikke opp videre." xml:space="preserve">
+    <value>New: the need has been received. Under review: the municipality is looking at it. Assigned: a resource has been sent. Resolved: the need is covered. Rejected or Withdrawn: the need is not followed up further.</value>
+  </data>
+  <data name="Kan jeg endre eller trekke tilbake et behov?" xml:space="preserve">
+    <value>Can I edit or withdraw a need?</value>
+  </data>
+  <data name="Ja, under Mine behov, så lenge behovet har status Ny eller Under vurdering." xml:space="preserve">
+    <value>Yes, under My needs, as long as the need has the status New or Under review.</value>
+  </data>
+  <data name="Hvordan gjør jeg kontoen min sikrere?" xml:space="preserve">
+    <value>How do I make my account more secure?</value>
+  </data>
+  <data name="Slå på tofaktor-innlogging under Min konto. Da trenger du en kode fra en autentiseringsapp i tillegg til passordet." xml:space="preserve">
+    <value>Turn on two-factor authentication under My account. You then need a code from an authenticator app in addition to your password.</value>
+  </data>
+  <data name="Hvordan ser eller sletter jeg opplysningene mine?" xml:space="preserve">
+    <value>How do I see or delete my data?</value>
+  </data>
+  <data name="Under Min konto kan du laste ned alt vi har lagret om deg, og slette kontoen. Les mer i personvernerklæringen." xml:space="preserve">
+    <value>Under My account you can download everything we store about you, and delete the account. Read more in the privacy policy.</value>
+  </data>
+  <data name="Hvordan bytter jeg språk?" xml:space="preserve">
+    <value>How do I change the language?</value>
+  </data>
+  <data name="Trykk på språkknappen helt til høyre i menyen. Valget huskes til neste gang." xml:space="preserve">
+    <value>Press the language button at the far right of the menu. Your choice is remembered for next time.</value>
+  </data>
+  <data name="Hvorfor ser jeg ikke kartet med alle behov?" xml:space="preserve">
+    <value>Why can't I see the map with all needs?</value>
+  </data>
+  <data name="Kommandobroen med kartet er bare for kommunen og kriseledelsen. Har du fått en invitasjonslenke fra kommunen, åpner du den for å få tilgang." xml:space="preserve">
+    <value>The command centre with the map is only for the municipality and emergency management. If you have received an invitation link from the municipality, open it to get access.</value>
+  </data>
+  <data name="Invitasjoner" xml:space="preserve">
+    <value>Invitations</value>
   </data>
 </root>

@@ -1,0 +1,63 @@
+@model SokViewModel
+@{
+    ViewData["Title"] = T["Søk"];
+}
+
+<div class="side-topp">
+    <h1>@T["Søk"]</h1>
+    <p class="ingress">
+        @if (Model.ErAnsatt)
+        {
+            @T["Søk i sidene, i spørsmål og svar og i alle behov og ressurser."]
+        }
+        else if (Model.ErInnlogget)
+        {
+            @T["Søk i sidene, i spørsmål og svar og i dine egne behov og ressurser."]
+        }
+        else
+        {
+            @T["Søk i sidene og i spørsmål og svar. Logg inn for å søke i dine egne behov og ressurser."]
+        }
+    </p>
+</div>
+
+<partial name="_Sokefelt" model="Model.Sok" />
+
+@if (Model.Sok != "")
+{
+    @* aria-live gjør at skjermlesere leser opp antall treff. *@
+    <p class="sok-antall" aria-live="polite">
+        @if (Model.AntallTreff == 0)
+        {
+            @T["Ingen treff på «{0}». Prøv et annet ord, eller se spørsmål og svar.", Model.Sok]
+        }
+        else if (Model.AntallTreff == 1)
+        {
+            @T["1 treff på «{0}».", Model.Sok]
+        }
+        else
+        {
+            @T["{0} treff på «{1}».", Model.AntallTreff, Model.Sok]
+        }
+    </p>
+
+    @* Grupper uten treff vises ikke. *@
+    @foreach (SokGruppe gruppe in Model.Grupper())
+    {
+        @if (gruppe.Treff.Count > 0)
+        {
+            <section class="sok-gruppe">
+                <h2>@gruppe.Overskrift <span class="antall">@gruppe.Treff.Count</span></h2>
+                <ul>
+                    @foreach (SokTreff treff in gruppe.Treff)
+                    {
+                        <li>
+                            <a href="@treff.Adresse">@treff.Tittel</a>
+                            <p>@treff.Tekst</p>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+    }
+}

@@ -119,7 +119,8 @@ builder.Services.AddAuthorization(options =>
 // Sletting og nedlasting av brukerdata (brukes av AccountController og AdminController).
 builder.Services.AddScoped<KontoService>();
 
-// Maks 10 forsøk per minutt på innlogging, registrering og invitasjoner (se Services/Sikkerhet.cs).
+// Maks 10 forsøk per minutt på innlogging, registrering og invitasjoner, og maks
+// 20 nye behov eller ressurser per minutt for hver bruker (se Services/Sikkerhet.cs).
 Sikkerhet.LeggTilFartsgrense(builder.Services);
 
 WebApplication app = builder.Build();
@@ -149,12 +150,14 @@ if (app.Environment.IsDevelopment())
     await SeedData.LagTestbrukere(app);
 }
 
-// GDPR: fjerner kontaktopplysninger fra gamle, avsluttede behov.
+// GDPR: fjerner kontaktopplysninger fra gamle, avsluttede behov, og sletter
+// gamle invitasjonslenker (de inneholder e-posten til den som brukte dem).
 using (IServiceScope scope = app.Services.CreateScope())
 {
     ApplicationDbContext db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     int dager = app.Configuration.GetValue("Personvern:SlettKontaktinfoEtterDager", 90);
     await PersonvernOpprydding.FjernGamleKontaktopplysninger(db, dager);
+    await PersonvernOpprydding.SlettGamleInvitasjoner(db, dager);
 }
 
 // Configure the HTTP request pipeline.
@@ -188,9 +191,12 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 
 app.UseRouting();
 
+app.UseAuthentication();
+
+// Fartsgrensene (Services/Sikkerhet.cs). Står etter UseAuthentication,
+// fordi grensen for nye behov og ressurser telles per innlogget bruker.
 app.UseRateLimiter();
 
-app.UseAuthentication();
 app.UseAuthorization();
 
 // Gjør at bilder som lastes opp mens appen kjører (wwwroot/uploads) kan vises.

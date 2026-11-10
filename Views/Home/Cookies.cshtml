@@ -1,0 +1,66 @@
+@using System.Globalization
+@{
+    ViewData["Title"] = "Cookies";
+
+    // Siden er lang, så vi skriver den på begge språk her (som Personvern).
+    bool engelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+}
+
+@* Cookie-erklæringen. Tabellen må oppdateres hvis appen begynner å bruke nye cookies. *@
+
+<article class="infoside">
+@if (!engelsk)
+{
+    <h1>Cookies</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
+    <p class="ingress">En cookie er en liten tekstfil som nettsiden lagrer i nettleseren din. BeredskapsPortalen bruker bare cookies som trengs for at siden skal virke. Vi bruker ingen cookies for sporing, statistikk eller reklame, og deler ingenting med andre.</p>
+
+    <p>Fordi alle cookiene er nødvendige, trenger vi ikke samtykke for dem (ekomloven § 3-15). Du kan likevel slette dem i nettleseren når du vil. Da blir du logget ut, og språkvalget glemmes.</p>
+
+    <h2>Cookiene vi bruker</h2>
+    <div class="table-responsive">
+        <table class="table stablet">
+            <thead>
+                <tr><th scope="col">Navn</th><th scope="col">Hva den gjør</th><th scope="col">Hvor lenge</th></tr>
+            </thead>
+            <tbody>
+                <tr><td data-label="Navn"><code>.AspNetCore.Identity.Application</code></td><td data-label="Hva den gjør">Holder deg innlogget.</td><td data-label="Hvor lenge">Til du lukker nettleseren, maks 8 timer</td></tr>
+                <tr><td data-label="Navn"><code>Identity.TwoFactorUserId</code></td><td data-label="Hva den gjør">Husker hvem du er mens du skriver inn tofaktor-koden.</td><td data-label="Hvor lenge">5 minutter</td></tr>
+                <tr><td data-label="Navn"><code>.AspNetCore.Antiforgery.*</code></td><td data-label="Hva den gjør">Beskytter skjemaene mot falske innsendinger fra andre nettsider.</td><td data-label="Hvor lenge">Til du lukker nettleseren</td></tr>
+                <tr><td data-label="Navn"><code>.AspNetCore.Culture</code></td><td data-label="Hva den gjør">Husker om du har valgt norsk eller engelsk.</td><td data-label="Hvor lenge">1 år</td></tr>
+                <tr><td data-label="Navn"><code>@Nettsted.CookieInfoNavn</code></td><td data-label="Hva den gjør">Husker at du har trykket «OK» på informasjonen om cookies.</td><td data-label="Hvor lenge">1 år</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>Kartet på noen sider henter kartbilder fra OpenStreetMap. Da ser OpenStreetMap IP-adressen din, men kartbildene lagrer ingen cookies hos deg.</p>
+    <p>Les mer om hvordan vi behandler opplysninger i <a asp-action="Personvern">personvernerklæringen</a>.</p>
+}
+else
+{
+    <h1>Cookies</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
+    <p class="ingress">A cookie is a small text file the website stores in your browser. BeredskapsPortalen only uses cookies the site needs to work. We use no cookies for tracking, statistics or advertising, and we share nothing with others.</p>
+
+    <p>Because all the cookies are necessary, we do not need consent for them (Norwegian Electronic Communications Act section 3-15). You can still delete them in your browser whenever you want. You will then be logged out, and your language choice is forgotten.</p>
+
+    <h2>The cookies we use</h2>
+    <div class="table-responsive">
+        <table class="table stablet">
+            <thead>
+                <tr><th scope="col">Name</th><th scope="col">What it does</th><th scope="col">How long</th></tr>
+            </thead>
+            <tbody>
+                <tr><td data-label="Name"><code>.AspNetCore.Identity.Application</code></td><td data-label="What it does">Keeps you logged in.</td><td data-label="How long">Until you close the browser, at most 8 hours</td></tr>
+                <tr><td data-label="Name"><code>Identity.TwoFactorUserId</code></td><td data-label="What it does">Remembers who you are while you enter the two-factor code.</td><td data-label="How long">5 minutes</td></tr>
+                <tr><td data-label="Name"><code>.AspNetCore.Antiforgery.*</code></td><td data-label="What it does">Protects the forms against fake submissions from other websites.</td><td data-label="How long">Until you close the browser</td></tr>
+                <tr><td data-label="Name"><code>.AspNetCore.Culture</code></td><td data-label="What it does">Remembers whether you chose Norwegian or English.</td><td data-label="How long">1 year</td></tr>
+                <tr><td data-label="Name"><code>@Nettsted.CookieInfoNavn</code></td><td data-label="What it does">Remembers that you pressed “OK” on the cookie information.</td><td data-label="How long">1 year</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p>The map on some pages loads map images from OpenStreetMap. OpenStreetMap then sees your IP address, but the map images store no cookies on your device.</p>
+    <p>Read more about how we handle data in the <a asp-action="Personvern">privacy policy</a>.</p>
+}
+</article>

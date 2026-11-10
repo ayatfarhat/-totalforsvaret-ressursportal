@@ -40,13 +40,13 @@ else
                 @foreach (var onsket in Model)
                 {
                     <tr>
-                        <td data-label="@T["Type"]"><strong>@T[onsket.Type]</strong></td>
+                        <td data-label="@T["Type"]"><strong>@Visningstekst.RessursType(onsket.Type, onsket.AnnetType)</strong></td>
                         <td data-label="@T["Antall"]">@onsket.Antall</td>
                         <td data-label="@T["Sted"]">@onsket.Sted</td>
                         <td data-label="@T["Beskrivelse"]"><span class="tekst-linjer">@onsket.VisBeskrivelse()</span></td>
                         <td data-label="">
                             <div class="d-flex flex-wrap gap-2">
-                                <a class="btn btn-success btn-sm" asp-controller="Ressurs" asp-action="Create" asp-route-type="@onsket.Type">@T["Jeg kan stille med dette"]</a>
+                                <a class="btn btn-success btn-sm" asp-controller="Ressurs" asp-action="Create" asp-route-type="@onsket.Type" asp-route-annet="@onsket.AnnetType">@T["Jeg kan stille med dette"]</a>
                                 @if (kanAdministrere)
                                 {
                                     <form asp-action="Fjern" asp-route-id="@onsket.Id" method="post">

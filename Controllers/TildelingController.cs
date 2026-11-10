@@ -214,6 +214,7 @@ public class TildelingController : Controller
         {
             RessursId = ressurs.Id,
             Type = ressurs.Type,
+            AnnetType = ressurs.AnnetType,
             Posisjon = ressurs.Posisjon,
             Status = ressurs.Status,
             Navn = ressurs.Navn,

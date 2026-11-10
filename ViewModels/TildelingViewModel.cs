@@ -33,6 +33,9 @@ public class MatchendeRessursViewModel
 
     public string Type { get; set; } = string.Empty;
 
+    // Det eieren skrev når typen er «Annet».
+    public string? AnnetType { get; set; }
+
     public string Posisjon { get; set; } = string.Empty;
 
     public string Status { get; set; } = string.Empty;

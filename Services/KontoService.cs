@@ -135,6 +135,7 @@ public class KontoService
             {
                 r.Id,
                 r.Type,
+                r.AnnetType,
                 r.Posisjon,
                 r.Kommunenummer,
                 r.Breddegrad,

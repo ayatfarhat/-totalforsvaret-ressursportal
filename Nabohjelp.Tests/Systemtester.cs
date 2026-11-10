@@ -92,6 +92,25 @@ public class Systemtester : IClassFixture<SystemtestOppsett>
     }
 
     [Fact]
+    public async Task Skjema_MedSkjultFeltUtfylt_AvvisesSomSoppelpost()
+    {
+        if (!_app.ErAktiv) return;
+
+        // Mennesker ser ikke feltet «Nettside». Roboter fyller det ut (se Services/Sikkerhet.cs).
+        var svar = await SystemtestOppsett.SendSkjema(_app.Frivillig, "/Behov/Opprett", new Dictionary<string, string>
+        {
+            ["Type"] = "Generator",
+            ["Prioritet"] = "Urgent",
+            ["Latitude"] = "58.34",
+            ["Longitude"] = "8.59",
+            ["KontaktTelefon"] = "41234567",
+            ["Nettside"] = "https://reklame.example"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, svar.StatusCode);
+    }
+
+    [Fact]
     public async Task FeilPassord_GirFeilmeldingOgIngenInnlogging()
     {
         if (!_app.ErAktiv) return;

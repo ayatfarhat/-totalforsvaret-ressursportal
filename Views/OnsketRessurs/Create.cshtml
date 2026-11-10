@@ -21,11 +21,18 @@
                 <div class="type-valg-element">
                     <input type="radio" asp-for="Type" value="@typer[i]" id="type-@i" />
                     @* Usynlig mellomrom etter «/» lar lange navn brytes pent på mobil *@
-                        <label for="type-@i">@T[typer[i]].Value.Replace("/", "/\u200B")</label>
+                    <label for="type-@i">@T[typer[i]].Value.Replace("/", "/\u200B")</label>
                 </div>
             }
         </div>
         <span asp-validation-for="Type"></span>
+
+        @* Vises bare når «Annet» er valgt (se wwwroot/js/ressurs-skjema.js). *@
+        <div class="felt mt-3" id="annet-felt" hidden>
+            <label asp-for="AnnetType" class="form-label">@T["Hva slags ressurs?"]</label>
+            <input asp-for="AnnetType" class="form-control" placeholder="@T["For eksempel vannpumpe, varmeovn eller tilhenger"]" />
+            <span asp-validation-for="AnnetType"></span>
+        </div>
     </fieldset>
 
     <fieldset class="felt-gruppe">
@@ -57,4 +64,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/ressurs-skjema.js" asp-append-version="true"></script>
 }

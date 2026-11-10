@@ -6,6 +6,7 @@ using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace Nabohjelp.Controllers;
@@ -43,8 +44,15 @@ public class BehovController : Controller
     // POST: /Behov/Opprett
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting(Sikkerhet.NyRegistrering)] // maks 20 per minutt per bruker (se Services/Sikkerhet.cs)
     public async Task<IActionResult> Opprett(BehovViewModel vm)
     {
+        // Skjult felt fylt ut = robot (se Services/Sikkerhet.cs).
+        if (Sikkerhet.ErRobot(Request))
+        {
+            return BadRequest();
+        }
+
         if (!ModelState.IsValid)
         {
             return View(vm);
@@ -229,25 +237,35 @@ public class BehovController : Controller
         return RedirectToAction(nameof(MineBehov));
     }
 
-    // GET: /Behov/Ko
+    // GET: /Behov/Ko           (aktive behov)
+    // GET: /Behov/Ko?visning=alle (alle behov, også løste, avviste og trukket tilbake)
     // Kun Admin og Kommune har tilgang.
-    // Avsluttede behov (løst, avvist, trukket tilbake) vises ikke.
     [HttpGet]
     [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
-    public async Task<IActionResult> Ko()
+    public async Task<IActionResult> Ko(string? visning)
     {
-        // Henter aktive behov: akutte først (Urgent = 0), deretter de eldste først.
-        List<Behov> aktive = await _db.Behovsliste
-            .Where(b => b.Status != BehovStatus.Resolved &&
-                        b.Status != BehovStatus.Rejected &&
-                        b.Status != BehovStatus.Withdrawn)
+        bool visAlle = visning == "alle";
+        IQueryable<Behov> sporring = _db.Behovsliste.AsNoTracking();
+
+        // Vanligvis vises bare behov som ikke er avsluttet.
+        if (!visAlle)
+        {
+            sporring = sporring.Where(b => b.Status != BehovStatus.Resolved &&
+                                           b.Status != BehovStatus.Rejected &&
+                                           b.Status != BehovStatus.Withdrawn);
+        }
+
+        // Akutte først (Urgent = 0), deretter de eldste først.
+        List<Behov> behovsliste = await sporring
             .OrderBy(b => b.Prioritet)
             .ThenBy(b => b.OpprettetTid)
             .ToListAsync();
 
+        ViewBag.VisAlle = visAlle;
+
         // Lager én rad i køen for hvert behov.
         var rader = new List<BehovKoItem>();
-        foreach (Behov behov in aktive)
+        foreach (Behov behov in behovsliste)
         {
             rader.Add(new BehovKoItem
             {

@@ -21,7 +21,7 @@
 }
 
 <section class="sammendrag-boks slett-boks" aria-labelledby="slett-tittel">
-    <h2 id="slett-tittel">@T[Model.Type]</h2>
+    <h2 id="slett-tittel">@Model.VisType()</h2>
     <dl class="sammendrag">
         <div><dt>@T["Kommune"]</dt><dd>@Model.VisKommune()</dd></div>
         <div><dt>@T["Posisjon"]</dt><dd>@Model.Posisjon</dd></div>
@@ -29,7 +29,7 @@
         <div><dt>@T["Beskrivelse"]</dt><dd>@Model.VisBeskrivelse()</dd></div>
         @if (!string.IsNullOrEmpty(Model.BildeSti))
         {
-            <div><dt>@T["Bilde"]</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Bilde av ressursen: {0}", T[Model.Type]]" /></dd></div>
+            <div><dt>@T["Bilde"]</dt><dd><img src="@Model.BildeSti" class="ressurs-bilde" alt="@T["Bilde av ressursen: {0}", Model.VisType()]" /></dd></div>
         }
         <div><dt>@T["Status"]</dt><dd><span class="merke @Visningstekst.RessursStatusFarge(Model.Status)">@T[Model.Status]</span></dd></div>
     </dl>

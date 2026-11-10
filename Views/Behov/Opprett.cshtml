@@ -27,6 +27,7 @@
 <div class="skjema-rutenett">
     <form asp-action="@(erNy ? "Opprett" : "Rediger")" asp-route-id="@(erNy ? "" : Model.Id.ToString())" method="post" class="skjema" novalidate>
         <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+        <partial name="_Honningkrukke" />
 
         <fieldset class="felt-gruppe">
             <legend><span class="trinn" aria-hidden="true">1</span> @T["Hva trenger du? *"]</legend>
@@ -162,22 +163,4 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
     <script src="~/js/kart.js" asp-append-version="true"></script>
     <script src="~/js/ressurs-skjema.js" asp-append-version="true"></script>
-
-    @* Viser feltet for fritekst bare når behovstypen «Annet» er valgt. *@
-    <script>
-        (function () {
-            const felt = document.getElementById("annet-felt");
-            const radioer = document.querySelectorAll('input[name="Type"]');
-
-            function oppdater() {
-                const valgt = document.querySelector('input[name="Type"]:checked');
-                felt.hidden = !valgt || valgt.value !== "Annet";
-            }
-
-            radioer.forEach(function (radio) {
-                radio.addEventListener('change', oppdater);
-            });
-            oppdater();
-        })();
-    </script>
 }

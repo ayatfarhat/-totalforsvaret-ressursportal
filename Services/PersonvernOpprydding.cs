@@ -40,6 +40,45 @@ public static class PersonvernOpprydding
         return antall;
     }
 
+    // Invitasjonslenker trengs ikke etter at de er brukt eller har gått ut. En brukt lenke
+    // inneholder e-posten til den som brukte den, så vi sletter lenker som har vært
+    // brukt eller utløpt lenger enn grensen. Returnerer hvor mange som ble slettet.
+    public static async Task<int> SlettGamleInvitasjoner(ApplicationDbContext db, int dager)
+    {
+        DateTime naa = DateTime.UtcNow;
+        List<Invitasjon> alle = await db.Invitasjoner.ToListAsync();
+
+        int antall = 0;
+        foreach (Invitasjon invitasjon in alle)
+        {
+            if (SkalSletteInvitasjon(invitasjon, naa, dager))
+            {
+                db.Invitasjoner.Remove(invitasjon);
+                antall++;
+            }
+        }
+
+        if (antall > 0)
+        {
+            await db.SaveChangesAsync();
+        }
+
+        return antall;
+    }
+
+    // En lenke er ferdig når den er brukt eller har gått ut. Den slettes når det er gått
+    // flere dager enn grensen siden det skjedde.
+    public static bool SkalSletteInvitasjon(Invitasjon invitasjon, DateTime naa, int dager)
+    {
+        DateTime ferdig = invitasjon.UtloperTid;
+        if (invitasjon.BruktTid != null)
+        {
+            ferdig = invitasjon.BruktTid.Value;
+        }
+
+        return ferdig < naa && (naa - ferdig).TotalDays > dager;
+    }
+
     // Et behov er "avsluttet" når det er løst, avvist eller trukket tilbake.
     // Kontaktinformasjonen fjernes når det er gått flere dager enn grensen siden siste endring.
     // Egen metode, slik at regelen kan testes uten database (se Personvern_Tests.cs).

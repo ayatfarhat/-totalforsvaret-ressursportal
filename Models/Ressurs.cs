@@ -8,6 +8,10 @@ public class Ressurs
 
     public string Type { get; set; } = string.Empty;
 
+    // Det brukeren skrev selv når typen er «Annet», for eksempel «Vannpumpe».
+    [MaxLength(100)]
+    public string? AnnetType { get; set; }
+
     public string Posisjon { get; set; } = string.Empty;
 
     // Kommunenummeret, for eksempel «4202» for Grimstad (se Models/Kommuner.cs).

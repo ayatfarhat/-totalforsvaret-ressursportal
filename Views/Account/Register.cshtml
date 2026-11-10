@@ -11,6 +11,7 @@
     <div class="auth-flate">
         <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
             <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
+            <partial name="_Honningkrukke" />
 
             <div class="felt">
                 <label asp-for="Epost" class="form-label">@T["E-post"]</label>
@@ -31,11 +32,11 @@
                 <span asp-validation-for="BekreftPassord"></span>
             </div>
 
-            @* GDPR: brukeren må lese og godta personvernerklæringen før kontoen lages. *@
+            @* GDPR: brukeren må lese og godta vilkårene og personvernerklæringen før kontoen lages. *@
             <div class="felt form-check samtykke">
                 <input asp-for="GodtarPersonvern" class="form-check-input" />
                 <label asp-for="GodtarPersonvern" class="form-check-label">
-                    @T["Jeg har lest"] <a asp-controller="Home" asp-action="Personvern" target="_blank">@T["personvernerklæringen"]</a> @T["og godtar at e-posten min lagres for å lage kontoen."]
+                    @T["Jeg har lest"] <a asp-controller="Home" asp-action="Vilkar" target="_blank">@T["vilkårene"]</a> @T["og"] <a asp-controller="Home" asp-action="Personvern" target="_blank">@T["personvernerklæringen"]</a>@T[", og godtar at e-posten min lagres for å lage kontoen."]
                 </label>
                 <span asp-validation-for="GodtarPersonvern"></span>
             </div>

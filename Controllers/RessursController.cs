@@ -3,6 +3,7 @@ using Nabohjelp.Services;
 using Nabohjelp.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Nabohjelp.ViewModels;
 
@@ -51,19 +52,31 @@ namespace Nabohjelp.Controllers
             ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
             ViewBag.ErKoordinator = erKoordinator;
 
+            // Kriseledelsen ser også hvor mange behov som venter (lenke til behovskøen).
+            if (erKoordinator)
+            {
+                ViewBag.AntallAktiveBehov = await _db.Behovsliste
+                    .Where(b => b.Status != BehovStatus.Resolved &&
+                                b.Status != BehovStatus.Rejected &&
+                                b.Status != BehovStatus.Withdrawn)
+                    .CountAsync();
+            }
+
             return View(TilViewModeller(ressurser));
         }
 
         // Viser skjemaet for innloggede brukere.
-        // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt.
+        // Kommer brukeren fra lista over ønskede ressurser, er typen allerede valgt
+        // (og teksten for «Annet», hvis kommunen skrev en).
         [HttpGet]
-        public IActionResult Create(string? type)
+        public IActionResult Create(string? type, string? annet)
         {
             var skjema = new RessursFormViewModel();
 
             if (type != null && RessursFormViewModel.Typer.Contains(type))
             {
                 skjema.Type = type;
+                skjema.AnnetType = RessursFormViewModel.AnnetTypeForLagring(type, annet);
             }
 
             return View(skjema);
@@ -72,10 +85,17 @@ namespace Nabohjelp.Controllers
         // Lagrer en ressurs med innlogget bruker som eier.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting(Sikkerhet.NyRegistrering)] // maks 20 per minutt per bruker (se Services/Sikkerhet.cs)
         public async Task<IActionResult> Create(
             RessursFormViewModel model,
             IFormFile? bildefil)
         {
+            // Skjult felt fylt ut = robot (se Services/Sikkerhet.cs).
+            if (Sikkerhet.ErRobot(Request))
+            {
+                return BadRequest();
+            }
+
             // Bilde-adressen settes bare av oss, aldri av det som kommer fra skjemaet.
             model.BildeSti = null;
 
@@ -309,6 +329,12 @@ namespace Nabohjelp.Controllers
             if (!RessursFormViewModel.Typer.Contains(model.Type))
             {
                 ModelState.AddModelError("Type", Oversetter.Tekst("Du må velge type ressurs."));
+            }
+
+            // Velger brukeren «Annet», må hen skrive hva det er.
+            if (model.Type == "Annet" && string.IsNullOrWhiteSpace(model.AnnetType))
+            {
+                ModelState.AddModelError("AnnetType", Oversetter.Tekst("Skriv hva slags ressurs det er."));
             }
 
             // Kommunen må finnes i listen over norske kommuner.

@@ -1,0 +1,6 @@
+@* Beskyttelse mot søppelpost. Feltet er skjult for mennesker (også for skjermlesere
+   og tastatur), men roboter fyller det ut. Se Sikkerhet.ErRobot i Services/Sikkerhet.cs. *@
+<div class="honningkrukke" aria-hidden="true">
+    <label for="@Sikkerhet.HonningkrukkeFelt">@T["La dette feltet stå tomt"]</label>
+    <input type="text" id="@Sikkerhet.HonningkrukkeFelt" name="@Sikkerhet.HonningkrukkeFelt" tabindex="-1" autocomplete="off" />
+</div>

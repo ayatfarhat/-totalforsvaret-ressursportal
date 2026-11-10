@@ -32,5 +32,20 @@
     </svg>
     <h1>@tittel</h1>
     <p>@tekst</p>
-    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@T["Til forsiden"]</a>
+
+    @if (kode == 404)
+    {
+        @* Hjelper brukeren videre: søk, eller en av de vanligste sidene. *@
+        <partial name="_Sokefelt" model="@("")" />
+        <ul class="melding-lenker">
+            <li><a asp-controller="Home" asp-action="Index">@T["Forsiden"]</a></li>
+            <li><a asp-controller="Behov" asp-action="Opprett">@T["Meld behov"]</a></li>
+            <li><a asp-controller="Ressurs" asp-action="Create">@T["Registrer en ressurs"]</a></li>
+            <li><a asp-controller="Home" asp-action="Sporsmal">@T["Spørsmål og svar"]</a></li>
+        </ul>
+    }
+    else
+    {
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">@T["Til forsiden"]</a>
+    }
 </div>

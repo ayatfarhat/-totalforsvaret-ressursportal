@@ -48,6 +48,19 @@
     <a class="btn btn-outline-secondary" asp-controller="OnsketRessurs" asp-action="Index">@T["Se ønskede ressurser"]</a>
 </section>
 
+@if (erKoordinator)
+{
+    @* Bare for kriseledelsen: behovene har en egen liste med kontaktinformasjon. *@
+    <section class="spor-kort onsket-boks" aria-labelledby="behov-tittel">
+        <h2 id="behov-tittel">@T["Meldte behov"]</h2>
+        <p>@T["Aktive behov akkurat nå:"] <strong>@ViewBag.AntallAktiveBehov</strong>. @T["I behovskøen ser du alle behov med kontaktinformasjon, og kan endre status."]</p>
+        <div class="knapperad">
+            <a class="btn btn-outline-secondary" asp-controller="Behov" asp-action="Ko">@T["Åpne behovskø"]</a>
+            <a class="btn btn-link" asp-controller="Behov" asp-action="Ko" asp-route-visning="alle">@T["Se alle behov"]</a>
+        </div>
+    </section>
+}
+
 @if (TempData["Feil"] is string feil)
 {
     <div class="alert alert-danger" role="alert">@feil</div>
@@ -103,9 +116,9 @@
                                 <span class="type-med-bilde">
                                     @if (!string.IsNullOrEmpty(ressurs.BildeSti))
                                     {
-                                        <img src="@ressurs.BildeSti" class="ressurs-miniatyr" alt="@T["Bilde av {0}", T[ressurs.Type]]" loading="lazy" />
+                                        <img src="@ressurs.BildeSti" class="ressurs-miniatyr" alt="@T["Bilde av {0}", ressurs.VisType()]" loading="lazy" />
                                     }
-                                    <strong>@T[ressurs.Type]</strong>
+                                    <strong>@ressurs.VisType()</strong>
                                 </span>
                             </td>
                             <td data-label="@T["Kommune"]">@ressurs.VisKommune()</td>
@@ -123,8 +136,8 @@
                             </td>
                             @* Lista viser bare ressurser brukeren kan endre: egne, eller alle for Kommune og Admin. *@
                             <td data-label="" class="ressurs-handling">
-                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@ressurs.Id" aria-label="@T["Endre {0}, {1}", T[ressurs.Type], ressurs.Posisjon]">@T["Endre"]</a>
-                                <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@ressurs.Id" aria-label="@T["Slett {0}, {1}", T[ressurs.Type], ressurs.Posisjon]">@T["Slett"]</a>
+                                <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@ressurs.Id" aria-label="@T["Endre {0}, {1}", ressurs.VisType(), ressurs.Posisjon]">@T["Endre"]</a>
+                                <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@ressurs.Id" aria-label="@T["Slett {0}, {1}", ressurs.VisType(), ressurs.Posisjon]">@T["Slett"]</a>
                             </td>
                         </tr>
                     }

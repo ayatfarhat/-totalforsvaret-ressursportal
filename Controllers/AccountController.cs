@@ -59,6 +59,12 @@ public class AccountController : Controller
     [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
     public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl = null)
     {
+        // Skjult felt fylt ut = robot (se Services/Sikkerhet.cs).
+        if (Sikkerhet.ErRobot(Request))
+        {
+            return BadRequest();
+        }
+
         ViewData["ReturnUrl"] = returnUrl;
 
         // GDPR: brukeren må ha lest hvordan opplysningene brukes før kontoen lages.

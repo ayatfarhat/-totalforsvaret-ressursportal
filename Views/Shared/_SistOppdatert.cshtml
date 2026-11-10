@@ -1,0 +1,4 @@
+@model DateTime
+@* Datoen en side sist ble endret, for eksempel på personvernerklæringen.
+   Bruk: <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" /> *@
+<p class="sist-oppdatert">@T["Sist oppdatert:"] <time datetime="@Model.ToString("yyyy-MM-dd")">@Model.ToString("dd.MM.yyyy")</time></p>
