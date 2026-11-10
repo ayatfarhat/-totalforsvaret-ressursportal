@@ -1,11 +1,7 @@
 using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
 using Xunit;
-
 namespace Nabohjelp.Tests;
-
-// Tester for fanene og filteret i behovskøen, «Mine behov» (BehovListeViewModel)
-// og ressurslisten (RessursListeViewModel).
 public class ListerTests
 {
     private static readonly DateTime Naa = new DateTime(2026, 11, 11, 12, 0, 0, DateTimeKind.Utc);
@@ -21,8 +17,6 @@ public class ListerTests
     {
         Assert.Equal(kategori, BehovStatusflyt.Kategori(status));
     }
-
-    // Fire behov: to åpne (det nyeste er planlagt), ett som pågår og ett lukket.
     private static List<Behov> Behovene()
     {
         return new List<Behov>
@@ -40,8 +34,6 @@ public class ListerTests
         var liste = new BehovListeViewModel();
 
         liste.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
-
-        // Ingen kategori valgt: standarden (åpne) brukes, nyeste først.
         Assert.Equal(new[] { 2, 1 }, liste.Liste.Select(b => b.Id));
         Assert.Equal(2, liste.AntallApne);
         Assert.Equal(1, liste.AntallPagar);
@@ -52,21 +44,39 @@ public class ListerTests
     [Fact]
     public void Behovsliste_FilterOgSortering()
     {
-        // «Akutte først» på fanen Alle: akutte (nyeste først), deretter planlagte.
         var akutte = new BehovListeViewModel { Kategori = "alle", Sortering = "akutte" };
         akutte.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
         Assert.Equal(new[] { 3, 1, 2, 4 }, akutte.Liste.Select(b => b.Id));
 
-        // Filter på kommune (skrevet med små bokstaver) og type.
         var grimstad = new BehovListeViewModel { Kategori = "alle", Kommune = "grimstad", Type = BehovType.Generator };
         grimstad.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
         Assert.Equal(new[] { 1 }, grimstad.Liste.Select(b => b.Id));
         Assert.True(grimstad.HarFilter());
 
-        // En kommune som ikke finnes, gir ingen treff (ikke alle).
         var ukjent = new BehovListeViewModel { Kategori = "alle", Kommune = "Atlantis" };
         ukjent.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
         Assert.Empty(ukjent.Liste);
+    }
+    [Fact]
+    public void Behovskø_BeholderPosisjonOgKommuneForKartlenke()
+    {
+        var behov = new Behov
+        {
+            Id = 42,
+            Status = BehovStatus.New,
+            Type = BehovType.Transport,
+            Kommunenummer = "4204",
+            Latitude = 58.1467,
+            Longitude = 7.9956
+        };
+
+        var liste = new BehovListeViewModel { Kategori = "alle" };
+        liste.Fyll(new List<Behov> { behov }, BehovStatusflyt.KategoriApne);
+
+        Behov vist = Assert.Single(liste.Liste);
+        Assert.Equal("4204", vist.Kommunenummer);
+        Assert.Equal(58.1467, vist.Latitude);
+        Assert.Equal(7.9956, vist.Longitude);
     }
 
     [Fact]
