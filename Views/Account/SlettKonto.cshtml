@@ -22,11 +22,19 @@
         <form asp-controller="Account" asp-action="SlettKonto" method="post" novalidate>
             <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
 
-            <div class="felt">
-                <label asp-for="Passord" class="form-label">@T["Skriv inn passordet ditt for å bekrefte"]</label>
-                <input asp-for="Passord" class="form-control" autocomplete="current-password" />
-                <span asp-validation-for="Passord"></span>
-            </div>
+            @* Brukere som logger inn med Vipps eller Apple har ikke passord hos oss. *@
+            @if (ViewData["HarPassord"] is bool harPassord && !harPassord)
+            {
+                <p>@T["Du logger inn med Vipps eller Apple, så du trenger ikke passord for å slette kontoen."]</p>
+            }
+            else
+            {
+                <div class="felt">
+                    <label asp-for="Passord" class="form-label">@T["Skriv inn passordet ditt for å bekrefte"]</label>
+                    <input asp-for="Passord" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Passord"></span>
+                </div>
+            }
 
             <div class="d-flex gap-2 flex-wrap">
                 <button type="submit" class="btn btn-danger">@T["Ja, slett kontoen min permanent"]</button>

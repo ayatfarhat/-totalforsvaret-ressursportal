@@ -94,6 +94,8 @@ public static class Sikkerhet
     // kartbildene fra OpenStreetMap og oppslag av kommune og adresse hos Kartverket
     // (ws.geonorge.no). 'unsafe-inline' trengs fordi noen sider har små skript og stiler
     // direkte i HTML-en.
+    // form-action tillater i tillegg Vipps og Apple, fordi knappene «Logg inn med Vipps/Apple»
+    // sender brukeren videre dit (se Services/EksternInnlogging.cs).
     private const string InnholdsRegler =
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
@@ -103,7 +105,7 @@ public static class Sikkerhet
         "connect-src 'self' https://ws.geonorge.no; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
-        "form-action 'self'; " +
+        "form-action 'self' https://apitest.vipps.no https://api.vipps.no https://appleid.apple.com; " +
         "frame-ancestors 'none'";
 
     // Legger sikkerhetshoder på alle svar. De forteller nettleseren at:

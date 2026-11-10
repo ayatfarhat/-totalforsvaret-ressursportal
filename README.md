@@ -101,6 +101,8 @@ Statiske filer (CSS, JavaScript og Bootstrap) ligger i standardmappen `wwwroot`,
 
 Databasen er MariaDB, som kjører i en egen container definert i `docker-compose.yml`. Data lagres i et eget Docker-volum og overlever både at containeren stoppes og startes på nytt.
 
+Krypteringsnøklene ligger i volumet `nabohjelp_nokler`, adskilt fra databasen (se «Kryptering av personopplysninger»).
+
 ### Kjøre uten Docker
 
 Dette krever .NET 9 SDK. Databasen må fortsatt kjøre, og startes i Docker:
@@ -253,6 +255,7 @@ Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.
 - **Kommune og Admin:** ser personopplysninger om andre, så de kan kreves å logge inn med 2FA. Det styres med `Sikkerhet:KrevTofaForAnsatte` i `appsettings.json`. Innstillingen er `true` i produksjon og `false` i utvikling (`appsettings.Development.json`), så testbrukerne kan brukes uten autentiseringsapp. Når kravet er på, sjekker policyen at innloggingen har merket `amr = mfa`, som Identity legger til når brukeren har brukt 2FA.
 - **Felles for alle:** passord lagres som hash, kontoen låses i 5 minutter etter 5 feil passord, innloggings-cookien er `HttpOnly`, og alle skjemaer har `[ValidateAntiForgeryToken]`.
 - Rolleendringer og låsing gjelder innen ett minutt, fordi innloggingen sjekkes mot databasen hvert minutt (`SecurityStampValidatorOptions` i `Program.cs`).
+- **Vipps og Apple:** knappene «Logg inn med Vipps» og «Logg inn med Apple» finnes på innloggings- og registreringssiden (se «Innlogging med Vipps og Apple» under).
 
 ### Sikkerhetstiltak
 
@@ -270,6 +273,8 @@ Hvem som regnes som ansatt er definert ett sted, i policyen `Ansatt` i `Program.
 | Misbruk av invitasjonslenker | Tilfeldig kode på 32 byte, lagret som SHA-256, kan brukes én gang og går ut | `Services/Invitasjonsregler.cs` |
 | Søppelpost fra roboter | Et skjult felt («honningkrukke») i registrering, behov og ressurser. Er det fylt ut, avvises skjemaet. Maks 20 nye behov eller ressurser per minutt for hver bruker | `Services/Sikkerhet.cs`, `Views/Shared/_Honningkrukke.cshtml` |
 | Informasjon om serveren | Svarhodet `Server` er fjernet, og feilsider viser ingen detaljer i drift | `Program.cs` |
+| Lekket database eller sikkerhetskopi | Telefon, e-post og navn på behov og ressurser lagres kryptert (AES-256). Nøklene ligger utenfor databasen | `Services/Kryptering.cs`, `Data/ApplicationDbContext.cs` |
+| Passord på avveie hos oss | Med Vipps og Apple får brukeren ingen konto med passord hos oss | `Services/EksternInnlogging.cs` |
 
 Tiltakene testes av enhetstestene og systemtestene (se «Testing»).
 
@@ -302,8 +307,51 @@ Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den sist
 | Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager`. Invitasjonslenker slettes like mange dager etter at de er brukt eller har gått ut, fordi de inneholder e-posten til den som brukte dem |
 | Tilgangskontroll | Bare eieren, Kommune og Admin ser kontaktinformasjon |
 | Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. På ressurser spør vi bare om det kriseledelsen trenger (kontaktperson og telefon). Bare nødvendige cookies brukes |
+| Sikkerhet ved behandlingen (artikkel 32) | Personopplysninger på behov og ressurser lagres kryptert. Se «Kryptering av personopplysninger» under |
 
 Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når brukeren sletter seg selv og når admin sletter en bruker. Tildelinger er historikk for kriseledelsen, så en konto med tildelinger må håndteres manuelt av administrator.
+
+### Innlogging med Vipps og Apple
+
+Knappene ligger på innloggings- og registreringssiden (`Views/Shared/_EksternInnlogging.cshtml`). Koden for selve innloggingen er ferdig, men er **slått av** i denne versjonen:
+
+- **Vipps Login** krever at man er en bedrift med avtale hos Vipps MobilePay (organisasjonsnummer) og et salgssted med «Logg inn». Først da får man nøkler, også til testmiljøet.
+- **Sign in with Apple** krever medlemskap i Apple Developer Program og et ekte domene med https. Apple godtar ikke `localhost`.
+
+Som studentgruppe har vi ingen av delene. Trykker man på en knapp nå, får man en melding om at innloggingen ikke er slått på ennå, og kan logge inn med e-post og passord.
+
+**Slik virker det når nøklene er på plass** (OpenID Connect, `Services/EksternInnlogging.cs`):
+1. Brukeren trykker «Logg inn med Vipps» og sendes til Vipps (`AccountController.LoggInnMed`).
+2. Brukeren godkjenner i Vipps-appen. Vi ser aldri passordet.
+3. Vipps sender brukeren tilbake til `/signin-vipps`. ASP.NET henter e-posten direkte fra Vipps.
+4. `AccountController.LoggInnMedSvar` logger inn brukeren hvis hen har vært her før. Første gang lages en konto med rollen Frivillig, uten passord.
+5. Har brukeren 2FA, må koden fortsatt skrives inn.
+
+Finnes det allerede en konto med samme e-post, kobles den **ikke** automatisk. Ellers kunne noen som styrer en konto hos leverandøren, tatt over kontoen her. Vi ber bare om e-post (dataminimering).
+
+**Slå på:** legg nøklene i `EksternInnlogging:Vipps` eller `EksternInnlogging:Apple`, helst som miljøvariabler eller user secrets, ikke i `appsettings.json` på GitHub:
+
+```bash
+EksternInnlogging__Vipps__ClientId=...
+EksternInnlogging__Vipps__ClientSecret=...
+```
+
+- Vipps: velg `client_secret_post` som innloggingsmetode for salgsstedet, og legg inn `https://<domene>/signin-vipps` som tilbakeadresse.
+- Apple: `ClientId` er Services ID. `ClientSecret` er et signert token (JWT) laget med nøkkelfilen (.p8), og må fornyes hver sjette måned. Tilbakeadressen er `https://<domene>/signin-apple`.
+- Bytt knappene til de offisielle knappene og logoene fra Vipps og Apple. Begge har regler for hvordan knappene skal se ut.
+
+### Kryptering av personopplysninger
+
+Telefon og e-post på behov, og navn og telefon på ressurser, lagres kryptert i databasen. Ser man i tabellen, står det for eksempel `kryptert:CfDJ8N...` i stedet for telefonnummeret.
+
+- **Hvordan:** ASP.NET Core Data Protection (AES-256-CBC med HMAC-SHA256). Den samme teksten gir ny kryptert tekst hver gang, så man kan ikke se hvem som har samme nummer. Endrer noen den krypterte teksten, oppdages det.
+- **Hvor:** `HasConversion` i `Data/ApplicationDbContext.cs` sender feltene gjennom `Kryptering.Krypter` når de lagres og `Kryptering.Dekrypter` når de leses. Resten av koden ser vanlig tekst.
+- **Nøklene** ligger i mappen `nokler`, som er et eget Docker-volum (`nabohjelp_nokler`), atskilt fra databasen. Mappen står i `.gitignore` og kommer aldri på GitHub. Uten volumet ville nye nøkler blitt laget hver gang containeren bygges, og ingen kunne lest opplysningene.
+- **Gamle data:** verdier lagret før krypteringen fantes, krypteres automatisk når appen starter (`Kryptering.KrypterGamleOpplysninger`).
+- **Hvis nøklene forsvinner**, vises «(kan ikke vises)» i stedet for at siden krasjer.
+- **Passord** krypteres ikke, men lagres som hash (Identity). En hash kan ikke gjøres om til passordet igjen.
+- **Ikke kryptert:** e-posten på brukerkontoen (Identity trenger den til innlogging og søk), beskrivelser og posisjon (kriseledelsen må kunne søke og vise dem på kartet).
+- **I drift** bør nøklene i tillegg beskyttes med et sertifikat eller et nøkkelhvelv (for eksempel Azure Key Vault), og nettsiden kjøres med https (`UseHttpsRedirection` og HSTS er allerede på).
 
 ### Språkvalg (norsk og engelsk)
 
@@ -317,7 +365,7 @@ Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når 
 
 ### Testing av innlogging, roller, personvern og språk
 
-Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatisk sletting av kontaktinformasjon og passordreglene ved bytte av passord. Kjør med `dotnet test Nabohjelp.Tests`.
+Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatisk sletting av kontaktinformasjon og passordreglene ved bytte av passord. `Nabohjelp.Tests/Kryptering_Tests.cs` tester krypteringen og at bare Vipps og Apple godtas. Kjør med `dotnet test Nabohjelp.Tests`.
 
 | # | Scenario | Forventet resultat | Resultat |
 |---|---|---|---|
@@ -333,6 +381,10 @@ Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatis
 | H10 | Bytt til EN | Menyen, forsiden og kontosidene vises på engelsk. Valget huskes | OK. Meny, forside, innlogging, registrering, Min konto, Brukere og personvern på engelsk. Valget huskes |
 | H11 | Registrer en ressurs med kartet på engelsk | Koordinatene lagres riktig | OK. Lagret som 58.1467 / 7.9956 |
 | H12 | `KrevTofaForAnsatte = true`, Kommune uten 2FA åpner Kommandobro | Forklaring om at 2FA kreves, med lenke til Min konto | Ikke testet ennå (kravet er av i Development) |
+| H13 | Trykk «Logg inn med Vipps» | Melding om at Vipps ikke er slått på ennå | OK. Meldingen vises på innloggingssiden. En ukjent leverandør (for eksempel «Google») gir 400 |
+| H14 | Trykk «Logg inn med Apple» | Melding om at Apple ikke er slått på ennå | OK |
+| H15 | Registrer en ressurs med navn og telefon, og se i databasen | Navn og telefon står som `kryptert:...` i tabellen `Ressurser`, men vises riktig i appen | OK. Begge felt er `kryptert:CfDJ8...` i databasen, også for en ressurs lagret før krypteringen fantes. Vises riktig på kvitteringen, Kommandobroen og i «Last ned mine data» |
+| H16 | Bygg containeren på nytt (`docker compose up -d --build --force-recreate web`) | Navn og telefon vises fortsatt riktig (nøklene er beholdt) | OK |
 
 ## Testing
 
@@ -483,6 +535,7 @@ KI har blant annet blitt brukt til:
 - Utvikling av matching- og tildelingslogikk.
 - Oppsett av MariaDB og Entity Framework, og tilkobling til applikasjonen.
 - Brukeradministrasjon, personvern (GDPR), språkvalg og ulike krav til innlogging for frivillige og ansatte.
+- Kryptering av personopplysninger i databasen, og innlogging med Vipps og Apple (OpenID Connect), inkludert hva som kreves for å få nøkler.
 
 **Docker, Git og drift**
 - Oppsett av Dockerfile og docker-compose.yml, med forklaring av hvert steg.
@@ -510,6 +563,8 @@ Under utviklingen ble KI blant annet spurt om:
 - "Hvordan lager jeg en admin-side der admin kan endre roller, låse og slette brukere i ASP.NET Core Identity?"
 - "Hva krever GDPR av en app som lagrer telefon og e-post, og hvordan kan brukeren laste ned og slette sine egne data?"
 - "Hvordan legger jeg til språkvalg mellom norsk og engelsk uten at desimaltall fra kartet slutter å virke?"
+- "Er det mulig å lage innlogging med Vipps og Apple i et studentprosjekt, eller trenger man godkjenning?"
+- "Hvordan krypterer jeg telefonnummer og e-post i databasen med Entity Framework, uten å endre resten av koden?"
 
 ### Hvordan KI-forslag ble kontrollert
 

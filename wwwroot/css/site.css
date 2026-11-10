@@ -1316,3 +1316,17 @@ a[href^="tel:"] { white-space: nowrap; }
 .cookie-info form { margin: 0; flex-shrink: 0; }
 .cookie-info .btn-primary { --bs-btn-bg: #fff; --bs-btn-color: var(--natt); --bs-btn-border-color: #fff; --bs-btn-hover-bg: var(--lys); --bs-btn-hover-border-color: var(--lys); --bs-btn-hover-color: var(--natt); min-width: 6rem; }
 @media (max-width: 575.98px) { .cookie-info .container { flex-direction: column; align-items: stretch; } }
+
+
+/* ---------- Innlogging med Vipps og Apple (Views/Shared/_EksternInnlogging.cshtml) ---------- */
+.ekstern-innlogging { margin-top: 1.5rem; display: grid; gap: .75rem; }
+.ekstern-skille { display: flex; align-items: center; gap: .75rem; color: var(--dempet); margin: 0; }
+.ekstern-skille::before,
+.ekstern-skille::after { content: ""; flex: 1; border-top: 1px solid var(--linje); }
+.ekstern-knapp { width: 100%; font-weight: 700; border: none; padding: .7rem 1rem; }
+/* Vipps-oransje med mørk tekst, så kontrasten er god nok (WCAG AA). */
+.ekstern-vipps { background: #FF5B24; color: var(--natt); }
+.ekstern-vipps:hover, .ekstern-vipps:focus { background: #E84E1B; color: var(--natt); }
+.ekstern-apple { background: #000; color: #fff; }
+.ekstern-apple:hover, .ekstern-apple:focus { background: #333; color: #fff; }
+.ekstern-samtykke { font-size: .85rem; color: var(--dempet); margin: 0; }

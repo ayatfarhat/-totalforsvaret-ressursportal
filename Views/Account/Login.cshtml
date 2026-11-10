@@ -8,6 +8,12 @@
     <h1>@T["Logg inn"]</h1>
     <p class="auth-ingress">@T["Logg inn for å melde behov eller registrere ressurser."]</p>
 
+    @* Melding fra «Logg inn med Vipps/Apple», for eksempel at det ikke er slått på ennå. *@
+    @if (TempData["Info"] is string info)
+    {
+        <div class="alert alert-info" role="status">@info</div>
+    }
+
     <div class="auth-flate">
         <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
             <div asp-validation-summary="ModelOnly" class="feiloversikt" role="alert"></div>
@@ -26,6 +32,8 @@
 
             <button type="submit" class="btn btn-primary w-100">@T["Logg inn"]</button>
         </form>
+
+        <partial name="_EksternInnlogging" />
     </div>
 
     <p class="auth-bunn">@T["Har du ikke konto?"] <a asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]">@T["Registrer deg"]</a></p>

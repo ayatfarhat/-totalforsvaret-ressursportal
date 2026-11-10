@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
@@ -83,6 +84,20 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// Innlogging med Vipps og Apple. Slås bare på hvis nøklene finnes i appsettings
+// under «EksternInnlogging» (se Services/EksternInnlogging.cs).
+EksternInnlogging.LeggTil(builder);
+
+// Nøklene som brukes til å kryptere personopplysninger (Services/Kryptering.cs)
+// og innloggings-cookien. De lagres i mappen «nokler», som er et eget volum i Docker.
+// Uten dette lages nye nøkler hver gang containeren bygges, og da kan
+// ingen lese de krypterte opplysningene lenger.
+string nokkelMappe = builder.Configuration["Sikkerhet:NokkelMappe"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "nokler");
+builder.Services.AddDataProtection()
+    .SetApplicationName("BeredskapsPortalen")
+    .PersistKeysToFileSystem(new DirectoryInfo(nokkelMappe));
+
 // Når admin endrer rolle, låser en konto eller sletter en bruker, skal det gjelde
 // nesten med en gang. Standard er at innloggingen sjekkes på nytt hvert 30. minutt.
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
@@ -128,6 +143,10 @@ WebApplication app = builder.Build();
 // Gjør at modeller og tjenester også kan vise tekst på valgt språk (se Services/Oversetter.cs).
 Oversetter.Localizer = app.Services.GetRequiredService<Microsoft.Extensions.Localization.IStringLocalizer<SharedResource>>();
 
+// Kryptering av personopplysninger i databasen (se Services/Kryptering.cs).
+// «Personopplysninger» er formålet: nøkler for ett formål kan ikke dekryptere noe annet.
+Kryptering.Beskytter = app.Services.GetRequiredService<IDataProtectionProvider>().CreateProtector("Personopplysninger");
+
 // Kjører migrasjoner automatisk
 // og oppretter rollene Admin, Kommune og Frivillig
 using (IServiceScope scope = app.Services.CreateScope())
@@ -158,6 +177,9 @@ using (IServiceScope scope = app.Services.CreateScope())
     int dager = app.Configuration.GetValue("Personvern:SlettKontaktinfoEtterDager", 90);
     await PersonvernOpprydding.FjernGamleKontaktopplysninger(db, dager);
     await PersonvernOpprydding.SlettGamleInvitasjoner(db, dager);
+
+    // Krypterer telefon, e-post og navn som ble lagret før krypteringen fantes.
+    await Kryptering.KrypterGamleOpplysninger(db);
 }
 
 // Configure the HTTP request pipeline.

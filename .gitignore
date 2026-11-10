@@ -21,3 +21,9 @@ Thumbs.db
 
 # Lokale filer som ikke skal deles
 Claude outputs/
+
+# Krypteringsnøkler (se Program.cs). Skal aldri deles eller ligge på GitHub.
+nokler/
+
+# Lokal testdatabase (SQLite), skal ikke deles
+kriseportal.db
