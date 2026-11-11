@@ -50,11 +50,18 @@ namespace Nabohjelp.Controllers
 
             // Returnerer kartpunktene som JSON.
             // JavaScript kan bruke resultatet til å oppdatere markørene.
-            return Json(new
-            {
-                ressurser = modell.Ressurser,
-                behov = modell.Behov
-            });
+           // Returnerer kartdata med samme egenskapsnavn som kart.js forventer.
+// PropertyNamingPolicy = null beholder store og små bokstaver fra C#-modellene.
+return new JsonResult(
+    new
+    {
+        ressurser = modell.Ressurser,
+        behov = modell.Behov
+    },
+    new System.Text.Json.JsonSerializerOptions
+    {
+        PropertyNamingPolicy = null
+    });
         }
 
         // Felles metode for å hente kartdata.
