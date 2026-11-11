@@ -116,8 +116,17 @@ namespace Nabohjelp.Controllers
                 Beskrivelse = Forkort(behov.Beskrivelse)
             };
 
-            // Bestemmer farge ut fra behovets prioritet.
-            string prioritetFarge = "merke-lys";
+// Kommunen vises foran registreringstidspunktet når den er kjent.
+// Dette gjør det enklere å se hvor behovet er registrert.
+if (Kommuner.Finnes(behov.Kommunenummer))
+{
+    punkt.Undertekst = Kommuner.VisNavn(behov.Kommunenummer)
+        + " · " + punkt.Undertekst;
+}
+
+// Bestemmer fargen på behovsmarkøren ut fra prioriteten.
+// Akutte behov vises med rød markør.
+string prioritetFarge = "merke-lys";
 
             if (behov.Prioritet == BehovPrioritet.Urgent)
             {

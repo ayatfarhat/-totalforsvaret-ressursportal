@@ -1,0 +1,128 @@
+@using System.Globalization
+@model RessursListeViewModel
+@{
+    ViewData["Title"] = T["Ressursliste"];
+}
+
+@* Alle ressursene for kriseledelsen, som behovskøen. Fanene og filteret sendes i
+   adressen (GET), så de virker uten JavaScript og kan lagres som bokmerke. *@
+
+<div class="side-topp">
+    <h1>@T["Ressursliste"]</h1>
+    <p class="ingress">@T["Alle ressurser som er registrert, nyeste først. Bare kommunen og kriseledelsen ser denne lista."]</p>
+</div>
+
+<nav class="faner" aria-label="@T["Velg hvilke ressurser som vises"]">
+    <a asp-action="Oversikt" asp-route-kategori="@RessursListeViewModel.KategoriTilgjengelig" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
+       class="@(Model.Kategori == RessursListeViewModel.KategoriTilgjengelig ? "valgt" : "")"
+       aria-current="@(Model.Kategori == RessursListeViewModel.KategoriTilgjengelig ? "page" : null)">@T["Tilgjengelige"] <span class="fane-antall">@Model.AntallTilgjengelig</span></a>
+    <a asp-action="Oversikt" asp-route-kategori="@RessursListeViewModel.KategoriTildelt" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
+       class="@(Model.Kategori == RessursListeViewModel.KategoriTildelt ? "valgt" : "")"
+       aria-current="@(Model.Kategori == RessursListeViewModel.KategoriTildelt ? "page" : null)">@T["Tildelte"] <span class="fane-antall">@Model.AntallTildelt</span></a>
+    <a asp-action="Oversikt" asp-route-kategori="@RessursListeViewModel.KategoriAlle" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
+       class="@(Model.Kategori == RessursListeViewModel.KategoriAlle ? "valgt" : "")"
+       aria-current="@(Model.Kategori == RessursListeViewModel.KategoriAlle ? "page" : null)">@T["Alle"] <span class="fane-antall">@Model.AntallAlle</span></a>
+</nav>
+
+<form asp-action="Oversikt" method="get" class="behov-filter" aria-label="@T["Filtrer ressursene"]">
+    <input type="hidden" name="kategori" value="@Model.Kategori" />
+    <div class="felt">
+        <label for="filter-type" class="form-label">@T["Type"]</label>
+        <select id="filter-type" name="type" class="form-select">
+            <option value="">@T["Alle typer"]</option>
+            @foreach (string type in RessursFormViewModel.Typer)
+            {
+                <option value="@type" selected="@(Model.Type == type)">@T[type]</option>
+            }
+        </select>
+    </div>
+    <div class="felt">
+        <label for="filter-kommune" class="form-label">@T["Kommune"]</label>
+        <input id="filter-kommune" name="kommune" value="@Model.Kommune" class="form-control" list="kommuneliste" autocomplete="off" placeholder="@T["Alle kommuner"]" />
+        <partial name="_Kommuneliste" />
+    </div>
+    <div class="behov-filter-knapper">
+        <button type="submit" class="btn btn-primary">@T["Bruk filter"]</button>
+        @if (Model.HarFilter())
+        {
+            <a asp-action="Oversikt" asp-route-kategori="@Model.Kategori" class="btn btn-link">@T["Nullstill"]</a>
+        }
+    </div>
+</form>
+
+@if (Model.Liste.Count == 0)
+{
+    <div class="tom-tilstand">
+        <h2 class="h3">@T["Ingen ressurser her"]</h2>
+        <p>@(Model.HarFilter() ? T["Ingen ressurser passer filteret. Prøv en annen fane eller nullstill filteret."] : T["Ressurser som innbyggerne registrerer, dukker opp her."])</p>
+    </div>
+}
+else
+{
+    <div class="liste-topp">
+        <h2>@T["Ressurser"]</h2>
+        <a class="btn btn-outline-secondary" asp-action="Utskrift">@T["Skriv ut ressursliste per kommune"]</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table stablet align-middle">
+            <thead>
+                <tr>
+                    <th scope="col">@T["Type"]</th>
+                    <th scope="col">@T["Posisjon"]</th>
+                    <th scope="col">@T["Beskrivelse"]</th>
+                    <th scope="col">@T["Status"]</th>
+                    <th scope="col">@T["Tilgjengelig fra"]</th>
+                    <th scope="col">@T["Kontakt"]</th>
+                    <th scope="col"><span class="visually-hidden">@T["Handling"]</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (RessursFormViewModel ressurs in Model.Liste)
+                {
+                    <tr>
+                        <td data-label="@T["Type"]">
+                            <span class="type-med-bilde">
+                                @if (!string.IsNullOrEmpty(ressurs.BildeSti))
+                                {
+                                    <img src="@ressurs.BildeSti" class="ressurs-miniatyr" alt="@T["Bilde av {0}", ressurs.VisType()]" loading="lazy" />
+                                }
+                                <strong>@ressurs.VisType()</strong>
+                            </span>
+                        </td>
+                        <td data-label="@T["Posisjon"]">
+                            <span class="posisjon-celle">
+                                <span>@ressurs.VisKommune()</span>
+                                <span>@ressurs.Posisjon</span>
+                                @if (ressurs.Breddegrad != null && ressurs.Lengdegrad != null)
+                                {
+                                    string bredde = ressurs.Breddegrad.Value.ToString("0.#####", CultureInfo.InvariantCulture);
+                                    string lengde = ressurs.Lengdegrad.Value.ToString("0.#####", CultureInfo.InvariantCulture);
+                                    <a href="https://www.openstreetmap.org/?mlat=@bredde&amp;mlon=@lengde#map=15/@bredde/@lengde" target="_blank" rel="noopener"
+                                       aria-label="@T["Vis {0} på kart (åpnes i ny fane)", bredde + ", " + lengde]">@T["Vis på kart"]</a>
+                                }
+                            </span>
+                        </td>
+                        <td data-label="@T["Beskrivelse"]"><span class="tekst-linjer">@ressurs.VisBeskrivelse()</span></td>
+                        <td data-label="@T["Status"]">
+                            <span class="merke @Visningstekst.RessursStatusFarge(ressurs.Status)">@T[ressurs.Status]</span>
+                        </td>
+                        <td data-label="@T["Tilgjengelig fra"]">@ressurs.VisTilgjengeligFra()</td>
+                        <td data-label="@T["Kontakt"]">
+                            <span class="kontakt-liste">
+                                <span>@ressurs.VisNavn()</span>
+                                @if (!string.IsNullOrWhiteSpace(ressurs.Telefon))
+                                {
+                                    <a href="tel:@ressurs.TelefonLenke()">@ressurs.VisTelefon()</a>
+                                }
+                            </span>
+                        </td>
+                        <td data-label="" class="ressurs-handling">
+                            <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@ressurs.Id" aria-label="@T["Endre {0}, {1}", ressurs.VisType(), ressurs.Posisjon]">@T["Endre"]</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -61,6 +61,28 @@ public static class BehovStatusflyt
                status == BehovStatus.Withdrawn;
     }
 
+    // Kategoriene i behovskøen og på «Mine behov»:
+    //   Åpne  = Ny (ingen har sett på det ennå)
+    //   Pågår = Under vurdering og Tildelt (kommunen jobber med det)
+    //   Lukket = Løst, Avvist og Trukket tilbake
+    public const string KategoriApne = "apne";
+    public const string KategoriPagar = "pagar";
+    public const string KategoriLukket = "lukket";
+    public const string KategoriAlle = "alle";
+
+    public static string Kategori(BehovStatus status)
+    {
+        if (status == BehovStatus.New)
+        {
+            return KategoriApne;
+        }
+        if (ErAvsluttet(status))
+        {
+            return KategoriLukket;
+        }
+        return KategoriPagar;
+    }
+
     // Hvor langt behovet har kommet i statuslinjen: 0 = Ny ... 3 = Løst.
     // Gir -1 for Avvist og Trukket tilbake, som ikke er steg i linjen.
     public static int StegNummer(BehovStatus status)

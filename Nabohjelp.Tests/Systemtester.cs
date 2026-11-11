@@ -152,10 +152,13 @@ public class Systemtester : IClassFixture<SystemtestOppsett>
         var ressursSvar = await SystemtestOppsett.SendSkjema(_app.Frivillig, "/Ressurs/Create", new Dictionary<string, string>
         {
             ["Type"] = "Aggregat",
-            ["Kommunenummer"] = "4202",
+            ["KommuneNavn"] = "Grimstad",
             ["Posisjon"] = merke,
             ["Breddegrad"] = "58.35",
             ["Lengdegrad"] = "8.60",
+            ["TilgjengeligFra"] = DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm"),
+            ["Beskrivelse"] = "Effekt 6 kW",
+            ["Navn"] = "Ola Nordmann",
             ["Landskode"] = "+47",
             ["Telefon"] = "41234567"
         });

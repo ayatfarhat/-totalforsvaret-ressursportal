@@ -17,8 +17,13 @@ namespace Nabohjelp.ViewModels
         [StringLength(200, ErrorMessage = "Posisjonen kan ikke være lengre enn 200 tegn.")]
         public string Posisjon { get; set; } = string.Empty;
 
-        // Kommunen ressursen står i. Brukes til å skrive ut ressurslister per region.
-        [Required(ErrorMessage = "Velg kommunen ressursen står i.")]
+        // Kommunen slik brukeren skrev den, eller slik kartet fylte den inn («Grimstad»).
+        [Required(ErrorMessage = "Skriv eller velg kommunen ressursen står i.")]
+        [StringLength(60)]
+        public string? KommuneNavn { get; set; }
+
+        // Kommunenummeret som lagres. Settes av controlleren ut fra KommuneNavn
+        // (se SjekkSkjema i RessursController). Brukes til ressurslister per region.
         public string? Kommunenummer { get; set; }
 
         // Nøyaktige koordinater fra kartet på Create-siden.
@@ -29,12 +34,18 @@ namespace Nabohjelp.ViewModels
         [Range(-180.0, 180.0, ErrorMessage = "Lengdegrad må være mellom -180 og 180.")]
         public decimal? Lengdegrad { get; set; }
 
+        // Påkrevd: kriseledelsen må vite når ressursen kan brukes.
+        [Required(ErrorMessage = "Velg når ressursen er tilgjengelig.")]
         [DataType(DataType.DateTime)]
         public DateTime? TilgjengeligFra { get; set; }
 
+        // Påkrevd: for eksempel modell, størrelse og tilstand (forslaget fylles inn når typen velges).
+        [Required(ErrorMessage = "Skriv en kort beskrivelse av ressursen.")]
         [StringLength(1000, ErrorMessage = "Beskrivelsen kan ikke være lengre enn 1000 tegn.")]
         public string? Beskrivelse { get; set; }
 
+        // Påkrevd: hvem kriseledelsen skal spørre etter.
+        [Required(ErrorMessage = "Skriv navnet på kontaktpersonen.")]
         [StringLength(100, ErrorMessage = "Navnet kan ikke være lengre enn 100 tegn.")]
         public string? Navn { get; set; }
 
@@ -46,6 +57,8 @@ namespace Nabohjelp.ViewModels
         public string Landskode { get; set; } = "+47";
 
         // Selve nummeret skrives uten landskode, bare tall (mellomrom er greit).
+        // Påkrevd, så kriseledelsen alltid kan ringe eieren.
+        [Required(ErrorMessage = "Skriv inn telefonnummeret ditt.")]
         [RegularExpression(@"^[0-9 ]{5,15}$",
             ErrorMessage = "Skriv telefonnummeret uten landskode, bare tall.")]
         public string? Telefon { get; set; }
@@ -239,6 +252,7 @@ namespace Nabohjelp.ViewModels
                 AnnetType = ressurs.AnnetType,
                 Posisjon = ressurs.Posisjon,
                 Kommunenummer = ressurs.Kommunenummer,
+                KommuneNavn = Kommuner.NavnEllerTomt(ressurs.Kommunenummer),
                 Breddegrad = ressurs.Breddegrad,
                 Lengdegrad = ressurs.Lengdegrad,
                 TilgjengeligFra = ressurs.TilgjengeligFra,

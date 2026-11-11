@@ -2,7 +2,8 @@
 //
 // Filen gjør tre ting, styrt av data-attributter i HTML-en:
 //   1. Kartvelger  (data-kartvelger): brukeren klikker på kartet, og
-//      breddegrad/lengdegrad fylles ut i skjemaet.
+//      breddegrad/lengdegrad fylles ut i skjemaet. Kommunen og adressen
+//      slås opp hos Kartverket og fylles inn (se finnStedet).
 //   2. Visning av ett punkt (data-kartvisning): viser én nål, for eksempel på kvitteringen.
 //   3. Oversikt for Kommandobro: funksjonen visOversikt(...) nederst.
 //
@@ -47,6 +48,10 @@ function startKartvelger(element) {
     if (element.getAttribute('data-posisjon')) {
         adresseFelt = document.querySelector(element.getAttribute('data-posisjon'));
     }
+    var kommuneFelt = null;
+    if (element.getAttribute('data-kommune')) {
+        kommuneFelt = document.querySelector(element.getAttribute('data-kommune'));
+    }
     var farge = element.getAttribute('data-nal');
 
     // Uten Leaflet skjuler vi kartet og knappen.
@@ -59,6 +64,7 @@ function startKartvelger(element) {
 
     var kart = lagKart(element, NORGE, 5);
     var nal = null;
+    var slaOppStedet = true;   // om kommune og adresse skal slås opp når et sted velges
 
     // Flytter nålen til et sted og skriver koordinatene i skjemaet.
     function velgSted(breddegrad, lengdegrad) {
@@ -76,11 +82,86 @@ function startKartvelger(element) {
 
         breddeFelt.value = breddegrad.toFixed(6);
         lengdeFelt.value = lengdegrad.toFixed(6);
-        statusTekst.textContent = tekst('Valgt posisjon: {0}, {1}', breddegrad.toFixed(5), lengdegrad.toFixed(5));
+        statusTekst.textContent = tekst('Posisjon valgt.');
 
-        // Hvis adressen er tom, fyller vi den med koordinatene.
-        if (adresseFelt !== null && adresseFelt.value === '') {
-            adresseFelt.value = tekst('Valgt på kart ({0}, {1})', breddegrad.toFixed(5), lengdegrad.toFixed(5));
+        if (slaOppStedet) {
+            finnStedet(breddegrad, lengdegrad);
+        }
+    }
+
+    // Poststedet kommer med store bokstaver (MO I RANA). Vi skriver det som «Mo I Rana»:
+    // stor forbokstav i hvert ord, resten små.
+    function storForbokstav(tekstMedStore) {
+        var ord = tekstMedStore.toLowerCase().split(' ');
+        for (var i = 0; i < ord.length; i++) {
+            ord[i] = ord[i].charAt(0).toUpperCase() + ord[i].substring(1);
+        }
+        return ord.join(' ');
+    }
+
+    // Når kartet fyller inn et felt, ber vi skjemaet sjekke feltet på nytt (jQuery Validation,
+    // som sidene med skjema laster inn). Da forsvinner en eventuell feilmelding om at feltet er tomt.
+    function sjekkFeltet(felt) {
+        if (window.jQuery && jQuery.fn.valid) {
+            jQuery(felt).valid();
+        }
+    }
+
+    // Slår opp kommunen og nærmeste adresse for punktet hos Kartverket (gratis, åpne
+    // tjenester på ws.geonorge.no) og fyller dem inn i skjemaet. Feltene fylles bare
+    // hvis de er tomme eller ble fylt inn av kartet tidligere, så vi aldri skriver over
+    // noe brukeren har skrevet selv. Går oppslaget galt, skriver brukeren inn selv.
+    var forrigeKommune = '';
+    var forrigeAdresse = '';
+    var oppslagNummer = 0;
+
+    function finnStedet(breddegrad, lengdegrad) {
+        // Klikker brukeren flere ganger fort, bruker vi bare svaret på det siste klikket.
+        oppslagNummer = oppslagNummer + 1;
+        var detteOppslaget = oppslagNummer;
+
+        if (kommuneFelt !== null) {
+            statusTekst.textContent = tekst('Finner kommunen ...');
+            fetch('https://ws.geonorge.no/kommuneinfo/v1/punkt?koordsys=4258&nord=' + breddegrad + '&ost=' + lengdegrad)
+                .then(function (svar) {
+                    if (!svar.ok) { throw new Error('Fant ingen kommune'); }
+                    return svar.json();
+                })
+                .then(function (data) {
+                    if (detteOppslaget !== oppslagNummer) { return; }
+                    // Navnet hentes fra vår egen liste (datalist), så det blir likt som ellers på siden.
+                    var valg = document.querySelector('#kommuneliste option[data-nummer="' + data.kommunenummer + '"]');
+                    if (valg === null) { throw new Error('Ukjent kommune'); }
+
+                    if (kommuneFelt.value === '' || kommuneFelt.value === forrigeKommune) {
+                        kommuneFelt.value = valg.value;
+                        forrigeKommune = valg.value;
+                        sjekkFeltet(kommuneFelt);
+                    }
+                    statusTekst.textContent = tekst('Posisjon valgt i {0} kommune.', valg.value);
+                })
+                .catch(function () {
+                    if (detteOppslaget !== oppslagNummer) { return; }
+                    statusTekst.textContent = tekst('Posisjon valgt. Fant ikke kommunen, skriv den inn selv.');
+                });
+        }
+
+        if (adresseFelt !== null && (adresseFelt.value === '' || adresseFelt.value === forrigeAdresse)) {
+            fetch('https://ws.geonorge.no/adresser/v1/punktsok?radius=150&treffPerSide=1&lat=' + breddegrad + '&lon=' + lengdegrad)
+                .then(function (svar) {
+                    if (!svar.ok) { throw new Error('Fant ingen adresse'); }
+                    return svar.json();
+                })
+                .then(function (data) {
+                    if (detteOppslaget !== oppslagNummer || !data.adresser || data.adresser.length === 0) { return; }
+                    var adresse = data.adresser[0];
+                    adresseFelt.value = adresse.adressetekst + ', ' + storForbokstav(adresse.poststed);
+                    forrigeAdresse = adresseFelt.value;
+                    sjekkFeltet(adresseFelt);
+                })
+                .catch(function () {
+                    // Ingen adresse i nærheten (for eksempel i skogen): brukeren skriver selv.
+                });
         }
     }
 
@@ -121,7 +202,11 @@ function startKartvelger(element) {
     if (skjema !== null) {
         skjema.addEventListener('submit', rensKoordinater);
     }
+    // Når siden åpnes med koordinater (for eksempel ved redigering), står kommunen og
+    // adressen der allerede. Da slår vi ikke opp stedet, bare når brukeren velger et nytt.
+    slaOppStedet = false;
     flyttNalFraFeltene();
+    slaOppStedet = true;
     if (nal === null) {
         statusTekst.textContent = tekst('Ingen posisjon valgt ennå.');
     }

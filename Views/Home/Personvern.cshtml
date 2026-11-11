@@ -13,16 +13,17 @@
 @if (!engelsk)
 {
     <h1>Personvernerklæring</h1>
-    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 11)" />
     <p class="ingress">Her forklarer vi hvilke personopplysninger BeredskapsPortalen lagrer, hvorfor, og hva du kan gjøre med dem. BeredskapsPortalen er et studentprosjekt i IS-200 ved Universitetet i Agder.</p>
 
     <h2>Hva vi lagrer</h2>
     <ul>
         <li><strong>Brukerkonto:</strong> e-postadresse, rolle (Frivillig, Kommune eller Admin), om tofaktor er slått på, og nøkkelen til autentiseringsappen. Passordet lagres aldri, bare en sikker hash av det.</li>
-        <li><strong>Behov du melder:</strong> type, beskrivelse, posisjon på kartet, og telefon og e-post hvis du fyller det ut.</li>
-        <li><strong>Ressurser du registrerer:</strong> type, posisjon, kommune, beskrivelse, navn, telefon og eventuelt bilde.</li>
+        <li><strong>Behov du melder:</strong> type, beskrivelse, posisjon på kartet, kommune, og telefon og e-post hvis du fyller det ut.</li>
+        <li><strong>Ressurser du registrerer:</strong> type, posisjon, kommune, beskrivelse, når den er tilgjengelig, navn og telefon til kontaktperson, og eventuelt bilde.</li>
         <li><strong>Cookies:</strong> bare de som trengs for at siden skal virke: innlogging, valgt språk og beskyttelse av skjemaer. Vi bruker ikke sporing eller reklame. Se <a asp-action="Cookies">alle cookiene vi bruker</a>.</li>
-        <li><strong>Ikke mer enn nødvendig:</strong> vi spør ikke etter fødselsnummer, adresse på kontoen eller annet vi ikke trenger. Navn og telefon på ressurser er valgfritt.</li>
+        <li><strong>Ikke mer enn nødvendig:</strong> vi spør ikke etter fødselsnummer, adresse på kontoen eller annet vi ikke trenger. På en ressurs ber vi om navn og telefon til en kontaktperson, fordi kriseledelsen må kunne ringe den som har ressursen.</li>
+        <li><strong>Kart og kommune:</strong> når du velger et punkt på kartet, sendes punktet (ikke hvem du er) til Kartverket for å finne kommunen og nærmeste adresse.</li>
     </ul>
 
     <h2>Hvorfor vi lagrer det</h2>
@@ -63,16 +64,17 @@
 else
 {
     <h1>Privacy policy</h1>
-    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 10)" />
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 11)" />
     <p class="ingress">This page explains which personal data BeredskapsPortalen stores, why, and what you can do with it. BeredskapsPortalen is a student project in IS-200 at the University of Agder.</p>
 
     <h2>What we store</h2>
     <ul>
         <li><strong>User account:</strong> email address, role (Frivillig, Kommune or Admin), whether two-factor authentication is turned on, and the key for the authenticator app. Your password is never stored, only a secure hash of it.</li>
-        <li><strong>Needs you report:</strong> type, description, position on the map, and phone and email if you fill them in.</li>
-        <li><strong>Resources you register:</strong> type, position, municipality, description, name, phone and an optional picture.</li>
+        <li><strong>Needs you report:</strong> type, description, position on the map, municipality, and phone and email if you fill them in.</li>
+        <li><strong>Resources you register:</strong> type, position, municipality, description, when it is available, name and phone of a contact person, and an optional picture.</li>
         <li><strong>Cookies:</strong> only the ones the site needs to work: login, chosen language and protection of forms. We do not use tracking or advertising. See <a asp-action="Cookies">all the cookies we use</a>.</li>
-        <li><strong>No more than needed:</strong> we do not ask for national ID numbers, an address on the account or anything else we do not need. Name and phone on resources are optional.</li>
+        <li><strong>No more than needed:</strong> we do not ask for national ID numbers, an address on the account or anything else we do not need. On a resource we ask for the name and phone number of a contact person, because emergency management must be able to call whoever has the resource.</li>
+        <li><strong>Map and municipality:</strong> when you choose a point on the map, the point (not who you are) is sent to the Norwegian Mapping Authority (Kartverket) to find the municipality and the nearest address.</li>
     </ul>
 
     <h2>Why we store it</h2>

@@ -2,36 +2,26 @@ using System.ComponentModel.DataAnnotations;
 using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
 using Xunit;
-
 namespace Nabohjelp.Tests;
-
-// Tester for statusflyten til behov (BehovStatusflyt) og for behovsskjemaet (BehovViewModel).
 public class BehovStatusflytTests
 {
-    // ============================================
-    // ----- Lovlige og ulovlige statusendringer -----
-    // ============================================
     [Theory]
     [InlineData(BehovStatus.New, BehovStatus.UnderReview, true)]
     [InlineData(BehovStatus.New, BehovStatus.Rejected, true)]
-    [InlineData(BehovStatus.New, BehovStatus.Resolved, false)]      // kan ikke hoppe rett til løst
-    [InlineData(BehovStatus.New, BehovStatus.Assigned, false)]      // «Tildelt» settes bare av tildelingen
+    [InlineData(BehovStatus.New, BehovStatus.Resolved, false)]     
+    [InlineData(BehovStatus.New, BehovStatus.Assigned, false)]      
     [InlineData(BehovStatus.UnderReview, BehovStatus.Resolved, true)]
     [InlineData(BehovStatus.UnderReview, BehovStatus.Rejected, true)]
     [InlineData(BehovStatus.UnderReview, BehovStatus.Assigned, false)]
     [InlineData(BehovStatus.Assigned, BehovStatus.Resolved, true)]
     [InlineData(BehovStatus.Assigned, BehovStatus.Rejected, false)]
-    [InlineData(BehovStatus.Resolved, BehovStatus.New, false)]      // avsluttede behov endres ikke mer
+    [InlineData(BehovStatus.Resolved, BehovStatus.New, false)]  
     [InlineData(BehovStatus.Rejected, BehovStatus.UnderReview, false)]
     [InlineData(BehovStatus.Withdrawn, BehovStatus.New, false)]
     public void KanEndres_FolgerStatusflyten(BehovStatus fra, BehovStatus til, bool forventet)
     {
         Assert.Equal(forventet, BehovStatusflyt.KanEndres(fra, til));
     }
-
-    // ==================================================
-    // ----- Endre, trekke tilbake og avsluttede behov -----
-    // ==================================================
     [Theory]
     [InlineData(BehovStatus.New, true, false, 0)]
     [InlineData(BehovStatus.UnderReview, true, false, 1)]
@@ -45,10 +35,6 @@ public class BehovStatusflytTests
         Assert.Equal(erAvsluttet, BehovStatusflyt.ErAvsluttet(status));
         Assert.Equal(steg, BehovStatusflyt.StegNummer(status));
     }
-
-    // ===========================
-    // ----- Behovsskjemaet -----
-    // ===========================
     [Fact]
     public void FraBehov_FyllerSkjemaetOgDelerOppTelefonen()
     {
@@ -61,7 +47,6 @@ public class BehovStatusflytTests
             Longitude = 8.1,
             KontaktTelefon = "+46 70 123 45 67"
         };
-
         BehovViewModel skjema = BehovViewModel.FraBehov(behov);
 
         Assert.Equal(7, skjema.Id);
@@ -83,7 +68,6 @@ public class BehovStatusflytTests
         Assert.Equal(landskode, skjema.Landskode);
         Assert.Equal(nummer, skjema.KontaktTelefon);
     }
-
     [Fact]
     public void KopierTil_LagrerAnnetTekstBareNaarTypenErAnnet()
     {
@@ -102,6 +86,40 @@ public class BehovStatusflytTests
     }
 
     [Fact]
+    public void KopierTil_LagrerKoordinaterOgKommuneForBehovskøen()
+    {
+        var behov = new Behov();
+        BehovViewModel skjema = GyldigSkjema();
+        skjema.Latitude = 58.1467;
+        skjema.Longitude = 7.9956;
+        skjema.KommuneNavn = "Kristiansand";
+
+        skjema.KopierTil(behov);
+
+        Assert.Equal(58.1467, behov.Latitude, 5);
+        Assert.Equal(7.9956, behov.Longitude, 5);
+        Assert.Equal("4204", behov.Kommunenummer);
+
+        BehovViewModel redigert = BehovViewModel.FraBehov(behov);
+        Assert.Equal(58.1467, redigert.Latitude);
+        Assert.Equal(7.9956, redigert.Longitude);
+        Assert.Equal("Kristiansand", redigert.KommuneNavn);
+    }
+    [Theory]
+    [InlineData(-90, -180, true)]
+    [InlineData(90, 180, true)]
+    [InlineData(90.01, 0, false)]
+    [InlineData(0, 180.01, false)]
+    public void Koordinater_ValideresInnenforGyldigeGrenser(double bredde, double lengde, bool forventet)
+    {
+        BehovViewModel skjema = GyldigSkjema();
+        skjema.Latitude = bredde;
+        skjema.Longitude = lengde;
+
+        Assert.Equal(forventet, ErGyldig(skjema));
+    }
+
+    [Fact]
     public void Forslag_FinnesForTransport_MenIkkeForAnnet()
     {
         Assert.StartsWith("Hva skal fraktes", BehovViewModel.HentForslag(BehovType.Transport));
@@ -110,7 +128,7 @@ public class BehovStatusflytTests
 
     [Theory]
     [InlineData("ok", true)]
-    [InlineData("uten kontakt", false)]   // verken telefon eller e-post
+    [InlineData("uten kontakt", false)]  
     [InlineData("ukjent landskode", false)]
     [InlineData("bokstaver i telefon", false)]
     [InlineData("annet uten tekst", false)]
@@ -137,7 +155,6 @@ public class BehovStatusflytTests
 
         Assert.Equal(forventet, ErGyldig(skjema));
     }
-
     private static BehovViewModel GyldigSkjema()
     {
         return new BehovViewModel
@@ -151,9 +168,6 @@ public class BehovStatusflytTests
             KontaktEpost = "kari@example.no"
         };
     }
-
-    // Kjører de samme valideringsreglene som ASP.NET bruker på skjemaet,
-    // også Validate-metoden (telefon eller e-post, landskode, «Annet»).
     private static bool ErGyldig(BehovViewModel modell)
     {
         var resultater = new List<ValidationResult>();

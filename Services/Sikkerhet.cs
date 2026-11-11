@@ -90,16 +90,17 @@ public static class Sikkerhet
     }
 
     // Innholdet i Content-Security-Policy: hvor nettleseren får hente skript, stiler og bilder fra.
-    // Bare fra oss selv og de få stedene vi bruker: Leaflet fra unpkg, QR-koden fra cdnjs
-    // og kartbildene fra OpenStreetMap. 'unsafe-inline' trengs fordi noen sider har små
-    // skript og stiler direkte i HTML-en.
+    // Bare fra oss selv og de få stedene vi bruker: Leaflet fra unpkg, QR-koden fra cdnjs,
+    // kartbildene fra OpenStreetMap og oppslag av kommune og adresse hos Kartverket
+    // (ws.geonorge.no). 'unsafe-inline' trengs fordi noen sider har små skript og stiler
+    // direkte i HTML-en.
     private const string InnholdsRegler =
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
         "style-src 'self' 'unsafe-inline' https://unpkg.com; " +
         "img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com; " +
         "font-src 'self'; " +
-        "connect-src 'self'; " +
+        "connect-src 'self' https://ws.geonorge.no; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
         "form-action 'self'; " +

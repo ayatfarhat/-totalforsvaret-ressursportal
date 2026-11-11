@@ -39,21 +39,12 @@
             <legend><span class="trinn" aria-hidden="true">2</span> @T["Hvor finner vi det?"]</legend>
 
             <div class="felt">
-                <label asp-for="Kommunenummer" class="form-label">@T["Kommune"]</label>
-                <select asp-for="Kommunenummer" class="form-select" aria-describedby="kommuneHjelp">
-                    <option value="">@T["Velg kommune"]</option>
-                    @foreach (string fylke in Kommuner.Fylker)
-                    {
-                        <optgroup label="@fylke">
-                            @foreach (Kommune kommune in Kommuner.IFylke(fylke))
-                            {
-                                <option value="@kommune.Nummer">@kommune.Navn</option>
-                            }
-                        </optgroup>
-                    }
-                </select>
-                <p id="kommuneHjelp" class="kart-tips">@T["Kriseledelsen bruker kommunen til å skrive ut ressurslister per område."]</p>
-                <span asp-validation-for="Kommunenummer"></span>
+                <label asp-for="KommuneNavn" class="form-label">@T["Kommune"]</label>
+                <input asp-for="KommuneNavn" class="form-control" list="kommuneliste" autocomplete="off"
+                       placeholder="@T["For eksempel Grimstad"]" aria-describedby="kommuneHjelp" />
+                <partial name="_Kommuneliste" />
+                <p id="kommuneHjelp" class="kart-tips">@T["Skriv kommunen, eller pek ut stedet på kartet under, så fyller vi inn kommune og adresse."]</p>
+                <span asp-validation-for="KommuneNavn"></span>
             </div>
 
             <div class="felt">
@@ -70,6 +61,7 @@
                      data-lengde="#lengdegradInput"
                      data-status="#valgtPosisjon"
                      data-posisjon="#Posisjon"
+                     data-kommune="#KommuneNavn"
                      data-knapp="#minPosisjon"
                      data-nal="gi"
                      role="group" aria-label="@T["Kart. Trykk for å velge posisjon."]"></div>
@@ -88,13 +80,13 @@
             <legend><span class="trinn" aria-hidden="true">3</span> @T["Når og hvordan kan vi nå deg?"]</legend>
 
             <div class="felt">
-                <label asp-for="TilgjengeligFra" class="form-label">@T["Tilgjengelig fra"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
+                <label asp-for="TilgjengeligFra" class="form-label">@T["Tilgjengelig fra"]</label>
                 <input asp-for="TilgjengeligFra" class="form-control" type="datetime-local" />
                 <span asp-validation-for="TilgjengeligFra"></span>
             </div>
 
             <div class="felt">
-                <label asp-for="Beskrivelse" class="form-label">@T["Beskrivelse"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
+                <label asp-for="Beskrivelse" class="form-label">@T["Beskrivelse"]</label>
                 <textarea asp-for="Beskrivelse" class="form-control" rows="4" placeholder="@T["For eksempel størrelse, tilstand eller hvor mange timer du kan hjelpe"]"></textarea>
                 <p class="kart-tips">@T["Når du velger type, fyller vi inn et forslag du kan endre."]</p>
                 <span asp-validation-for="Beskrivelse"></span>
@@ -120,12 +112,12 @@
 
             <div class="felt-par">
                 <div class="felt">
-                    <label asp-for="Navn" class="form-label">@T["Navn"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
+                    <label asp-for="Navn" class="form-label">@T["Navn på kontaktperson"]</label>
                     <input asp-for="Navn" class="form-control" autocomplete="name" />
                     <span asp-validation-for="Navn"></span>
                 </div>
                 <div class="felt">
-                    <label asp-for="Telefon" class="form-label">@T["Telefon"] <span class="valgfritt">@T["(valgfritt)"]</span></label>
+                    <label asp-for="Telefon" class="form-label">@T["Telefon"]</label>
                     <div class="telefon-rad">
                         <select asp-for="Landskode" class="form-select" aria-label="@T["Landskode"]">
                             @foreach (Land land in Land.Alle)

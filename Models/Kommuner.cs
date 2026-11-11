@@ -437,6 +437,43 @@ public static class Kommuner
         return Finn(nummer) != null;
     }
 
+    // Finner kommunen ut fra det brukeren skrev i kommunefeltet. Godtar navnet
+    // («Grimstad», store eller små bokstaver, også «Grimstad kommune») eller nummeret («4202»).
+    // Gir kommunen, eller null hvis den ikke finnes.
+    public static Kommune? FinnFraTekst(string? tekst)
+    {
+        if (string.IsNullOrWhiteSpace(tekst))
+        {
+            return null;
+        }
+
+        string renset = tekst.Trim();
+        if (renset.EndsWith(" kommune", StringComparison.OrdinalIgnoreCase))
+        {
+            renset = renset.Substring(0, renset.Length - " kommune".Length).Trim();
+        }
+
+        foreach (Kommune kommune in Alle)
+        {
+            if (kommune.Nummer == renset || string.Equals(kommune.Navn, renset, StringComparison.OrdinalIgnoreCase))
+            {
+                return kommune;
+            }
+        }
+        return null;
+    }
+
+    // Navnet til kommunen med dette nummeret, eller tom tekst. Brukes til å fylle kommunefeltet.
+    public static string NavnEllerTomt(string? nummer)
+    {
+        Kommune? kommune = Finn(nummer);
+        if (kommune == null)
+        {
+            return "";
+        }
+        return kommune.Navn;
+    }
+
     // Navnet som vises i lister og utskrift.
     public static string VisNavn(string? nummer)
     {
