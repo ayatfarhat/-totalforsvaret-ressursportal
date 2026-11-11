@@ -16,7 +16,7 @@
     }
     else if (kode == 429)
     {
-        // Gis av fartsgrensen for innlogging i Program.cs (AddRateLimiter).
+        // Gis av fartsgrensene i Services/Sikkerhet.cs (for mange forsøk på kort tid).
         tittel = T["For mange forsøk"];
         tekst = T["Du har prøvd for mange ganger på kort tid. Vent ett minutt og prøv igjen."];
     }

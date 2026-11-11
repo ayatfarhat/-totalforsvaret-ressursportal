@@ -94,8 +94,8 @@ public class TildelingController_Tests
             },
 
             TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-    new DefaultHttpContext(),
-    new TestTempDataProvider())
+                new DefaultHttpContext(),
+                new TestTempDataProvider())
         };
 
         // Første tildeling skal lykkes.

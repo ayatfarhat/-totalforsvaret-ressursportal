@@ -355,7 +355,7 @@ Telefon og e-post på behov, og navn og telefon på ressurser, lagres kryptert i
 
 ### Språkvalg (norsk og engelsk)
 
-- Knappene **NO / EN** i menyen bytter språk. Valget lagres i en cookie i ett år.
+- Språkknappen øverst til høyre («English» / «Norsk») bytter språk. Valget lagres i en cookie i ett år.
 - Tekstene skrives på norsk i koden som `@T["Logg inn"]`. Den engelske teksten ligger i `Resources/SharedResource.en.resx`. Mangler en oversettelse, vises den norske teksten.
 - Bare språket på teksten endres. Tall leses fortsatt med punktum, så koordinatene fra kartet virker på begge språk.
 - Alle sider er oversatt, også meldinger fra controllerne, feilmeldinger i skjemaene og boksene på kartet. Kode som ikke har `T` (modeller og tjenester), bruker `Oversetter.Tekst("...")`.

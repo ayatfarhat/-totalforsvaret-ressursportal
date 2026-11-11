@@ -88,7 +88,7 @@ public class BehovController : Controller
     // Admin og Kommune ser alle behov.
     // Kategori og filter kommer fra adressen (se ViewModels/BehovListeViewModel.cs).
     [HttpGet]
-    public async Task<IActionResult> MineBehov(BehovListeViewModel liste)
+    public async Task<IActionResult> MineBehov(BehovListeViewModel filter)
     {
         // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
         // b => ... betyr «for hvert behov b»: Where velger behov.
@@ -102,8 +102,8 @@ public class BehovController : Controller
         }
 
         // Her vises alle kategorier hvis ingen er valgt.
-        liste.Fyll(await sporring.ToListAsync(), BehovStatusflyt.KategoriAlle);
-        return View(liste);
+        filter.Fyll(await sporring.ToListAsync(), BehovStatusflyt.KategoriAlle);
+        return View(filter);
     }
 
     // GET: /Behov/Rediger/5
@@ -240,11 +240,11 @@ public class BehovController : Controller
     // Kategori og filter kommer fra adressen (se ViewModels/BehovListeViewModel.cs).
     [HttpGet]
     [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
-    public async Task<IActionResult> Ko(BehovListeViewModel liste)
+    public async Task<IActionResult> Ko(BehovListeViewModel filter)
     {
         List<Behov> alle = await _db.Behovsliste.AsNoTracking().ToListAsync();
-        liste.Fyll(alle, BehovStatusflyt.KategoriApne);
-        return View(liste);
+        filter.Fyll(alle, BehovStatusflyt.KategoriApne);
+        return View(filter);
     }
 
     // POST: /Behov/EndreStatus

@@ -69,14 +69,14 @@ namespace Nabohjelp.Controllers
         // Kategori og filter kommer fra adressen (se ViewModels/RessursListeViewModel.cs).
         [HttpGet]
         [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
-        public async Task<IActionResult> Oversikt(RessursListeViewModel liste)
+        public async Task<IActionResult> Oversikt(RessursListeViewModel filter)
         {
             List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking()
                 .OrderByDescending(r => r.OpprettetTid)
                 .ToListAsync();
 
-            liste.Fyll(TilViewModeller(ressurser));
-            return View(liste);
+            filter.Fyll(TilViewModeller(ressurser));
+            return View(filter);
         }
 
         // Viser skjemaet for innloggede brukere.

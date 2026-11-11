@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security.Claims;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
@@ -205,7 +204,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// Språket velges med knappen NO/EN og huskes i en cookie.
+// Språket velges med språkknappen øverst på siden og huskes i en cookie.
 // Bare språket på teksten endres (UICulture). Tall og datoer leses fortsatt
 // med punktum (InvariantCulture), slik at koordinatene fra kartet virker.
 CultureInfo norsk = new CultureInfo("nb");

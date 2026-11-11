@@ -1,7 +1,8 @@
 namespace Nabohjelp.Models;
 
 // Alle kommuner i Norge (357, inndelingen fra 2024), med kommunenummer og fylke.
-// Brukes i nedtrekkslisten «Kommune» på ressursskjemaet og i utskriften per region.
+// Brukes som forslag i kommunefeltet på skjemaene for ressurs og behov, i filtrene
+// over listene og i utskriften per region.
 // Kilde: postnummerregisteret til Bring (via npm-pakken «postnummer» 2.0.0).
 // Kommunenummeret lagres i databasen; navnet slås opp her når det skal vises.
 public class Kommune

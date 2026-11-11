@@ -24,15 +24,15 @@ public class BehovViewModel : IValidatableObject
     [Display(Name = "Hva slags behov?")]
     public string? AnnetType { get; set; }
 
-   [Required(ErrorMessage = "Breddegrad er påkrevd.")]
-[Range(typeof(double), "-90", "90",
-    ErrorMessage = "Breddegrad må være mellom -90 og 90.")]
-public double? Latitude { get; set; }
+    [Required(ErrorMessage = "Breddegrad er påkrevd.")]
+    [Range(typeof(double), "-90", "90",
+        ErrorMessage = "Breddegrad må være mellom -90 og 90.")]
+    public double? Latitude { get; set; }
 
-[Required(ErrorMessage = "Lengdegrad er påkrevd.")]
-[Range(typeof(double), "-180", "180",
-    ErrorMessage = "Lengdegrad må være mellom -180 og 180.")]
-public double? Longitude { get; set; }
+    [Required(ErrorMessage = "Lengdegrad er påkrevd.")]
+    [Range(typeof(double), "-180", "180",
+        ErrorMessage = "Lengdegrad må være mellom -180 og 180.")]
+    public double? Longitude { get; set; }
 
     [Required(ErrorMessage = "Velg prioritet.")]
     public BehovPrioritet? Prioritet { get; set; }

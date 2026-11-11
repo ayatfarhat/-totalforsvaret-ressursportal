@@ -1,6 +1,4 @@
 @model BehovListeViewModel
-@using System.Security.Claims
-@using Nabohjelp.Models
 
 @{
     ViewData["Title"] = T["Mine behov"];
@@ -9,7 +7,7 @@
     bool erAnsatt = Tilgang.ErAnsatt(User);
 
     // Brukes til å vise «Trekk tilbake» bare på behov brukeren selv har meldt.
-    string? brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    string brukerId = Tilgang.BrukerId(User);
 }
 
 @functions {
