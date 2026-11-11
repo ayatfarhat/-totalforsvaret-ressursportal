@@ -1,57 +1,34 @@
-services:
+# ---- Steg 1: Bygg ----
+# Bruker .NET SDK-bildet, som har verktøyene som trengs for å bygge appen
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
 
-  web:
-    build: .
-    ports:
-      - "8080:8080"
+# Kopierer prosjektfilen først og henter pakker.
+# Docker husker dette steget, så pakkene lastes bare ned på nytt hvis .csproj endres.
+COPY Nabohjelp.csproj ./
+RUN dotnet restore Nabohjelp.csproj
 
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=nabohjelp;User=nabohjelp_user;Password=nabohjelp_password;"
+# Kopierer resten av koden og bygger en ferdig versjon av appen.
+# Prosjektfilen må nevnes, fordi mappen også har løsningsfilen Nabohjelp.slnx
+# (da vet ikke dotnet hvilken av dem den skal bygge).
+COPY . ./
+RUN dotnet publish Nabohjelp.csproj -c Release -o /app/publish
 
-    # Bilder som brukere laster opp lagres her. Uten dette forsvinner de
-    # hver gang containeren bygges på nytt.
-    volumes:
-      - nabohjelp_uploads:/app/wwwroot/uploads
-      # Krypteringsnøklene (se Program.cs). Må beholdes, ellers kan ikke de
-      # krypterte personopplysningene i databasen leses lenger.
-      - nabohjelp_nokler:/app/nokler
+# ---- Steg 2: Kjør ----
+# Bruker det mindre ASP.NET-bildet, som bare kan kjøre appen.
+# Byggeverktøyene fra steg 1 blir ikke med, så containeren blir mindre.
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
 
-    depends_on:
-      mariadb:
-        condition: service_healthy
+# Garanterer at appen binder mot port 8080 inne i containeren,
+# slik at docker-compose-portmappingen fungerer på samme måte i CI og lokalt.
+ENV ASPNETCORE_URLS=http://+:8080
 
+# Henter den ferdige appen fra steg 1
+COPY --from=build /app/publish .
 
-  mariadb:
-    image: mariadb:12
+# Appen lytter på port 8080 inne i containeren
+EXPOSE 8080
 
-    environment:
-      MARIADB_ROOT_PASSWORD: root_password
-      MARIADB_DATABASE: nabohjelp
-      MARIADB_USER: nabohjelp_user
-      MARIADB_PASSWORD: nabohjelp_password
-
-    ports:
-      - "3306:3306"
-
-    volumes:
-      - nabohjelp_data:/var/lib/mysql
-
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "healthcheck.sh",
-          "--connect",
-          "--innodb_initialized"
-        ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-
-volumes:
-  nabohjelp_data:
-  nabohjelp_uploads:
-  nabohjelp_nokler:
+# Starter appen når containeren startes
+ENTRYPOINT ["dotnet", "Nabohjelp.dll"]
