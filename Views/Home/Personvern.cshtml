@@ -41,6 +41,7 @@
     <ul>
         <li>Tilgang styres med roller. Kommandobroen og brukeradministrasjonen er bare for Kommune og Admin.</li>
         <li>Passord lagres som hash. Kontoen låses etter fem feil passord på rad.</li>
+        <li>Telefonnummer, e-post og navn på behov og ressurser lagres kryptert i databasen. Nøklene ligger et annet sted enn databasen, så en kopi av databasen alene gir ikke tilgang til opplysningene.</li>
         <li>Du kan slå på tofaktor-innlogging (2FA). Ansatte kan kreves å bruke 2FA.</li>
         <li>Alle skjemaer er beskyttet mot falske innsendinger fra andre nettsider og mot søppelpost fra roboter.</li>
     </ul>
@@ -92,6 +93,7 @@ else
     <ul>
         <li>Access is controlled with roles. Kommandobro and user administration are only for Kommune and Admin.</li>
         <li>Passwords are stored as hashes. The account is locked after five wrong passwords in a row.</li>
+        <li>Phone numbers, email addresses and names on needs and resources are stored encrypted in the database. The keys are kept separately from the database, so a copy of the database alone does not give access to the data.</li>
         <li>You can turn on two-factor authentication (2FA). Staff can be required to use 2FA.</li>
         <li>All forms are protected against fake submissions from other websites and against spam from bots.</li>
     </ul>

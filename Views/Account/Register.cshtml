@@ -43,6 +43,8 @@
 
             <button type="submit" class="btn btn-primary w-100">@T["Opprett konto"]</button>
         </form>
+
+        <partial name="_EksternInnlogging" />
     </div>
 
     <p class="auth-bunn">@T["Har du allerede konto?"] <a asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]">@T["Logg inn"]</a></p>

@@ -1,0 +1,24 @@
+@* Knappene «Logg inn med Vipps» og «Logg inn med Apple». Brukes på Login og Register.
+   Knappene sender et skjema til AccountController.LoggInnMed. Er leverandøren ikke
+   slått på (mangler avtale og nøkler), får brukeren en forklaring på innloggingssiden.
+   Når avtalen er på plass, skal de offisielle knappene/logoene fra Vipps og Apple brukes
+   (se README, «Innlogging med Vipps og Apple»). *@
+
+<div class="ekstern-innlogging">
+    <p class="ekstern-skille"><span>@T["eller"]</span></p>
+
+    <form asp-controller="Account" asp-action="LoggInnMed" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+        <input type="hidden" name="leverandor" value="Vipps" />
+        <button type="submit" class="btn ekstern-knapp ekstern-vipps">@T["Logg inn med Vipps"]</button>
+    </form>
+
+    <form asp-controller="Account" asp-action="LoggInnMed" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+        <input type="hidden" name="leverandor" value="Apple" />
+        <button type="submit" class="btn ekstern-knapp ekstern-apple">@T["Logg inn med Apple"]</button>
+    </form>
+
+    <p class="ekstern-samtykke">
+        @T["Første gang du logger inn med Vipps eller Apple, lages det en konto med e-postadressen din, og du godtar"]
+        <a asp-controller="Home" asp-action="Personvern">@T["personvernerklæringen"]</a>.
+    </p>
+</div>

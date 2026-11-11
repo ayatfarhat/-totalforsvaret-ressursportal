@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -171,6 +172,121 @@ public class AccountController : Controller
         // Samme melding om e-posten eller passordet er feil, så ingen kan finne ut hvem som har konto.
         ModelState.AddModelError("", T["Feil e-post eller passord"]);
         return View(model);
+    }
+
+    // ---------- INNLOGGING MED VIPPS OG APPLE ----------
+
+    // POST: /Account/LoggInnMed
+    // Knappene «Logg inn med Vipps» og «Logg inn med Apple» sendes hit.
+    // Er leverandøren slått på, sendes brukeren videre til Vipps eller Apple.
+    // Hvis ikke (ingen avtale og nøkler ennå), får brukeren en forklaring.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
+    public IActionResult LoggInnMed(string leverandor, string? returnUrl = null)
+    {
+        // Godtar bare Vipps og Apple, i tilfelle noen har endret skjemaet.
+        if (!EksternInnlogging.Finnes(leverandor))
+        {
+            return BadRequest();
+        }
+
+        if (!EksternInnlogging.ErAktiv(leverandor))
+        {
+            TempData["Info"] = string.Format(
+                T["Innlogging med {0} er ikke slått på ennå. Det krever en avtale med {0}. Logg inn med e-post og passord så lenge."].Value,
+                leverandor);
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        // Adressen Vipps eller Apple sender brukeren tilbake til når innloggingen er ferdig.
+        string? tilbake = Url.Action(nameof(LoggInnMedSvar), new { returnUrl });
+        AuthenticationProperties egenskaper = _signInManager.ConfigureExternalAuthenticationProperties(leverandor, tilbake);
+
+        // Challenge sender brukeren til innloggingssiden hos leverandøren.
+        return Challenge(egenskaper, leverandor);
+    }
+
+    // GET: /Account/LoggInnMedSvar
+    // Hit kommer brukeren tilbake fra Vipps eller Apple.
+    [HttpGet]
+    public async Task<IActionResult> LoggInnMedSvar(string? returnUrl = null)
+    {
+        // Opplysningene fra Vipps/Apple: hvilken leverandør, brukerens id der, og e-post.
+        ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
+
+        if (info == null)
+        {
+            TempData["Info"] = T["Innloggingen ble avbrutt. Prøv igjen."].Value;
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        // Har brukeren logget inn med denne leverandøren før, logges hen rett inn.
+        // bypassTwoFactor: false – har brukeren 2FA, må koden fortsatt skrives inn.
+        Microsoft.AspNetCore.Identity.SignInResult resultat = await _signInManager.ExternalLoginSignInAsync(
+            info.LoginProvider,
+            info.ProviderKey,
+            isPersistent: false,
+            bypassTwoFactor: false);
+
+        if (resultat.Succeeded)
+        {
+            return TilbakeEllerForside(returnUrl);
+        }
+
+        if (resultat.RequiresTwoFactor)
+        {
+            return RedirectToAction("LoginWith2fa", new { returnUrl });
+        }
+
+        if (resultat.IsLockedOut)
+        {
+            TempData["Info"] = T["Kontoen er låst. Prøv igjen senere, eller kontakt administrator."].Value;
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        // Første gang: vi lager en ny konto med e-posten fra Vipps/Apple.
+        string? epost = info.Principal.FindFirstValue(ClaimTypes.Email);
+
+        if (string.IsNullOrEmpty(epost))
+        {
+            TempData["Info"] = string.Format(T["Vi fikk ikke e-postadressen din fra {0}. Registrer deg med e-post og passord."].Value, info.LoginProvider);
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        // Finnes det allerede en konto med e-posten, kobler vi ikke automatisk.
+        // Ellers kunne noen som styrer en konto hos leverandøren, tatt over kontoen her.
+        IdentityUser? finnes = await _userManager.FindByEmailAsync(epost);
+
+        if (finnes != null)
+        {
+            TempData["Info"] = T["Det finnes allerede en konto med denne e-postadressen. Logg inn med e-post og passord."].Value;
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        // Kontoen får ikke passord. Brukeren logger alltid inn via Vipps/Apple.
+        // EmailConfirmed: Vipps og Apple har allerede bekreftet e-postadressen.
+        var bruker = new IdentityUser
+        {
+            UserName = epost,
+            Email = epost,
+            EmailConfirmed = true
+        };
+
+        IdentityResult opprettet = await _userManager.CreateAsync(bruker);
+
+        if (!opprettet.Succeeded)
+        {
+            TempData["Info"] = T["Kunne ikke lagre. Prøv igjen."].Value;
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        // Husker koblingen, så brukeren kjennes igjen neste gang (tabellen AspNetUserLogins).
+        await _userManager.AddLoginAsync(bruker, info);
+        await _userManager.AddToRoleAsync(bruker, "Frivillig");
+        await _signInManager.SignInAsync(bruker, isPersistent: false, info.LoginProvider);
+
+        return TilbakeEllerForside(returnUrl);
     }
 
     // GET: /Account/LoginWith2fa
@@ -558,8 +674,17 @@ public class AccountController : Controller
     // GET: /Account/SlettKonto
     [Authorize]
     [HttpGet]
-    public IActionResult SlettKonto()
+    public async Task<IActionResult> SlettKonto()
     {
+        IdentityUser? bruker = await _userManager.GetUserAsync(User);
+
+        if (bruker == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        // Brukere fra Vipps/Apple har ikke passord hos oss, så de får ikke passordfeltet.
+        ViewData["HarPassord"] = await _userManager.HasPasswordAsync(bruker);
         return View(new SlettKontoViewModel());
     }
 
@@ -570,11 +695,6 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SlettKonto(SlettKontoViewModel model)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
         IdentityUser? bruker = await _userManager.GetUserAsync(User);
 
         if (bruker == null)
@@ -582,13 +702,31 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        // Krever riktig passord før sletting.
-        bool riktigPassord = await _userManager.CheckPasswordAsync(bruker, model.Passord);
+        bool harPassord = await _userManager.HasPasswordAsync(bruker);
+        ViewData["HarPassord"] = harPassord;
 
-        if (!riktigPassord)
+        // Brukere fra Vipps/Apple har ikke passord. For dem er det nok å være innlogget
+        // og trykke på knappen, så vi fjerner kravet om passord i skjemaet.
+        if (!harPassord)
         {
-            ModelState.AddModelError("Passord", T["Feil passord."]);
+            ModelState.Remove(nameof(model.Passord));
+        }
+
+        if (!ModelState.IsValid)
+        {
             return View(model);
+        }
+
+        // Krever riktig passord før sletting.
+        if (harPassord)
+        {
+            bool riktigPassord = await _userManager.CheckPasswordAsync(bruker, model.Passord);
+
+            if (!riktigPassord)
+            {
+                ModelState.AddModelError("Passord", T["Feil passord."]);
+                return View(model);
+            }
         }
 
         // Selve slettingen skjer i KontoService (samme kode som admin bruker).

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.Data;
 
@@ -57,5 +59,20 @@ public class ApplicationDbContext : IdentityDbContext
         builder.Entity<Invitasjon>()
             .HasIndex(i => i.KodeHash)
             .IsUnique();
+
+        // Personopplysninger lagres kryptert (se Services/Kryptering.cs).
+        // HasConversion sier: kjør Krypter når verdien lagres, og Dekrypter når den leses.
+        // Resten av koden merker ingenting, den ser alltid vanlig tekst.
+        builder.Entity<Behov>().Property(b => b.KontaktTelefon).HasConversion(KrypterteFelt);
+        builder.Entity<Behov>().Property(b => b.KontaktEpost).HasConversion(KrypterteFelt);
+        builder.Entity<Ressurs>().Property(r => r.Navn).HasConversion(KrypterteFelt);
+        builder.Entity<Ressurs>().Property(r => r.Telefon).HasConversion(KrypterteFelt);
     }
+
+    // Oppskriften EF bruker for de krypterte feltene: første del gjelder når verdien
+    // lagres, andre del når den leses fra databasen.
+    private static readonly ValueConverter<string?, string?> KrypterteFelt =
+        new ValueConverter<string?, string?>(
+            tekst => Kryptering.Krypter(tekst),
+            lagret => Kryptering.Dekrypter(lagret));
 }

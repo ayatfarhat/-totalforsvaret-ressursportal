@@ -13,6 +13,9 @@
     # hver gang containeren bygges på nytt.
     volumes:
       - nabohjelp_uploads:/app/wwwroot/uploads
+      # Krypteringsnøklene (se Program.cs). Må beholdes, ellers kan ikke de
+      # krypterte personopplysningene i databasen leses lenger.
+      - nabohjelp_nokler:/app/nokler
 
     depends_on:
       mariadb:
@@ -50,3 +53,4 @@
 volumes:
   nabohjelp_data:
   nabohjelp_uploads:
+  nabohjelp_nokler:
