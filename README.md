@@ -146,9 +146,9 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 |---|---|---|---|
 | Innlogging og konto | `AccountController` | `Views/Account/` | `LoginViewModel`, `RegisterViewModel`, `KontoViewModel`, `TofaViewModel`, `EndrePassordViewModel`, `SlettKontoViewModel` |
 | Brukeradministrasjon | `AdminController` | `Views/Admin/` | `AdminBrukerViewModel` |
-| Ressurser (registrere, endre, slette, ressursliste, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursListeViewModel`, `RessursUtskriftViewModel`, `Kommuner` |
+| Ressurser (registrere, endre, slette, ressursliste, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursListeViewModel`, `RessursUtskriftViewModel`, `Fane`, `Kommuner` |
 | Ønskede ressurser | `OnsketRessursController` | `Views/OnsketRessurs/` | `OnsketRessurs` |
-| Behov (melde, endre, trekke tilbake, kø med faner og filter) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovListeViewModel`, `BehovStatusflyt` |
+| Behov (melde, endre, trekke tilbake, kø med faner og filter) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovListeViewModel`, `Fane`, `BehovStatusflyt` |
 | Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
 | Forside, infosider (personvern, vilkår, cookies, spørsmål og svar), feilsider og språkvalg | `HomeController` | `Views/Home/` | `VanligeSporsmal` |
@@ -172,7 +172,23 @@ Kode som brukes av flere controllere, ligger i `Services/`:
 | `Ressursmatching.cs` | Hvilke ressurstyper som passer til hvilke behov, og nærmeste ledige ressurs. Brukes av tildelingen og Kommandobro-kartet. |
 | `Invitasjonsregler.cs` | Lager og sjekker invitasjonslenker som gir rollen Kommune eller Admin. |
 | `Sikkerhet.cs` | Sikkerhetshoder, fartsgrenser og beskyttelse mot søppelpost (se «Sikkerhetstiltak» under). |
-| `Oversetter.cs` | Gir tekst på valgt språk i kode som ikke har `T["..."]`, for eksempel modeller og tjenester. |
+| `Oversetter.cs` | Gir tekst på valgt språk i kode som ikke har `T["..."]`, for eksempel modeller og tjenester. Svarer også på hvilket språk som er valgt. |
+| `EksternInnlogging.cs` | Setter opp innlogging med Vipps og Apple (se «Innlogging med Vipps og Apple» under). |
+| `Kryptering.cs` | Krypterer personopplysninger før de lagres (se «Kryptering av personopplysninger» under). |
+
+### Slik går en forespørsel gjennom koden
+
+Alle sidene følger samme vei. Eksempelet er behovskøen (`/Behov/Ko`):
+
+1. Nettleseren ber om `/Behov/Ko`. ASP.NET finner `BehovController` og metoden `Ko`. `[Authorize(Policy = "Ansatt")]` slipper bare inn Admin og Kommune.
+2. `Ko` henter behovene fra databasen gjennom `ApplicationDbContext` (`_db.Behovsliste`).
+3. ASP.NET har allerede fylt en `BehovListeViewModel` med valgene i adressen (fane og kommune). Controlleren kaller `Fyll`, som sorterer behovene, teller dem per fane og plukker ut dem som passer filteret.
+4. `return View(modell)` sender modellen til `Views/Behov/Ko.cshtml`, som bare viser det den får. Tekster som status og type hentes fra `Visningstekst`, slik at de blir like på alle sidene.
+5. `Views/Shared/_Layout.cshtml` legger menyen og bunnteksten rundt siden, og `T["..."]` bytter teksten til engelsk når det er valgt.
+
+Et skjema går samme vei tilbake: skjemaet sendes med POST til controlleren, ASP.NET fyller en ViewModel og sjekker reglene (`[Required]` og lignende), controlleren kopierer feltene over i modellen og lagrer med `_db.SaveChangesAsync()`.
+
+Kartet er det eneste stedet der JavaScript henter data selv: `wwwroot/js/kart.js` spør `/Kommandobro/Kartdata` hvert 15. sekund og tegner nålene på nytt.
 
 ### Filene på toppnivå
 

@@ -1,9 +1,8 @@
-@using System.Globalization
 @{
     ViewData["Title"] = "Cookies";
 
     // Siden er lang, så vi skriver den på begge språk her (som Personvern).
-    bool engelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    bool engelsk = Oversetter.ErEngelsk();
 }
 
 @* Cookie-erklæringen. Tabellen må oppdateres hvis appen begynner å bruke nye cookies. *@

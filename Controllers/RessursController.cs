@@ -42,9 +42,9 @@ namespace Nabohjelp.Controllers
 
             // Antall ønskede ressurser vises i en egen boks på siden.
             ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
-            ViewBag.ErKoordinator = erKoordinator;
 
-            // Kriseledelsen ser også hvor mange behov som venter (lenke til behovskøen).
+            // Kriseledelsen ser også hvor mange behov som venter og hvor mange ressurser
+            // som er ledige (bokser med lenke til behovskøen og ressurslisten).
             if (erKoordinator)
             {
                 ViewBag.AntallAktiveBehov = await _db.Behovsliste
@@ -52,10 +52,7 @@ namespace Nabohjelp.Controllers
                                 b.Status != BehovStatus.Rejected &&
                                 b.Status != BehovStatus.Withdrawn)
                     .CountAsync();
-            }
 
-            if (erKoordinator)
-            {
                 ViewBag.AntallTilgjengeligeRessurser = await _db.Ressurser
                     .Where(r => r.Status == "Tilgjengelig")
                     .CountAsync();

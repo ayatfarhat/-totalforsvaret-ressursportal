@@ -7,7 +7,7 @@
     string tittel = "" + ViewData["Title"];
 }
 <!DOCTYPE html>
-<html lang="@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb")">
+<html lang="@Oversetter.Sprakkode()">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

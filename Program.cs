@@ -91,8 +91,12 @@ EksternInnlogging.LeggTil(builder);
 // og innloggings-cookien. De lagres i mappen «nokler», som er et eget volum i Docker.
 // Uten dette lages nye nøkler hver gang containeren bygges, og da kan
 // ingen lese de krypterte opplysningene lenger.
-string nokkelMappe = builder.Configuration["Sikkerhet:NokkelMappe"]
-    ?? Path.Combine(builder.Environment.ContentRootPath, "nokler");
+// Mappen kan velges i appsettings («Sikkerhet:NokkelMappe»). Er den ikke satt, brukes «nokler».
+string? nokkelMappe = builder.Configuration["Sikkerhet:NokkelMappe"];
+if (string.IsNullOrEmpty(nokkelMappe))
+{
+    nokkelMappe = Path.Combine(builder.Environment.ContentRootPath, "nokler");
+}
 builder.Services.AddDataProtection()
     .SetApplicationName("BeredskapsPortalen")
     .PersistKeysToFileSystem(new DirectoryInfo(nokkelMappe));

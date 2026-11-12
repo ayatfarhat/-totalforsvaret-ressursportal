@@ -1,7 +1,11 @@
 using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
 using Xunit;
+
 namespace Nabohjelp.Tests;
+
+// Tester for fanene og filteret i behovskøen, «Mine behov» (BehovListeViewModel)
+// og ressurslisten (RessursListeViewModel).
 public class ListerTests
 {
     private static readonly DateTime Naa = new DateTime(2026, 11, 11, 12, 0, 0, DateTimeKind.Utc);
@@ -17,6 +21,8 @@ public class ListerTests
     {
         Assert.Equal(kategori, BehovStatusflyt.Kategori(status));
     }
+
+    // Fire behov: to åpne (det nyeste er planlagt), ett som pågår og ett lukket.
     private static List<Behov> Behovene()
     {
         return new List<Behov>
@@ -34,7 +40,9 @@ public class ListerTests
         var liste = new BehovListeViewModel();
 
         liste.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
-        Assert.Equal(new[] { 2, 1 }, liste.Liste.Select(b => b.Id));
+
+        // Ingen kategori valgt: standarden (åpne) brukes, med det nyeste behovet først.
+        Assert.Equal(new List<int> { 2, 1 }, Ider(liste.Liste));
         Assert.Equal(2, liste.AntallApne);
         Assert.Equal(1, liste.AntallPagar);
         Assert.Equal(1, liste.AntallLukket);
@@ -44,19 +52,23 @@ public class ListerTests
     [Fact]
     public void Behovsliste_FilterOgSortering()
     {
+        // «Akutte først» på fanen Alle: akutte (nyeste først), deretter planlagte.
         var akutte = new BehovListeViewModel { Kategori = "alle", Sortering = "akutte" };
         akutte.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
-        Assert.Equal(new[] { 3, 1, 2, 4 }, akutte.Liste.Select(b => b.Id));
+        Assert.Equal(new List<int> { 3, 1, 2, 4 }, Ider(akutte.Liste));
 
+        // Filter på kommune (skrevet med små bokstaver) og type.
         var grimstad = new BehovListeViewModel { Kategori = "alle", Kommune = "grimstad", Type = BehovType.Generator };
         grimstad.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
-        Assert.Equal(new[] { 1 }, grimstad.Liste.Select(b => b.Id));
+        Assert.Equal(new List<int> { 1 }, Ider(grimstad.Liste));
         Assert.True(grimstad.HarFilter());
 
+        // En kommune som ikke finnes, gir ingen treff (ikke alle).
         var ukjent = new BehovListeViewModel { Kategori = "alle", Kommune = "Atlantis" };
         ukjent.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
         Assert.Empty(ukjent.Liste);
     }
+
     [Fact]
     public void Behovskø_BeholderPosisjonOgKommuneForKartlenke()
     {
@@ -91,12 +103,49 @@ public class ListerTests
 
         var liste = new RessursListeViewModel();
         liste.Fyll(ressurser);
-        Assert.Equal(new[] { 1, 3 }, liste.Liste.Select(r => r.Id));
+        Assert.Equal(new List<int> { 1, 3 }, RessursIder(liste.Liste));
         Assert.Equal(1, liste.AntallTildelt);
 
         var aggregater = new RessursListeViewModel { Kategori = "alle", Type = "Aggregat" };
         aggregater.Fyll(ressurser);
-        Assert.Equal(new[] { 2, 3 }, aggregater.Liste.Select(r => r.Id));
+        Assert.Equal(new List<int> { 2, 3 }, RessursIder(aggregater.Liste));
         Assert.Equal(2, aggregater.AntallAlle);
+    }
+
+    [Fact]
+    public void Faner_ViserAntallOgHvilkenSomErValgt()
+    {
+        var liste = new BehovListeViewModel { Kategori = "pagar" };
+        liste.Fyll(Behovene(), BehovStatusflyt.KategoriApne);
+
+        List<Fane> faner = liste.Faner();
+
+        Assert.Equal(4, faner.Count);
+        Assert.Equal("Åpne", faner[0].Tekst);
+        Assert.Equal(2, faner[0].Antall);
+        Assert.False(faner[0].ErValgt);
+        Assert.Equal("pagar", faner[1].Kategori);
+        Assert.True(faner[1].ErValgt);
+    }
+
+    // Id-ene til behovene i lista, i samme rekkefølge. Gjør det lett å sjekke rekkefølgen.
+    private static List<int> Ider(List<Behov> behovsliste)
+    {
+        var ider = new List<int>();
+        foreach (Behov behov in behovsliste)
+        {
+            ider.Add(behov.Id);
+        }
+        return ider;
+    }
+
+    private static List<int> RessursIder(List<RessursFormViewModel> ressurser)
+    {
+        var ider = new List<int>();
+        foreach (RessursFormViewModel ressurs in ressurser)
+        {
+            ider.Add(ressurs.Id);
+        }
+        return ider;
     }
 }

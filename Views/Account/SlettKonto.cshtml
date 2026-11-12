@@ -1,4 +1,6 @@
 @model SlettKontoViewModel
+@* Bekreftelse før kontoen slettes. Sendes til AccountController.SlettKonto,
+   som sletter kontoen og alt brukeren har registrert (Services/KontoService.cs). *@
 
 @{
     ViewData["Title"] = T["Slett konto"];

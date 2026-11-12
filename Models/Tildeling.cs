@@ -2,6 +2,13 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Nabohjelp.Models;
 
+// En tildeling kobler et behov med en ressurs, og husker hvem som tildelte og når.
+// Lages i TildelingController.Tildel.
+//
+// BehovId, RessursId og TildeltAvBrukerId er nøklene som lagres i tabellen.
+// Behov, Ressurs og TildeltAvBruker er selve objektene, som Entity Framework kan hente
+// ut fra nøklene. «= null!» betyr: «verdien settes av Entity Framework, ikke av oss»
+// (uten det ville kompilatoren advare om at egenskapen kan være null).
 public class Tildeling
 {
     public int Id { get; set; }

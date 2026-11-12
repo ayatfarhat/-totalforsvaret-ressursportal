@@ -1,4 +1,3 @@
-@using System.Globalization
 @model RessursListeViewModel
 @{
     ViewData["Title"] = T["Ressursliste"];
@@ -12,16 +11,15 @@
     <p class="ingress">@T["Alle ressurser som er registrert, nyeste først. Bare kommunen og kriseledelsen ser denne lista."]</p>
 </div>
 
+@* Fanene lages i RessursListeViewModel.Faner(). *@
 <nav class="faner" aria-label="@T["Velg hvilke ressurser som vises"]">
-    <a asp-action="Oversikt" asp-route-kategori="@RessursListeViewModel.KategoriTilgjengelig" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
-       class="@(Model.Kategori == RessursListeViewModel.KategoriTilgjengelig ? "valgt" : "")"
-       aria-current="@(Model.Kategori == RessursListeViewModel.KategoriTilgjengelig ? "page" : null)">@T["Tilgjengelige"] <span class="fane-antall">@Model.AntallTilgjengelig</span></a>
-    <a asp-action="Oversikt" asp-route-kategori="@RessursListeViewModel.KategoriTildelt" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
-       class="@(Model.Kategori == RessursListeViewModel.KategoriTildelt ? "valgt" : "")"
-       aria-current="@(Model.Kategori == RessursListeViewModel.KategoriTildelt ? "page" : null)">@T["Tildelte"] <span class="fane-antall">@Model.AntallTildelt</span></a>
-    <a asp-action="Oversikt" asp-route-kategori="@RessursListeViewModel.KategoriAlle" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
-       class="@(Model.Kategori == RessursListeViewModel.KategoriAlle ? "valgt" : "")"
-       aria-current="@(Model.Kategori == RessursListeViewModel.KategoriAlle ? "page" : null)">@T["Alle"] <span class="fane-antall">@Model.AntallAlle</span></a>
+    @foreach (Fane fane in Model.Faner())
+    {
+        <a asp-action="Oversikt" asp-route-kategori="@fane.Kategori" asp-route-type="@Model.Type" asp-route-kommune="@Model.Kommune"
+           class="@(fane.ErValgt ? "valgt" : "")" aria-current="@(fane.ErValgt ? "page" : null)">
+            @fane.Tekst <span class="fane-antall">@fane.Antall</span>
+        </a>
+    }
 </nav>
 
 <form asp-action="Oversikt" method="get" class="behov-filter" aria-label="@T["Filtrer ressursene"]">
@@ -96,10 +94,11 @@ else
                                 <span>@ressurs.Posisjon</span>
                                 @if (ressurs.Breddegrad != null && ressurs.Lengdegrad != null)
                                 {
-                                    string bredde = ressurs.Breddegrad.Value.ToString("0.#####", CultureInfo.InvariantCulture);
-                                    string lengde = ressurs.Lengdegrad.Value.ToString("0.#####", CultureInfo.InvariantCulture);
-                                    <a href="https://www.openstreetmap.org/?mlat=@bredde&amp;mlon=@lengde#map=15/@bredde/@lengde" target="_blank" rel="noopener"
-                                       aria-label="@T["Vis {0} på kart (åpnes i ny fane)", bredde + ", " + lengde]">@T["Vis på kart"]</a>
+                                    // Åpner punktet i OpenStreetMap i en ny fane (decimal gjøres om til double).
+                                    double bredde = (double)ressurs.Breddegrad.Value;
+                                    double lengde = (double)ressurs.Lengdegrad.Value;
+                                    <a href="@Visningstekst.KartLenke(bredde, lengde)" target="_blank" rel="noopener"
+                                       aria-label="@T["Vis {0} på kart (åpnes i ny fane)", Visningstekst.Koordinat(bredde) + ", " + Visningstekst.Koordinat(lengde)]">@T["Vis på kart"]</a>
                                 }
                             </span>
                         </td>

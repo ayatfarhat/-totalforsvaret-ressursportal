@@ -1,4 +1,6 @@
+using System.Globalization;
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.ViewModels;
 
@@ -23,6 +25,16 @@ public class TildelingViewModel
     public double Longitude { get; set; }
 
     public List<MatchendeRessursViewModel> MatchendeRessurser { get; set; } = new List<MatchendeRessursViewModel>();
+
+    // Tekst som er enkel å vise i siden, så siden slipper egne if-setninger for tomme felt.
+    public string VisBeskrivelse()
+    {
+        if (string.IsNullOrWhiteSpace(Beskrivelse))
+        {
+            return Oversetter.Tekst("Ingen beskrivelse");
+        }
+        return Beskrivelse;
+    }
 }
 
 // Representerer én ressurs som matcher behovet.
@@ -51,4 +63,34 @@ public class MatchendeRessursViewModel
 
     // Den nærmeste ressursen får merket «Anbefalt» (settes i TildelingController.Match).
     public bool ErAnbefalt { get; set; }
+
+    // Avstanden slik den vises på kortet, for eksempel «2.4 km».
+    public string VisAvstand()
+    {
+        if (AvstandKm == null)
+        {
+            return Oversetter.Tekst("Avstand ukjent");
+        }
+        return AvstandKm.Value.ToString("F1") + " km";
+    }
+
+    public string VisNavn()
+    {
+        if (string.IsNullOrWhiteSpace(Navn))
+        {
+            return Oversetter.Tekst("Ikke oppgitt");
+        }
+        return Navn;
+    }
+
+    // Avstanden som tall til avstandsfilteret på siden (data-avstand), med punktum
+    // som desimaltegn slik JavaScript forventer. Tom tekst betyr at ressursen mangler posisjon.
+    public string AvstandForFilter()
+    {
+        if (AvstandKm == null)
+        {
+            return "";
+        }
+        return AvstandKm.Value.ToString(CultureInfo.InvariantCulture);
+    }
 }

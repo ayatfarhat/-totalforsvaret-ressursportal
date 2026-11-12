@@ -1,9 +1,8 @@
-@using System.Globalization
 @{
     ViewData["Title"] = "Vilkår for bruk";
 
     // Siden er lang, så vi skriver den på begge språk her (som Personvern).
-    bool engelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    bool engelsk = Oversetter.ErEngelsk();
 }
 
 @* Vilkår for bruk: hva tjenesten er, hva brukeren lover, og hva kommunen kan gjøre. *@

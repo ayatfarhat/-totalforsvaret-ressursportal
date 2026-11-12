@@ -1,9 +1,16 @@
-@using System.Globalization
 @{
-    // Språket som er valgt nå. Knappen bytter til det andre språket.
-    bool erEngelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
-    string annetSprak = erEngelsk ? "nb" : "en";
-    string annetNavn = erEngelsk ? "Norsk" : "English";
+    // Knappen bytter til det andre språket. Vanligvis vises siden på norsk,
+    // så knappen tilbyr engelsk.
+    string annetSprak = "en";
+    string annetNavn = "English";
+    string annenKode = "EN";
+
+    if (Oversetter.ErEngelsk())
+    {
+        annetSprak = "nb";
+        annetNavn = "Norsk";
+        annenKode = "NO";
+    }
 
     // Siden brukeren er på, så hen kommer tilbake hit etter byttet.
     string tilbake = Context.Request.Path + Context.Request.QueryString;
@@ -20,6 +27,6 @@
         </svg>
         <span class="sprak-navn">@annetNavn</span>
         @* På mobil vises bare koden (EN/NO), så knappen får plass ved siden av teksten. *@
-        <span class="sprak-kode" aria-hidden="true">@(annetSprak == "en" ? "EN" : "NO")</span>
+        <span class="sprak-kode" aria-hidden="true">@annenKode</span>
     </button>
 </form>

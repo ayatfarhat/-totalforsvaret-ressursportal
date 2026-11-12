@@ -4,6 +4,13 @@ using Nabohjelp.Services;
 
 namespace Nabohjelp.ViewModels
 {
+    // Skjemaet for å registrere og endre en ressurs, og det sidene viser om en ressurs.
+    //
+    // Slik går dataene:
+    //   skjema i nettleseren -> RessursFormViewModel (ASP.NET sjekker reglene i [Required] osv.)
+    //   -> KopierTil(ressurs) -> databasen
+    // og tilbake når en ressurs skal vises eller endres:
+    //   databasen -> FraRessurs(ressurs) -> RessursFormViewModel -> siden
     public class RessursFormViewModel
     {
         [Required(ErrorMessage = "Du må velge type ressurs.")]

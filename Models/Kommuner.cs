@@ -19,6 +19,7 @@ public class Kommune
     }
 }
 
+// Listen over kommunene, og metoder for å finne en kommune fra nummer eller navn.
 public static class Kommuner
 {
     public const string IkkeOppgitt = "Kommune ikke oppgitt";
@@ -462,6 +463,29 @@ public static class Kommuner
             }
         }
         return null;
+    }
+
+    // Verdien NummerForFilter gir når brukeren har skrevet en kommune som ikke finnes.
+    public const string UkjentKommune = "ukjent";
+
+    // Brukes av filtrene over behovskøen, «Mine behov» og ressurslisten.
+    // Gjør om det brukeren skrev i filteret til et kommunenummer:
+    //   tomt felt      -> null (det filtreres ikke på kommune)
+    //   kjent kommune  -> nummeret, for eksempel «4202»
+    //   ukjent kommune -> «ukjent», som ingen har. Da vises ingen treff i stedet for alle.
+    public static string? NummerForFilter(string? tekst)
+    {
+        if (string.IsNullOrWhiteSpace(tekst))
+        {
+            return null;
+        }
+
+        Kommune? kommune = FinnFraTekst(tekst);
+        if (kommune == null)
+        {
+            return UkjentKommune;
+        }
+        return kommune.Nummer;
     }
 
     // Navnet til kommunen med dette nummeret, eller tom tekst. Brukes til å fylle kommunefeltet.

@@ -6,7 +6,7 @@
 
     // Lista viser bare brukerens egne ressurser. Kriseledelsen (Admin og Kommune)
     // får i tillegg lenker til behovskøen og ressurslisten med alle ressursene.
-    bool erKoordinator = ViewBag.ErKoordinator is bool k && k;
+    bool erKoordinator = Tilgang.ErAnsatt(User);
 }
 
 <div class="side-topp">

@@ -159,28 +159,40 @@ namespace Nabohjelp.Controllers
                 behov.KontaktEpost
             );
 
-            // Finner nærmeste ledige ressurs som passer til behovet.
+            LeggTilNaermesteRessurs(punkt, behov, ressurser);
+            LeggTilBehovLenker(punkt, behov);
+
+            return punkt;
+        }
+
+        // Skriver i boksen hvilken ledig ressurs som passer og ligger nærmest behovet,
+        // i luftlinje (se Services/Ressursmatching.cs), eller at ingen passer.
+        private void LeggTilNaermesteRessurs(KartPunkt punkt, Behov behov, List<Ressurs> ressurser)
+        {
             NaermesteRessurs? naermeste =
                 Ressursmatching.FinnNaermeste(behov, ressurser);
 
-            if (naermeste != null)
-            {
-                punkt.Fremhevet = T[
-                    "Nærmeste ressurs: {0}, {1} km unna",
-                    Visningstekst.RessursType(
-                        naermeste.Ressurs.Type,
-                        naermeste.Ressurs.AnnetType
-                    ),
-                    naermeste.AvstandKm.ToString("0.0")
-                ];
-
-                punkt.FremhevetErFunnet = true;
-            }
-            else
+            if (naermeste == null)
             {
                 punkt.Fremhevet = T["Ingen ledig ressurs som passer"];
+                return;
             }
 
+            punkt.Fremhevet = T[
+                "Nærmeste ressurs: {0}, {1} km unna",
+                Visningstekst.RessursType(
+                    naermeste.Ressurs.Type,
+                    naermeste.Ressurs.AnnetType
+                ),
+                naermeste.AvstandKm.ToString("0.0")
+            ];
+
+            punkt.FremhevetErFunnet = true;
+        }
+
+        // Knappene nederst i boksen: «Finn ressurs», og «Endre» hvis behovet kan endres.
+        private void LeggTilBehovLenker(KartPunkt punkt, Behov behov)
+        {
             // Lenke til siden der behovet kan matches med ressurser.
             punkt.Lenker.Add(new KartLenke
             {
@@ -197,8 +209,6 @@ namespace Nabohjelp.Controllers
                     Adresse = "/Behov/Rediger/" + behov.Id
                 });
             }
-
-            return punkt;
         }
 
         // Lager kartpunkt for en registrert ressurs.

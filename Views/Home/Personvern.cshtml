@@ -1,9 +1,8 @@
-@using System.Globalization
 @{
     ViewData["Title"] = "Personvern";
 
     // Siden er lang, så vi skriver den på begge språk her i stedet for i resx-filen.
-    bool engelsk = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    bool engelsk = Oversetter.ErEngelsk();
 }
 
 @* Personvernerklæringen (GDPR). Beskriver hva vi lagrer, hvorfor, hvem som ser det,

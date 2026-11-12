@@ -15,8 +15,10 @@ public class ApplicationDbContext : IdentityDbContext
     {
     }
 
+    // Hver DbSet er én tabell i databasen. Controllerne henter og lagrer rader gjennom dem,
+    // for eksempel _db.Behovsliste. «= null!» betyr at Entity Framework setter verdien for oss.
+
     // Behov som er registrert i systemet.
-    // Gjør at BehovController kan hente og lagre behov.
     public DbSet<Behov> Behovsliste { get; set; } = null!;
     public DbSet<Ressurs> Ressurser { get; set; } = null!;
     public DbSet<Tildeling> Tildelinger { get; set; } = null!;

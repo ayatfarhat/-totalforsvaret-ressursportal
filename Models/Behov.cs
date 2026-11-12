@@ -2,14 +2,21 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Nabohjelp.Models;
 
+// Hva slags hjelp som trengs. Navnene er på engelsk i koden og vises på norsk
+// eller engelsk med Visningstekst.Type.
 public enum BehovType { Transport, Drone, Generator, Evakuering, Annet }
 
+// Hvor mye det haster: akutt (Urgent) eller planlagt (Planned).
+// Urgent har tallet 0, så akutte behov kommer først når vi sorterer på prioritet.
 public enum BehovPrioritet { Urgent = 0, Planned = 1 }
 
 // Statusen lagres som tall i databasen. Nye verdier legges derfor alltid
 // til på slutten, så de gamle tallene (0–3) beholder betydningen sin.
 public enum BehovStatus { New, UnderReview, Assigned, Resolved, Rejected, Withdrawn }
 
+// Et behov for hjelp som en innbygger har meldt. Dette er raden slik den lagres i
+// databasen (tabellen Behovsliste). Skjemaet brukeren fyller ut, er BehovViewModel.
+// Reglene for hvilken status behovet kan gå til, står i BehovStatusflyt.
 public class Behov
 {
     public int Id { get; set; }
