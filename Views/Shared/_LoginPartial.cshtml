@@ -1,3 +1,13 @@
+@inject Nabohjelp.Data.ApplicationDbContext Db
+@{
+    // Hvor mange ressurser brukeren eier som er tildelt et behov uten at brukeren har sett
+    // det ennå (se Services/Tildelingsvarsel.cs). Vises som et tall på brukermenyen.
+    int antallVarsler = 0;
+    if (Tilgang.ErInnlogget(User))
+    {
+        antallVarsler = await Tildelingsvarsel.AntallNye(Db, Tilgang.BrukerId(User));
+    }
+}
 @* Høyre side av menyen. Ikke innlogget: «Logg inn» og «Registrer deg».
    Innlogget: en knapp med e-posten som åpner en meny (dropdown) med kontoen,
    registreringene og «Logg ut». Menyen styres av Bootstrap og virker med tastatur
@@ -14,11 +24,23 @@
                     <path d="M4 20c1.5-4 4.4-6 8-6s6.5 2 8 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                 </svg>
                 <span class="brukernavn">@User.Identity.Name</span>
+                @if (antallVarsler > 0)
+                {
+                    <span class="varsel-antall">@antallVarsler<span class="visually-hidden"> @T["nye varsler"]</span></span>
+                }
             </button>
             <ul class="dropdown-menu dropdown-menu-end brukermeny">
                 <li><a class="dropdown-item" asp-controller="Account" asp-action="Index">@T["Min konto"]</a></li>
-                <li><a class="dropdown-item" asp-controller="Behov" asp-action="MineBehov">@T["Mine behov"]</a></li>
-                <li><a class="dropdown-item" asp-controller="Ressurs" asp-action="Index">@T["Mine ressurser"]</a></li>
+                @* Fargeprikkene skiller behov (rød) fra ressurser (grønn), som ellers på siden. *@
+                <li><a class="dropdown-item" asp-controller="Behov" asp-action="MineBehov"><span class="prikk prikk-behov" aria-hidden="true"></span>@T["Mine behov"]</a></li>
+                <li>
+                    <a class="dropdown-item" asp-controller="Ressurs" asp-action="Index"><span class="prikk prikk-ressurs" aria-hidden="true"></span>@T["Mine ressurser"]
+                        @if (antallVarsler > 0)
+                        {
+                            <span class="varsel-antall">@antallVarsler<span class="visually-hidden"> @T["nye varsler"]</span></span>
+                        }
+                    </a>
+                </li>
                 <li><hr class="dropdown-divider" /></li>
                 <li>
                     @* Utlogging er et skjema (POST), ikke en vanlig lenke *@

@@ -1,0 +1,31 @@
+@model List<TildelingsvarselViewModel>
+@* Varsler om at en ressurs brukeren eier, er tildelt et behov (se Services/Tildelingsvarsel.cs).
+   Vises på forsiden og under «Mine ressurser». «Jeg har sett det» fjerner varselet
+   (RessursController.SettVarsel), og brukeren kommer tilbake til samme side. *@
+@{
+    string tilbake = Context.Request.Path + Context.Request.QueryString;
+}
+
+@foreach (TildelingsvarselViewModel varsel in Model)
+{
+    <div class="varsel-tildelt" role="status">
+        <div>
+            <p class="varsel-tittel"><strong>@T["Ressursen din er tildelt"]</strong></p>
+            <p>
+                @if (varsel.Kommune != null)
+                {
+                    @T["{0} er tildelt et behov i {1}, {2}.", varsel.Ressurs, varsel.Kommune, varsel.VisTid()]
+                }
+                else
+                {
+                    @T["{0} er tildelt et behov, {1}.", varsel.Ressurs, varsel.VisTid()]
+                }
+                @T["Kommunen tar kontakt med deg."]
+            </p>
+        </div>
+        <form asp-controller="Ressurs" asp-action="SettVarsel" asp-route-id="@varsel.TildelingId" method="post">
+            <input type="hidden" name="tilbake" value="@tilbake" />
+            <button type="submit" class="btn btn-sm btn-success">@T["Jeg har sett det"]</button>
+        </form>
+    </div>
+}

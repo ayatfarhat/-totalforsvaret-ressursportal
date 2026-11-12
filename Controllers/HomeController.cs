@@ -1,18 +1,40 @@
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Nabohjelp.Data;
 using Nabohjelp.Models;
 using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 
 namespace Nabohjelp.Controllers;
 
-// Controller for forsiden
+// Forsiden, infosidene (personvern, vilkår, cookies, tilgjengelighet, spørsmål og svar),
+// feilsidene og språkvalget.
 public class HomeController : Controller
 {
-    // Viser forsiden. All tekst står i Views/Home/Index.cshtml.
-    public IActionResult Index()
+    private readonly ApplicationDbContext _db;
+
+    public HomeController(ApplicationDbContext db)
     {
-        return View();
+        _db = db;
+    }
+
+    // Viser forsiden. Teksten står i Views/Home/Index.cshtml.
+    // Innloggede brukere får i tillegg snarveien «Mine registreringer» øverst,
+    // med antall behov og ressurser og eventuelle varsler om tildelte ressurser.
+    public async Task<IActionResult> Index()
+    {
+        var modell = new ForsideViewModel { ErInnlogget = Tilgang.ErInnlogget(User) };
+
+        if (modell.ErInnlogget)
+        {
+            string brukerId = Tilgang.BrukerId(User);
+            modell.AntallBehov = await _db.Behovsliste.Where(b => b.OpprettetAvBrukerId == brukerId).CountAsync();
+            modell.AntallRessurser = await _db.Ressurser.Where(r => r.OpprettetAvBrukerId == brukerId).CountAsync();
+            modell.Varsler = await Tildelingsvarsel.HentNye(_db, brukerId);
+        }
+
+        return View(modell);
     }
 
     // Feilsiden. Brukes av UseExceptionHandler("/Home/Error") i Program.cs
@@ -51,6 +73,14 @@ public class HomeController : Controller
     // Hvilke cookies siden bruker, og hvorfor.
     [HttpGet]
     public IActionResult Cookies()
+    {
+        return View();
+    }
+
+    // Tilgjengelighetserklæringen: hvordan siden er laget for at alle skal kunne bruke den,
+    // hva som ikke virker godt nok ennå, og hvor man sier fra.
+    [HttpGet]
+    public IActionResult Tilgjengelighet()
     {
         return View();
     }

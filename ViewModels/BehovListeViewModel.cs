@@ -36,6 +36,44 @@ public class BehovListeViewModel
     public int AntallLukket { get; set; }
     public int AntallAlle { get; set; }
 
+    // Historikken til behovene i Liste. Fylles av BehovController (LeggTilHistorikk).
+    public List<StatusEndring> Historikk { get; set; } = new List<StatusEndring>();
+
+    // E-postadressen til dem som har endret status (brukerId → e-post).
+    // Bare kriseledelsen får se hvem som gjorde endringen, så den er tom for frivillige.
+    public Dictionary<string, string> Brukernavn { get; set; } = new Dictionary<string, string>();
+
+    // Ressursene som er tildelt behovene nå (bare for kriseledelsen).
+    public List<TildeltRessursViewModel> Tildelte { get; set; } = new List<TildeltRessursViewModel>();
+
+    // Historikken til ett behov, klar for Views/Behov/_Historikk.cshtml.
+    public HistorikkViewModel HistorikkFor(Behov behov)
+    {
+        var historikk = new HistorikkViewModel { Behov = behov, Brukernavn = Brukernavn };
+        foreach (StatusEndring endring in Historikk)
+        {
+            if (endring.BehovId == behov.Id)
+            {
+                historikk.Endringer.Add(endring);
+            }
+        }
+        return historikk;
+    }
+
+    // Ressursene som er tildelt ett behov nå.
+    public List<TildeltRessursViewModel> TildelteFor(Behov behov)
+    {
+        var tildelte = new List<TildeltRessursViewModel>();
+        foreach (TildeltRessursViewModel tildelt in Tildelte)
+        {
+            if (tildelt.BehovId == behov.Id)
+            {
+                tildelte.Add(tildelt);
+            }
+        }
+        return tildelte;
+    }
+
     // Sier om brukeren har valgt noe i filteret (da vises knappen «Nullstill»).
     public bool HarFilter()
     {

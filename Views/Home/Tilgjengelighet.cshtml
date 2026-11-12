@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Tilgjengelighet";
+
+    // Siden er lang, så vi skriver den på begge språk her (som Personvern og Vilkår).
+    bool engelsk = Oversetter.ErEngelsk();
+}
+
+@* Tilgjengelighetserklæring: hvordan siden er laget for at alle skal kunne bruke den,
+   hva som ikke virker godt nok ennå, og hvor man sier fra. Offentlige nettsider i Norge
+   må ha en slik erklæring. Oppdater datoen og listene når noe endres. *@
+
+<article class="infoside">
+@if (!engelsk)
+{
+    <h1>Tilgjengelighet</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 12)" />
+    <p class="ingress">BeredskapsPortalen skal kunne brukes av alle, også med tastatur, skjermleser, forstørrelse eller på mobil. Her står hva vi har gjort, hva som ikke virker godt nok ennå, og hvordan du sier fra.</p>
+
+    <h2>Kravene vi følger</h2>
+    <p>Målet er å oppfylle WCAG 2.1 på nivå AA. Det er kravet for nettsider i Norge etter forskrift om universell utforming av IKT-løsninger.</p>
+
+    <h2>Status</h2>
+    <p>Nettsiden er delvis i samsvar med kravene. Vi har testet alle sidene med det automatiske verktøyet axe, med bare tastatur og på mobil. Vi har ikke gjort en full test med skjermleser, og siden har ikke vært gjennom en uavhengig kontroll.</p>
+
+    <h2>Dette er på plass</h2>
+    <ul>
+        <li>Alt kan brukes med tastatur, og det er tydelig markert hvor du er på siden.</li>
+        <li>Lenken «Hopp til innhold» øverst lar deg hoppe over menyen.</li>
+        <li>Tekst og knapper har god kontrast mot bakgrunnen.</li>
+        <li>Status, hast og feil vises med tekst, ikke bare med farge.</li>
+        <li>Feil i skjemaer står ved feltet og samlet øverst i skjemaet.</li>
+        <li>Siden er laget for mobil og nettbrett, og knappene er store nok å treffe.</li>
+        <li>Språket på siden er satt riktig (norsk eller engelsk), så skjermlesere leser teksten riktig.</li>
+    </ul>
+
+    <h2>Dette virker ikke godt nok ennå</h2>
+    <ul>
+        <li>Kartet er vanskelig å bruke med skjermleser. Du trenger ikke kartet: du kan skrive kommune og adresse (eller koordinater) selv, og det kartet viser for kriseledelsen, står også i behovskøen og ressurslisten.</li>
+        <li>Kartbildene fra OpenStreetMap har ingen tekstbeskrivelse.</li>
+    </ul>
+
+    <h2>Si fra om noe ikke virker</h2>
+    <p>Får du ikke brukt en del av siden, eller finner du noe som bør bli bedre? Si fra til kommunen, eller til oss i gruppe 15 i IS-200 ved Universitetet i Agder. BeredskapsPortalen er et studentprosjekt.</p>
+    <p>En offentlig virksomhet publiserer tilgjengelighetserklæringen sin på <a href="https://uustatus.no" target="_blank" rel="noopener">uustatus.no</a> (åpnes i ny fane). Der kan du også klage til Tilsynet for universell utforming av IKT hvis en offentlig nettside ikke følger kravene.</p>
+}
+else
+{
+    <h1>Accessibility</h1>
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 12)" />
+    <p class="ingress">Everyone should be able to use BeredskapsPortalen, also with a keyboard, a screen reader, zoom or a mobile phone. This page describes what we have done, what does not work well enough yet, and how to report a problem.</p>
+
+    <h2>The requirements we follow</h2>
+    <p>Our goal is to meet WCAG 2.1 at level AA. This is the requirement for websites in Norway under the Norwegian regulations on universal design of ICT solutions.</p>
+
+    <h2>Status</h2>
+    <p>The website partly meets the requirements. We have tested all pages with the automatic tool axe, with a keyboard only and on mobile. We have not done a full test with a screen reader, and the site has not been checked by an independent party.</p>
+
+    <h2>What is in place</h2>
+    <ul>
+        <li>Everything can be used with a keyboard, and it is clearly marked where you are on the page.</li>
+        <li>The «Skip to content» link at the top lets you skip the menu.</li>
+        <li>Text and buttons have good contrast against the background.</li>
+        <li>Status, urgency and errors are shown with text, not only with colour.</li>
+        <li>Form errors are shown next to the field and together at the top of the form.</li>
+        <li>The site is made for mobile phones and tablets, and the buttons are large enough to tap.</li>
+        <li>The page language is set correctly (Norwegian or English), so screen readers read the text correctly.</li>
+    </ul>
+
+    <h2>What does not work well enough yet</h2>
+    <ul>
+        <li>The map is hard to use with a screen reader. You do not need the map: you can type the municipality and address (or coordinates) yourself, and what the map shows to emergency management is also in the needs queue and the resource list.</li>
+        <li>The map images from OpenStreetMap have no text description.</li>
+    </ul>
+
+    <h2>Report a problem</h2>
+    <p>Can you not use part of the site, or have you found something that should be better? Tell the municipality, or us in group 15 in IS-200 at the University of Agder. BeredskapsPortalen is a student project.</p>
+    <p>Public organisations publish their accessibility statement on <a href="https://uustatus.no" target="_blank" rel="noopener">uustatus.no</a> (opens in a new tab). There you can also complain to the Norwegian Authority for Universal Design of ICT if a public website does not meet the requirements.</p>
+}
+</article>

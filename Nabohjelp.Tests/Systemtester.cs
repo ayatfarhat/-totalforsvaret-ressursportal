@@ -186,6 +186,27 @@ public class Systemtester : IClassFixture<SystemtestOppsett>
 
         string ressursliste = await SystemtestOppsett.Hent(_app.Frivillig, "/Ressurs");
         Assert.Contains("Tildelt", Rad(ressursliste, merke));
+
+        // 6. Den som eier ressursen, får et varsel på forsiden.
+        string forside = await SystemtestOppsett.Hent(_app.Frivillig, "/");
+        Assert.Contains("Ressursen din er tildelt", forside);
+
+        // 7. Kommunen angrer tildelingen fra behovskøen (fanen «Pågår»).
+        string ko = await SystemtestOppsett.Hent(_app.Kommune, "/Behov/Ko?kategori=pagar");
+        string tildelingId = FinnId(ko, merke, @"action=""/Tildeling/Angre""[^>]*>\s*<input type=""hidden"" name=""id"" value=""(\d+)""");
+
+        var angreSvar = await SystemtestOppsett.SendSkjema(_app.Kommune, "/Tildeling/Angre", new Dictionary<string, string>
+        {
+            ["id"] = tildelingId
+        }, skjemaFra: "/Behov/Ko?kategori=pagar");
+        Assert.Equal(HttpStatusCode.Redirect, angreSvar.StatusCode);
+
+        // 8. Ressursen er ledig igjen, og historikken viser at tildelingen ble angret.
+        string etterAngring = await SystemtestOppsett.Hent(_app.Frivillig, "/Ressurs");
+        Assert.Contains("Tilgjengelig", Rad(etterAngring, merke));
+
+        string mineBehov = await SystemtestOppsett.Hent(_app.Frivillig, "/Behov/MineBehov");
+        Assert.Contains("Tildelingen av Aggregat ble angret", mineBehov);
     }
 
     [Fact]

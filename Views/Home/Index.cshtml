@@ -1,3 +1,4 @@
+@model ForsideViewModel
 @{
     ViewData["Title"] = T["Forside"];
 }
@@ -7,6 +8,26 @@
    kommer for å gjøre. Illustrasjonen er et kart over en kystkommune der
    noen trenger hjelp (rød markør) og ressurser kan sendes dit (grønne markører).
    --------------------------------------------------------------- *@
+
+@* Snarvei for innloggede: egne behov (rødt) og ressurser (grønt), og varsler om
+   ressurser som er tildelt. Tallene kommer fra HomeController.Index. *@
+@if (Model.ErInnlogget)
+{
+    <section class="mine-registreringer" aria-labelledby="mine-tittel">
+        <h2 id="mine-tittel">@T["Mine registreringer"]</h2>
+        <partial name="_Tildelingsvarsler" model="Model.Varsler" />
+        <div class="mine-lenker">
+            <a class="mine-lenke mine-behov" asp-controller="Behov" asp-action="MineBehov">
+                <strong>@T["Mine behov"]</strong>
+                <span>@T["{0} meldt", Model.AntallBehov]</span>
+            </a>
+            <a class="mine-lenke mine-ressurser" asp-controller="Ressurs" asp-action="Index">
+                <strong>@T["Mine ressurser"]</strong>
+                <span>@T["{0} registrert", Model.AntallRessurser]</span>
+            </a>
+        </div>
+    </section>
+}
 
 <section class="hero" aria-labelledby="hero-tittel">
     <div class="hero-tekst">

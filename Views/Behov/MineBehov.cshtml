@@ -27,7 +27,9 @@
     }
 }
 
-<div class="side-topp">
+@* side-behov gir en rød strek ved overskriften, så «Mine behov» skiller seg fra
+   «Mine ressurser» (grønn). Det ønsket testpersonen i brukervennlighetstesten. *@
+<div class="side-topp side-behov">
     <h1>@(erAnsatt ? T["Alle registrerte behov"] : T["Mine behov"])</h1>
     <p class="ingress">@T["Her ser du hvor langt hvert behov har kommet: fra det er meldt, til kommunen vurderer det, sender en ressurs og markerer det som løst."]</p>
 </div>
@@ -102,6 +104,8 @@ else
                 {
                     <p class="behov-avsluttet">@T[AvsluttetTekst(behov.Status, erEgen)]</p>
                 }
+
+                <partial name="_Historikk" model="Model.HistorikkFor(behov)" />
 
                 @if ((erEgen || erAnsatt) && BehovStatusflyt.KanRedigeres(behov.Status))
                 {

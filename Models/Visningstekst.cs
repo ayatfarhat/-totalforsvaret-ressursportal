@@ -129,6 +129,23 @@ public static class Visningstekst
         return Oversetter.Tekst(type);
     }
 
+    // Teksten for én linje i historikken til et behov (se Models/StatusEndring.cs),
+    // for eksempel «Under vurdering», «Tildelt: Aggregat» eller «Tildelingen av Aggregat ble angret».
+    public static string Hendelse(StatusEndring endring)
+    {
+        if (endring.RessursType == null)
+        {
+            return Status(endring.TilStatus);
+        }
+
+        string ressurs = RessursType(endring.RessursType, endring.RessursAnnetType);
+        if (endring.ErAngret)
+        {
+            return Oversetter.Tekst("Tildelingen av {0} ble angret", ressurs);
+        }
+        return Oversetter.Tekst("Tildelt: {0}", ressurs);
+    }
+
     // Ressurser har status som tekst. «Tilgjengelig» vises grønt.
     public static string RessursStatusFarge(string status)
     {

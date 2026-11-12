@@ -208,6 +208,14 @@ a:hover { color: var(--gi-mork); }
     --bs-btn-active-bg: var(--natt);     --bs-btn-active-border-color: var(--natt);
     --bs-btn-active-color: #fff;
 }
+/* Hvit knapp med grønn kant, for eksempel «Mine ressurser» på Min konto */
+.btn-outline-success {
+    --bs-btn-color: var(--gi);          --bs-btn-border-color: var(--gi);
+    --bs-btn-hover-bg: var(--gi);        --bs-btn-hover-border-color: var(--gi);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--gi-mork);  --bs-btn-active-border-color: var(--gi-mork);
+    --bs-btn-active-color: #fff;
+}
 .btn-sm { --bs-btn-padding-y: .4rem; --bs-btn-padding-x: .9rem; --bs-btn-font-size: .95rem; min-height: 40px; }
 .btn-lg { --bs-btn-padding-y: .95rem; --bs-btn-padding-x: 1.7rem; --bs-btn-font-size: 1.15rem; min-height: 56px; }
 
@@ -1136,6 +1144,82 @@ a[href^="tel:"] { white-space: nowrap; }
 /* Kontaktinfo i behovskøen: telefon og e-post under hverandre */
 .kontakt-liste { display: grid; gap: .15rem; min-width: 0; }
 .kontakt-liste a { overflow-wrap: anywhere; }
+
+/* ---------- Mine behov og Mine ressurser: rødt for behov, grønt for ressurser ----------
+   Testpersonen i brukervennlighetstesten syntes de to var vanskelige å skille. */
+.side-behov h1,
+.overskrift-behov { border-left: 6px solid var(--hjelp); padding-left: .75rem; }
+.overskrift-ressurs { border-left: 6px solid var(--gi); padding-left: .75rem; }
+
+/* Fargeprikk foran «Mine behov» og «Mine ressurser» i brukermenyen */
+.prikk { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .55rem; vertical-align: .05em; }
+.prikk-behov { background: var(--hjelp); }
+.prikk-ressurs { background: var(--gi); }
+
+/* Snarveien «Mine registreringer» øverst på forsiden for innloggede */
+.mine-registreringer { margin: 2rem 0 0; display: grid; gap: .75rem; }
+.mine-registreringer h2 { font-size: 1.25rem; margin: 0; }
+.mine-lenker { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+@media (max-width: 575.98px) { .mine-lenker { grid-template-columns: 1fr; } }
+.mine-lenke {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .9rem 1.1rem;
+    background: var(--flate);
+    border: 1px solid var(--linje);
+    border-left-width: 6px;
+    border-radius: var(--radius);
+    color: var(--natt);
+    text-decoration: none;
+}
+.mine-lenke strong { font-family: var(--font-visning); font-size: 1.1rem; }
+.mine-lenke span { color: var(--dempet); }
+.mine-lenke:hover strong { text-decoration: underline; }
+.mine-behov { border-left-color: var(--hjelp); }
+.mine-ressurser { border-left-color: var(--gi); }
+
+/* Varsel om at en ressurs er tildelt (forsiden og «Mine ressurser») */
+.varsel-tildelt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem 1rem;
+    padding: .9rem 1.1rem;
+    margin-bottom: 1rem;
+    background: var(--gi-lys);
+    border: 1px solid var(--gi);
+    border-radius: var(--radius);
+}
+.mine-registreringer .varsel-tildelt { margin-bottom: 0; }
+.varsel-tildelt p { margin: 0; }
+.varsel-tildelt div { flex: 1 1 22rem; min-width: 0; }
+.varsel-tildelt form { margin: 0; }
+
+/* Tallet på brukermenyen når det finnes nye varsler */
+.varsel-antall {
+    display: inline-block;
+    min-width: 1.4rem;
+    padding: .05rem .4rem;
+    border-radius: 1rem;
+    background: var(--gi);
+    color: #fff;
+    font-size: .8rem;
+    font-weight: 700;
+    line-height: 1.3;
+    text-align: center;
+}
+.dropdown-item .varsel-antall { margin-left: .4rem; }
+
+/* Historikken til et behov (Views/Behov/_Historikk.cshtml) */
+.historikk { margin-top: .35rem; font-size: .9rem; }
+.historikk summary { cursor: pointer; font-weight: 600; width: fit-content; }
+.historikk ol { list-style: none; margin: .4rem 0 0; padding: 0 0 0 .75rem; border-left: 2px solid var(--linje); display: grid; gap: .2rem; }
+.historikk time { color: var(--dempet); margin-right: .4rem; font-variant-numeric: tabular-nums; }
+/* Tildelt ressurs under beskrivelsen i behovskøen */
+.tildelt-ressurs { display: block; margin-top: .4rem; font-size: .9rem; font-weight: 600; color: var(--gi-mork); }
 
 /* ---------- Endre og slette ressurser ---------- */
 .ressurs-handling { white-space: nowrap; }

@@ -84,12 +84,20 @@ else
                                 }
                             </span>
                         </td>
-                        <td data-label="@T["Beskrivelse"]"><span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? T["Ingen beskrivelse"] : b.Beskrivelse)</span></td>
+                        <td data-label="@T["Beskrivelse"]">
+                            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(b.Beskrivelse) ? T["Ingen beskrivelse"] : b.Beskrivelse)</span>
+                            @* Ressursene som er tildelt behovet nå (se BehovController.LeggTilHistorikk). *@
+                            @foreach (TildeltRessursViewModel tildelt in Model.TildelteFor(b))
+                            {
+                                <span class="tildelt-ressurs">@T["Tildelt: {0}", Visningstekst.RessursType(tildelt.Ressurs.Type, tildelt.Ressurs.AnnetType)] · @tildelt.Ressurs.Posisjon</span>
+                            }
+                        </td>
                         <td data-label="@T["Status"]">
                             <span class="merke-stabel">
                                 <span class="merke @Visningstekst.PrioritetFarge(b.Prioritet)">@Visningstekst.Prioritet(b.Prioritet)</span>
                                 <span class="merke @Visningstekst.StatusFarge(b.Status)">@Visningstekst.Status(b.Status)</span>
                             </span>
+                            <partial name="_Historikk" model="Model.HistorikkFor(b)" />
                         </td>
                         <td data-label="@T["Registrert"]">@b.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
                         <td data-label="@T["Kontakt"]">
@@ -113,6 +121,19 @@ else
                                         <input type="hidden" name="nyStatus" value="@neste" />
                                         <input type="hidden" name="tilbake" value="@tilbake" />
                                         <button type="submit" class="@KnappKlasse(neste)">@T[KnappTekst(neste)]</button>
+                                    </form>
+                                }
+                                @* Feil ressurs, eller ressursen kan likevel ikke brukes? Da kan tildelingen
+                                   angres (TildelingController.Angre). Ressursen blir ledig igjen. *@
+                                @foreach (TildeltRessursViewModel tildelt in Model.TildelteFor(b))
+                                {
+                                    string ressursNavn = Visningstekst.RessursType(tildelt.Ressurs.Type, tildelt.Ressurs.AnnetType);
+                                    <form asp-controller="Tildeling" asp-action="Angre" method="post"
+                                          onsubmit="return confirm('@T["Vil du angre tildelingen? Ressursen blir tilgjengelig igjen."]');">
+                                        <input type="hidden" name="id" value="@tildelt.TildelingId" />
+                                        <input type="hidden" name="tilbake" value="@tilbake" />
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                                aria-label="@T["Angre tildelingen av {0}", ressursNavn]">@T["Angre tildeling"]</button>
                                     </form>
                                 }
                                 @if (BehovStatusflyt.KanRedigeres(b.Status))

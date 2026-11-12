@@ -1,0 +1,28 @@
+@model HistorikkViewModel
+@* Historikken til ett behov: når det ble meldt, og hver statusendring etterpå
+   (se Models/StatusEndring.cs). Brukes på «Mine behov» og i behovskøen.
+   <details> er lukket til brukeren åpner den, så lista ikke tar plass. Kriseledelsen
+   ser også hvem som gjorde endringen (HistorikkViewModel.Hvem). *@
+<details class="historikk">
+    <summary>@T["Historikk"] <span class="fane-antall">@(Model.Endringer.Count + 1)</span></summary>
+    <ol>
+        <li>
+            <time datetime="@Model.Behov.OpprettetTid.ToString("o")">@Model.Behov.OpprettetTid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</time>
+            <span>@T["Meldt"]</span>
+        </li>
+        @foreach (StatusEndring endring in Model.Endringer)
+        {
+            string? hvem = Model.Hvem(endring);
+            <li>
+                <time datetime="@endring.Tid.ToString("o")">@endring.Tid.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</time>
+                <span>
+                    @Visningstekst.Hendelse(endring)
+                    @if (hvem != null)
+                    {
+                        <span class="dempet">· @hvem</span>
+                    }
+                </span>
+            </li>
+        }
+    </ol>
+</details>

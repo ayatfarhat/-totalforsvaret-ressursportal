@@ -79,9 +79,23 @@
     </div>
 }
 
-<!-- Tilbake til tildelingsoversikten -->
-<a asp-controller="Tildeling"
-   asp-action="Index"
-   class="btn btn-primary">
-    @T["Tilbake til tildeling"]
-</a>
+<div class="d-flex gap-3 flex-wrap">
+    <!-- Tilbake til tildelingsoversikten -->
+    <a asp-controller="Tildeling"
+       asp-action="Index"
+       class="btn btn-primary">
+        @T["Tilbake til tildeling"]
+    </a>
+
+    @* Valgte du feil ressurs? Da kan tildelingen angres med en gang (TildelingController.Angre).
+       Etterpå kommer du tilbake til matchingen for samme behov og kan velge en annen. *@
+    @if (Model.TildelingId != 0)
+    {
+        <form asp-controller="Tildeling" asp-action="Angre" method="post"
+              onsubmit="return confirm('@T["Vil du angre tildelingen? Ressursen blir tilgjengelig igjen."]');">
+            <input type="hidden" name="id" value="@Model.TildelingId" />
+            <input type="hidden" name="tilbake" value="@Url.Action("Match", "Tildeling", new { id = Model.BehovId })" />
+            <button type="submit" class="btn btn-outline-secondary">@T["Angre tildeling"]</button>
+        </form>
+    }
+</div>

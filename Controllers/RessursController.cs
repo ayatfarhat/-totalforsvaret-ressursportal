@@ -43,6 +43,9 @@ namespace Nabohjelp.Controllers
             // Antall ønskede ressurser vises i en egen boks på siden.
             ViewBag.AntallOnskede = await _db.OnskedeRessurser.CountAsync();
 
+            // Varsler om ressurser som er tildelt et behov (se Services/Tildelingsvarsel.cs).
+            ViewBag.Varsler = await Tildelingsvarsel.HentNye(_db, brukerId);
+
             // Kriseledelsen ser også hvor mange behov som venter og hvor mange ressurser
             // som er ledige (bokser med lenke til behovskøen og ressurslisten).
             if (erKoordinator)
@@ -59,6 +62,36 @@ namespace Nabohjelp.Controllers
             }
 
             return View(TilViewModeller(ressurser));
+        }
+
+        // POST: /Ressurs/SettVarsel/5
+        // Eieren har sett varselet om at ressursen er tildelt. Varselet forsvinner da.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SettVarsel(int id, string? tilbake)
+        {
+            Tildeling? tildeling = await _db.Tildelinger.FindAsync(id);
+            if (tildeling == null)
+            {
+                return NotFound();
+            }
+
+            // Bare den som eier ressursen, kan fjerne varselet.
+            Ressurs? ressurs = await _db.Ressurser.FindAsync(tildeling.RessursId);
+            if (ressurs == null || !Tilgang.ErEier(User, ressurs.OpprettetAvBrukerId))
+            {
+                return Forbid();
+            }
+
+            tildeling.EierHarSett = true;
+            await _db.SaveChangesAsync();
+
+            // Tilbake til siden brukeren var på (forsiden eller «Mine ressurser»).
+            if (!string.IsNullOrEmpty(tilbake) && Url.IsLocalUrl(tilbake))
+            {
+                return LocalRedirect(tilbake);
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: /Ressurs/Oversikt

@@ -70,9 +70,13 @@
     <div class="alert alert-danger" role="alert">@feil</div>
 }
 
+@* Varsler om at en av ressursene er tildelt et behov (se Services/Tildelingsvarsel.cs). *@
+<partial name="_Tildelingsvarsler" model="(List<TildelingsvarselViewModel>)ViewBag.Varsler" />
+
 <section aria-labelledby="liste-tittel">
     <div class="liste-topp">
-        <h2 id="liste-tittel">@T["Dine ressurser"]</h2>
+        @* Grønn strek: ressurser er grønne, behov er røde (se site.css, «Mine behov og Mine ressurser»). *@
+        <h2 id="liste-tittel" class="overskrift-ressurs">@T["Dine ressurser"]</h2>
         @if (Model.Count > 0)
         {
             <span class="antall">@Model.Count</span>
