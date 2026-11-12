@@ -21,13 +21,13 @@
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
 
   </ItemGroup>
-	
-	<!-- Testprosjektet ligger i en undermappe, men skal ikke kompileres som en del av applikasjonen. -->
-	<ItemGroup>
-		<Compile Remove="Nabohjelp.Tests\**" />
-		<Content Remove="Nabohjelp.Tests\**" />
-		<None Remove="Nabohjelp.Tests\**" />
-		<EmbeddedResource Remove="Nabohjelp.Tests\**" />
-	</ItemGroup>
+
+  <!-- Testprosjektet ligger i en undermappe, men skal ikke kompileres som en del av applikasjonen. -->
+  <ItemGroup>
+    <Compile Remove="Nabohjelp.Tests\**" />
+    <Content Remove="Nabohjelp.Tests\**" />
+    <None Remove="Nabohjelp.Tests\**" />
+    <EmbeddedResource Remove="Nabohjelp.Tests\**" />
+  </ItemGroup>
 
 </Project>

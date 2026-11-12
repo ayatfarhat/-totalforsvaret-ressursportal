@@ -16,7 +16,7 @@
     string tittel = "" + ViewData["Title"];
 }
 <!DOCTYPE html>
-<html lang="@(System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en" ? "en" : "nb")">
+<html lang="@Oversetter.Sprakkode()">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -57,7 +57,7 @@
             <nav class="navbar navbar-expand-lg" aria-label="@T["Hovedmeny"]">
                 <div class="container">
 
-                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index">
                         <span class="logo-icon logo-icon-small"><partial name="_Logo" /></span>
                         BeredskapsPortalen
                     </a>
@@ -76,11 +76,11 @@
                         <ul class="navbar-nav ms-lg-3">
                             <li class="nav-item">
                                 <a class="nav-link @(paForside ? "active" : "")" aria-current="@(paForside ? "page" : null)"
-                                   asp-area="" asp-controller="Home" asp-action="Index">@T["Forside"]</a>
+                                   asp-controller="Home" asp-action="Index">@T["Forside"]</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(paRessurser ? "active" : "")" aria-current="@(paRessurser ? "page" : null)"
-                                   asp-area="" asp-controller="Ressurs" asp-action="Index">@T["Ressurser"]</a>
+                                   asp-controller="Ressurs" asp-action="Index">@T["Ressurser"]</a>
                             </li>
                             @if (User.IsInRole("Admin") || User.IsInRole("Kommune"))
                             {
@@ -90,20 +90,20 @@
                                     <button type="button" class="nav-link dropdown-toggle @(paKriseledelse ? "active" : "")"
                                             data-bs-toggle="dropdown" aria-expanded="false">@T["Kriseledelse"]</button>
                                     <ul class="dropdown-menu brukermeny">
-                                        <li><a class="dropdown-item" aria-current="@(paBehovsko ? "page" : null)" asp-area="" asp-controller="Behov" asp-action="Ko">@T["Behovskø"]</a></li>
-                                        <li><a class="dropdown-item" aria-current="@(paRessursliste ? "page" : null)" asp-area="" asp-controller="Ressurs" asp-action="Oversikt">@T["Ressursliste"]</a></li>
-                                        <li><a class="dropdown-item" aria-current="@(side == "Tildeling" ? "page" : null)" asp-area="" asp-controller="Tildeling" asp-action="Index">@T["Tildeling"]</a></li>
-                                        <li><a class="dropdown-item" aria-current="@(side == "Kommandobro" ? "page" : null)" asp-area="" asp-controller="Kommandobro" asp-action="Index">@T["Kommandobro"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(paBehovsko ? "page" : null)" asp-controller="Behov" asp-action="Ko">@T["Behovskø"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(paRessursliste ? "page" : null)" asp-controller="Ressurs" asp-action="Oversikt">@T["Ressursliste"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(side == "Tildeling" ? "page" : null)" asp-controller="Tildeling" asp-action="Index">@T["Tildeling"]</a></li>
+                                        <li><a class="dropdown-item" aria-current="@(side == "Kommandobro" ? "page" : null)" asp-controller="Kommandobro" asp-action="Index">@T["Kommandobro"]</a></li>
                                         @if (User.IsInRole("Admin"))
                                         {
                                             <li><hr class="dropdown-divider" /></li>
-                                            <li><a class="dropdown-item" aria-current="@(side == "Admin" ? "page" : null)" asp-area="" asp-controller="Admin" asp-action="Index">@T["Brukere"]</a></li>
+                                            <li><a class="dropdown-item" aria-current="@(side == "Admin" ? "page" : null)" asp-controller="Admin" asp-action="Index">@T["Brukere"]</a></li>
                                         }
                                     </ul>
                                 </li>
                             }
                             <li class="nav-item">
-                                <a class="nav-link @(side == "Sok" ? "active" : "")" aria-current="@(side == "Sok" ? "page" : null)" asp-area="" asp-controller="Sok" asp-action="Index">@T["Søk"]</a>
+                                <a class="nav-link @(side == "Sok" ? "active" : "")" aria-current="@(side == "Sok" ? "page" : null)" asp-controller="Sok" asp-action="Index">@T["Søk"]</a>
                             </li>
                         </ul>
 
@@ -124,8 +124,8 @@
 
                     <p class="mb-2">@melding</p>
 
-                    @* Knappen vises bare etter registrering av et behov. *@
-                    @if (TempData["VisMineBehovKnapp"] is bool visKnapp && visKnapp)
+                    @* Knappen vises bare etter registrering av et behov (settes i BehovController.Opprett). *@
+                    @if (TempData["VisMineBehovKnapp"] != null)
                     {
                         <a asp-controller="Behov"
                            asp-action="MineBehov"

@@ -11,6 +11,8 @@ using Xunit;
 
 namespace Nabohjelp.Tests;
 
+// Tester tildelingen mot en ekte (midlertidig) database: samme ressurs kan ikke
+// tildeles to behov. De andre testene trenger ikke database.
 public class TildelingController_Tests
 {
     [Fact]
@@ -94,8 +96,8 @@ public class TildelingController_Tests
             },
 
             TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-    new DefaultHttpContext(),
-    new TestTempDataProvider())
+                new DefaultHttpContext(),
+                new TestTempDataProvider())
         };
 
         // Første tildeling skal lykkes.

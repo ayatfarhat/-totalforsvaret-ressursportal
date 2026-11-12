@@ -111,6 +111,9 @@ function startKartvelger(element) {
     // tjenester på ws.geonorge.no) og fyller dem inn i skjemaet. Feltene fylles bare
     // hvis de er tomme eller ble fylt inn av kartet tidligere, så vi aldri skriver over
     // noe brukeren har skrevet selv. Går oppslaget galt, skriver brukeren inn selv.
+    //
+    // «await» betyr: vent på svaret fra Kartverket før neste linje kjøres. Resten av
+    // siden virker som vanlig mens vi venter.
     var forrigeKommune = '';
     var forrigeAdresse = '';
     var oppslagNummer = 0;
@@ -118,50 +121,77 @@ function startKartvelger(element) {
     function finnStedet(breddegrad, lengdegrad) {
         // Klikker brukeren flere ganger fort, bruker vi bare svaret på det siste klikket.
         oppslagNummer = oppslagNummer + 1;
-        var detteOppslaget = oppslagNummer;
 
         if (kommuneFelt !== null) {
-            statusTekst.textContent = tekst('Finner kommunen ...');
-            fetch('https://ws.geonorge.no/kommuneinfo/v1/punkt?koordsys=4258&nord=' + breddegrad + '&ost=' + lengdegrad)
-                .then(function (svar) {
-                    if (!svar.ok) { throw new Error('Fant ingen kommune'); }
-                    return svar.json();
-                })
-                .then(function (data) {
-                    if (detteOppslaget !== oppslagNummer) { return; }
-                    // Navnet hentes fra vår egen liste (datalist), så det blir likt som ellers på siden.
-                    var valg = document.querySelector('#kommuneliste option[data-nummer="' + data.kommunenummer + '"]');
-                    if (valg === null) { throw new Error('Ukjent kommune'); }
+            finnKommunen(breddegrad, lengdegrad, oppslagNummer);
+        }
+        if (adresseFelt !== null) {
+            finnAdressen(breddegrad, lengdegrad, oppslagNummer);
+        }
+    }
 
-                    if (kommuneFelt.value === '' || kommuneFelt.value === forrigeKommune) {
-                        kommuneFelt.value = valg.value;
-                        forrigeKommune = valg.value;
-                        sjekkFeltet(kommuneFelt);
-                    }
-                    statusTekst.textContent = tekst('Posisjon valgt i {0} kommune.', valg.value);
-                })
-                .catch(function () {
-                    if (detteOppslaget !== oppslagNummer) { return; }
-                    statusTekst.textContent = tekst('Posisjon valgt. Fant ikke kommunen, skriv den inn selv.');
-                });
+    // Spør Kartverket hvilken kommune punktet ligger i, og fyller inn kommunefeltet.
+    async function finnKommunen(breddegrad, lengdegrad, detteOppslaget) {
+        statusTekst.textContent = tekst('Finner kommunen ...');
+
+        try {
+            var svar = await fetch('https://ws.geonorge.no/kommuneinfo/v1/punkt?koordsys=4258&nord=' + breddegrad + '&ost=' + lengdegrad);
+            if (!svar.ok) {
+                throw new Error('Fant ingen kommune');
+            }
+            var data = await svar.json();
+
+            // Brukeren har klikket et nytt sted mens vi ventet: dette svaret er utdatert.
+            if (detteOppslaget !== oppslagNummer) {
+                return;
+            }
+
+            // Navnet hentes fra vår egen liste (datalist), så det blir likt som ellers på siden.
+            var valg = document.querySelector('#kommuneliste option[data-nummer="' + data.kommunenummer + '"]');
+            if (valg === null) {
+                throw new Error('Ukjent kommune');
+            }
+
+            if (kommuneFelt.value === '' || kommuneFelt.value === forrigeKommune) {
+                kommuneFelt.value = valg.value;
+                forrigeKommune = valg.value;
+                sjekkFeltet(kommuneFelt);
+            }
+            statusTekst.textContent = tekst('Posisjon valgt i {0} kommune.', valg.value);
+        } catch (feil) {
+            if (detteOppslaget === oppslagNummer) {
+                statusTekst.textContent = tekst('Posisjon valgt. Fant ikke kommunen, skriv den inn selv.');
+            }
+        }
+    }
+
+    // Spør Kartverket om nærmeste adresse (innenfor 150 meter), og fyller inn adressefeltet.
+    async function finnAdressen(breddegrad, lengdegrad, detteOppslaget) {
+        // Har brukeren skrevet en adresse selv, lar vi den stå.
+        if (adresseFelt.value !== '' && adresseFelt.value !== forrigeAdresse) {
+            return;
         }
 
-        if (adresseFelt !== null && (adresseFelt.value === '' || adresseFelt.value === forrigeAdresse)) {
-            fetch('https://ws.geonorge.no/adresser/v1/punktsok?radius=150&treffPerSide=1&lat=' + breddegrad + '&lon=' + lengdegrad)
-                .then(function (svar) {
-                    if (!svar.ok) { throw new Error('Fant ingen adresse'); }
-                    return svar.json();
-                })
-                .then(function (data) {
-                    if (detteOppslaget !== oppslagNummer || !data.adresser || data.adresser.length === 0) { return; }
-                    var adresse = data.adresser[0];
-                    adresseFelt.value = adresse.adressetekst + ', ' + storForbokstav(adresse.poststed);
-                    forrigeAdresse = adresseFelt.value;
-                    sjekkFeltet(adresseFelt);
-                })
-                .catch(function () {
-                    // Ingen adresse i nærheten (for eksempel i skogen): brukeren skriver selv.
-                });
+        try {
+            var svar = await fetch('https://ws.geonorge.no/adresser/v1/punktsok?radius=150&treffPerSide=1&lat=' + breddegrad + '&lon=' + lengdegrad);
+            if (!svar.ok) {
+                return;
+            }
+            var data = await svar.json();
+
+            var utdatert = detteOppslaget !== oppslagNummer;
+            var ingenAdresse = !data.adresser || data.adresser.length === 0;
+            if (utdatert || ingenAdresse) {
+                return;
+            }
+
+            var adresse = data.adresser[0];
+            adresseFelt.value = adresse.adressetekst + ', ' + storForbokstav(adresse.poststed);
+            forrigeAdresse = adresseFelt.value;
+            sjekkFeltet(adresseFelt);
+        } catch (feil) {
+            // Ingen adresse i nærheten (for eksempel i skogen), eller ingen nettforbindelse:
+            // brukeren skriver adressen selv.
         }
     }
 
@@ -270,11 +300,22 @@ function visOversikt(elementId, ressurser, behov) {
     var filter = document.getElementById('avstandFilter');
     var status = document.getElementById('filterStatus');
 
+    // Alle prikkene på kartet (markøren og posisjonen). Avstandsfilteret går gjennom dem.
     var alleMarkorer = [];
+
+    // Posisjonene til alle prikkene. Brukes til å zoome kartet slik at alle synes.
     var alleSteder = [];
+
+    // Avstandsfilteret: punktet brukeren har klikket på, markøren der og sirkelen rundt.
     var valgtPosisjon = null;
     var startMarkor = null;
     var radiusSirkel = null;
+
+    // Hindrer at flere forespørsler om nye kartdata kjøres samtidig.
+    var henterKartdata = false;
+
+
+    // ----- Funksjonene som brukes av kartet -----
 
     // Lager boksen som vises når man trykker på en prikk.
     // Vi bruker textContent (ikke innerHTML), så tekst brukerne har skrevet
@@ -382,89 +423,9 @@ function visOversikt(elementId, ressurser, behov) {
         });
     }
 
-    leggTilNaler(ressurser);
-    leggTilNaler(behov);
-
-    if (alleSteder.length > 0) {
-        kart.fitBounds(alleSteder, {
-            padding: [48, 48],
-            maxZoom: 12
-        });
-    }
-// Henter oppdaterte kartpunkter fra serveren.
-// Funksjonen erstatter gamle markører med nye,
-// men beholder kartet, zoomnivået og valgt avstandsfilter.
-function oppdaterKartpunkter(nyeRessurser, nyeBehov) {
-
-    // Fjerner de gamle markørene fra kartet.
-    alleMarkorer.forEach(function (punkt) {
-        kart.removeLayer(punkt.markor);
-    });
-
-    // Tømmer listene med gamle markører og posisjoner.
-    alleMarkorer = [];
-    alleSteder = [];
-
-    // Legger til nye markører med oppdatert informasjon.
-    leggTilNaler(nyeRessurser);
-    leggTilNaler(nyeBehov);
-
-    // Bruker det eksisterende avstandsfilteret på de nye punktene.
-    // Kartet opprettes ikke på nytt.
-    oppdaterFilter(false);
-}
-
-// Hindrer at flere forespørsler kjøres samtidig.
-var henterKartdata = false;
-
-// Henter oppdaterte behov og ressurser fra KommandobroController.
-async function hentOppdaterteKartdata() {
-
-    // Starter ikke en ny forespørsel hvis den forrige fortsatt kjører.
-    if (henterKartdata) {
-        return;
-    }
-
-    henterKartdata = true;
-
-    try {
-        // Henter oppdaterte kartdata fra API-endepunktet.
-        var svar = await fetch('/Kommandobro/Kartdata', {
-            method: 'GET',
-            cache: 'no-store'
-        });
-
-        // Kontrollerer at serveren svarte uten feil.
-        if (!svar.ok) {
-            throw new Error('Kunne ikke hente kartdata: ' + svar.status);
-        }
-
-        // Gjør JSON-svaret om til et JavaScript-objekt.
-        var data = await svar.json();
-
-        // Kontrollerer at serveren returnerte forventede lister.
-        if (!Array.isArray(data.ressurser) || !Array.isArray(data.behov)) {
-            throw new Error('Ugyldig format på kartdata.');
-        }
-
-        // Oppdaterer markørene med de nyeste dataene.
-        oppdaterKartpunkter(data.ressurser, data.behov);
-
-    } catch (feil) {
-
-        // Skriver feilen i nettleserens konsoll.
-        // Eksisterende kartpunkter beholdes hvis hentingen feiler.
-        console.error('Feil ved oppdatering av kart:', feil);
-
-    } finally {
-
-        // Tillater neste forespørsel når denne er ferdig.
-        henterKartdata = false;
-    }
-}
-     // Filtrerer kartpunkter etter valgt avstand.
-// Parameteren bestemmer om kartutsnittet skal justeres.
-function oppdaterFilter(justerKart = true) {
+    // Filtrerer kartpunkter etter valgt avstand.
+    // Parameteren bestemmer om kartutsnittet skal justeres.
+    function oppdaterFilter(justerKart = true) {
         var valgtAvstand = filter ? filter.value : 'alle';
         var radius = valgtAvstand === 'alle'
             ? null
@@ -501,18 +462,16 @@ function oppdaterFilter(justerKart = true) {
                 fillOpacity: 0.08
             }).addTo(kart);
 
-           // Justerer bare kartutsnittet når brukeren selv endrer filteret.
-// Automatisk oppdatering skal ikke flytte eller zoome kartet.
-if (justerKart) {
-    kart.fitBounds(radiusSirkel.getBounds(), {
-        padding: [30, 30]
-    });
-}
+            // Justerer bare kartutsnittet når brukeren selv endrer filteret.
+            // Automatisk oppdatering skal ikke flytte eller zoome kartet.
+            if (justerKart) {
+                kart.fitBounds(radiusSirkel.getBounds(), {
+                    padding: [30, 30]
+                });
+            }
+        }
 
-// Avslutter betingelsen som tegner avstandssirkelen.
-}
-
-if (status) {
+        if (status) {
             // «1 punkt» eller «3 punkter» (tekst() kommer fra Views/Shared/_JsTekster.cshtml).
             var punkter = antallSynlige === 1 ? tekst('1 punkt') : tekst('{0} punkter', antallSynlige);
             if (radius !== null && valgtPosisjon === null) {
@@ -523,6 +482,88 @@ if (status) {
                 status.textContent = tekst('Viser {0} innenfor {1} km.', punkter, radius / 1000);
             }
         }
+    }
+
+    // Henter oppdaterte kartpunkter fra serveren.
+    // Funksjonen erstatter gamle markører med nye,
+    // men beholder kartet, zoomnivået og valgt avstandsfilter.
+    function oppdaterKartpunkter(nyeRessurser, nyeBehov) {
+
+        // Fjerner de gamle markørene fra kartet.
+        alleMarkorer.forEach(function (punkt) {
+            kart.removeLayer(punkt.markor);
+        });
+
+        // Tømmer listene med gamle markører og posisjoner.
+        alleMarkorer = [];
+        alleSteder = [];
+
+        // Legger til nye markører med oppdatert informasjon.
+        leggTilNaler(nyeRessurser);
+        leggTilNaler(nyeBehov);
+
+        // Bruker det eksisterende avstandsfilteret på de nye punktene.
+        // Kartet opprettes ikke på nytt.
+        oppdaterFilter(false);
+    }
+
+    // Henter oppdaterte behov og ressurser fra KommandobroController.
+    async function hentOppdaterteKartdata() {
+
+        // Starter ikke en ny forespørsel hvis den forrige fortsatt kjører.
+        if (henterKartdata) {
+            return;
+        }
+
+        henterKartdata = true;
+
+        try {
+            // Henter oppdaterte kartdata fra API-endepunktet.
+            var svar = await fetch('/Kommandobro/Kartdata', {
+                method: 'GET',
+                cache: 'no-store'
+            });
+
+            // Kontrollerer at serveren svarte uten feil.
+            if (!svar.ok) {
+                throw new Error('Kunne ikke hente kartdata: ' + svar.status);
+            }
+
+            // Gjør JSON-svaret om til et JavaScript-objekt.
+            var data = await svar.json();
+
+            // Kontrollerer at serveren returnerte forventede lister.
+            if (!Array.isArray(data.ressurser) || !Array.isArray(data.behov)) {
+                throw new Error('Ugyldig format på kartdata.');
+            }
+
+            // Oppdaterer markørene med de nyeste dataene.
+            oppdaterKartpunkter(data.ressurser, data.behov);
+
+        } catch (feil) {
+
+            // Skriver feilen i nettleserens konsoll.
+            // Eksisterende kartpunkter beholdes hvis hentingen feiler.
+            console.error('Feil ved oppdatering av kart:', feil);
+
+        } finally {
+
+            // Tillater neste forespørsel når denne er ferdig.
+            henterKartdata = false;
+        }
+    }
+
+
+    // ----- Start: tegner prikkene og kobler på klikk, avstandsfilter og automatisk oppdatering -----
+
+    leggTilNaler(ressurser);
+    leggTilNaler(behov);
+
+    if (alleSteder.length > 0) {
+        kart.fitBounds(alleSteder, {
+            padding: [48, 48],
+            maxZoom: 12
+        });
     }
 
     kart.on('click', function (hendelse) {
@@ -547,31 +588,31 @@ if (status) {
     });
 
     if (filter) {
-    // Oppdaterer kartet når brukeren endrer avstandsfilteret.
-    filter.addEventListener('change', function () {
-        oppdaterFilter();
+        // Oppdaterer kartet når brukeren endrer avstandsfilteret.
+        filter.addEventListener('change', function () {
+            oppdaterFilter();
+        });
+    }
+
+    // Viser riktig antall punkter når kartet åpnes.
+    oppdaterFilter();
+
+    // Henter oppdaterte ressurser og behov hvert 15. sekund.
+    setInterval(function () {
+
+        // Henter bare data når nettleserfanen er synlig.
+        if (!document.hidden) {
+            hentOppdaterteKartdata();
+        }
+
+    }, 15000);
+
+    // Henter nye data når brukeren kommer tilbake til fanen.
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+            hentOppdaterteKartdata();
+        }
     });
-}
-
-// Viser riktig antall punkter når kartet åpnes.
-oppdaterFilter();
-
-// Henter oppdaterte ressurser og behov hvert 15. sekund.
-setInterval(function () {
-
-    // Henter bare data når nettleserfanen er synlig.
-    if (!document.hidden) {
-        hentOppdaterteKartdata();
-    }
-
-}, 15000);
-
-// Henter nye data når brukeren kommer tilbake til fanen.
-document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) {
-        hentOppdaterteKartdata();
-    }
-});
 
 } // Slutten på visOversikt()
 

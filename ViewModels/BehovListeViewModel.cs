@@ -1,11 +1,17 @@
 using Nabohjelp.Models;
+using Nabohjelp.Services;
 
 namespace Nabohjelp.ViewModels;
 
 // En liste med behov, delt i kategoriene Åpne, Pågår og Lukket (se BehovStatusflyt.Kategori),
 // med filter på type, hast og kommune. Brukes av behovskøen (Behov/Ko) og «Mine behov».
-// Filteret kommer fra adressen, for eksempel /Behov/Ko?kategori=pagar&prioritet=Urgent,
-// så en filtrert liste kan lagres som bokmerke eller deles.
+//
+// Slik henger det sammen:
+//   1. Brukeren velger fane og filter. Valgene står i adressen, for eksempel
+//      /Behov/Ko?kategori=pagar&prioritet=Urgent (kan lagres som bokmerke eller deles).
+//   2. ASP.NET fyller egenskapene under (Kategori, Type ...) fra adressen.
+//   3. BehovController henter behovene og kaller Fyll.
+//   4. Siden viser Faner() og Liste.
 public class BehovListeViewModel
 {
     // Valgt kategori: "apne", "pagar", "lukket" eller "alle". Tom = standard for siden.
@@ -30,40 +36,43 @@ public class BehovListeViewModel
     public int AntallLukket { get; set; }
     public int AntallAlle { get; set; }
 
+    // Sier om brukeren har valgt noe i filteret (da vises knappen «Nullstill»).
     public bool HarFilter()
     {
         return Type != null || Prioritet != null || !string.IsNullOrWhiteSpace(Kommune);
+    }
+
+    // Fanene over lista, i den rekkefølgen de vises.
+    public List<Fane> Faner()
+    {
+        return new List<Fane>
+        {
+            LagFane(BehovStatusflyt.KategoriApne, "Åpne", AntallApne),
+            LagFane(BehovStatusflyt.KategoriPagar, "Pågår", AntallPagar),
+            LagFane(BehovStatusflyt.KategoriLukket, "Lukket", AntallLukket),
+            LagFane(BehovStatusflyt.KategoriAlle, "Alle", AntallAlle)
+        };
+    }
+
+    private Fane LagFane(string kategori, string norskTekst, int antall)
+    {
+        return new Fane
+        {
+            Kategori = kategori,
+            Tekst = Oversetter.Tekst(norskTekst),
+            Antall = antall,
+            ErValgt = Kategori == kategori
+        };
     }
 
     // Fyller lista fra alle behovene brukeren har lov til å se.
     // standardKategori brukes når ingen kategori er valgt (eller den er ukjent).
     public void Fyll(List<Behov> alle, string standardKategori)
     {
-        if (Kategori != BehovStatusflyt.KategoriApne && Kategori != BehovStatusflyt.KategoriPagar
-            && Kategori != BehovStatusflyt.KategoriLukket && Kategori != BehovStatusflyt.KategoriAlle)
-        {
-            Kategori = standardKategori;
-        }
-        if (Sortering != "akutte")
-        {
-            Sortering = "nyeste";
-        }
+        BrukStandardvalg(standardKategori);
 
-        // Kommunen i filteret gjøres om til nummer. En ukjent kommune gir ingen treff.
-        string? kommunenummer = null;
-        if (!string.IsNullOrWhiteSpace(Kommune))
-        {
-            // (Fullt navn på typen, fordi egenskapen over også heter Kommune.)
-            Nabohjelp.Models.Kommune? valgt = Kommuner.FinnFraTekst(Kommune);
-            if (valgt == null)
-            {
-                kommunenummer = "ukjent";
-            }
-            else
-            {
-                kommunenummer = valgt.Nummer;
-            }
-        }
+        // Kommunen i filteret som nummer (se Kommuner.NummerForFilter).
+        string? kommunenummer = Kommuner.NummerForFilter(Kommune);
 
         Liste = new List<Behov>();
         AntallApne = 0;
@@ -74,20 +83,14 @@ public class BehovListeViewModel
         foreach (Behov behov in alle)
         {
             // Først filteret (type, hast og kommune) ...
-            bool passer = (Type == null || behov.Type == Type)
-                && (Prioritet == null || behov.Prioritet == Prioritet)
-                && (kommunenummer == null || behov.Kommunenummer == kommunenummer);
-            if (!passer)
+            if (!PasserFilteret(behov, kommunenummer))
             {
                 continue;
             }
 
-            // ... så telles det per kategori, og bare den valgte kategorien vises.
+            // ... så telles behovet i sin kategori, og bare den valgte kategorien vises.
             string kategori = BehovStatusflyt.Kategori(behov.Status);
-            AntallAlle++;
-            if (kategori == BehovStatusflyt.KategoriApne) AntallApne++;
-            if (kategori == BehovStatusflyt.KategoriPagar) AntallPagar++;
-            if (kategori == BehovStatusflyt.KategoriLukket) AntallLukket++;
+            TellMed(kategori);
 
             if (Kategori == BehovStatusflyt.KategoriAlle || Kategori == kategori)
             {
@@ -96,6 +99,61 @@ public class BehovListeViewModel
         }
 
         Liste.Sort(Sammenlign);
+    }
+
+    // Ukjente verdier i adressen byttes ut med standardvalgene.
+    private void BrukStandardvalg(string standardKategori)
+    {
+        bool kjentKategori = Kategori == BehovStatusflyt.KategoriApne
+            || Kategori == BehovStatusflyt.KategoriPagar
+            || Kategori == BehovStatusflyt.KategoriLukket
+            || Kategori == BehovStatusflyt.KategoriAlle;
+
+        if (!kjentKategori)
+        {
+            Kategori = standardKategori;
+        }
+        if (Sortering != "akutte")
+        {
+            Sortering = "nyeste";
+        }
+    }
+
+    // Sjekker ett behov mot filteret. Et tomt filterfelt (null) godtar alt.
+    private bool PasserFilteret(Behov behov, string? kommunenummer)
+    {
+        if (Type != null && behov.Type != Type)
+        {
+            return false;
+        }
+        if (Prioritet != null && behov.Prioritet != Prioritet)
+        {
+            return false;
+        }
+        if (kommunenummer != null && behov.Kommunenummer != kommunenummer)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    // Øker tallet på fanen for kategorien, og på fanen «Alle».
+    private void TellMed(string kategori)
+    {
+        AntallAlle++;
+
+        if (kategori == BehovStatusflyt.KategoriApne)
+        {
+            AntallApne++;
+        }
+        else if (kategori == BehovStatusflyt.KategoriPagar)
+        {
+            AntallPagar++;
+        }
+        else if (kategori == BehovStatusflyt.KategoriLukket)
+        {
+            AntallLukket++;
+        }
     }
 
     // Rekkefølgen i lista. Gir et negativt tall hvis a skal stå før b.

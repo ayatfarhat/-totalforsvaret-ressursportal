@@ -48,20 +48,18 @@ namespace Nabohjelp.Controllers
             // Henter de nyeste ressursene og behovene fra databasen.
             MapViewModel modell = await HentKartdata();
 
-            // Returnerer kartpunktene som JSON.
-            // JavaScript kan bruke resultatet til å oppdatere markørene.
-           // Returnerer kartdata med samme egenskapsnavn som kart.js forventer.
-// PropertyNamingPolicy = null beholder store og små bokstaver fra C#-modellene.
-return new JsonResult(
-    new
-    {
-        ressurser = modell.Ressurser,
-        behov = modell.Behov
-    },
-    new System.Text.Json.JsonSerializerOptions
-    {
-        PropertyNamingPolicy = null
-    });
+            // Returnerer kartpunktene som JSON, med samme egenskapsnavn som kart.js forventer.
+            // PropertyNamingPolicy = null beholder store og små bokstaver fra C#-modellene.
+            return new JsonResult(
+                new
+                {
+                    ressurser = modell.Ressurser,
+                    behov = modell.Behov
+                },
+                new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = null
+                });
         }
 
         // Felles metode for å hente kartdata.
@@ -123,17 +121,17 @@ return new JsonResult(
                 Beskrivelse = Forkort(behov.Beskrivelse)
             };
 
-// Kommunen vises foran registreringstidspunktet når den er kjent.
-// Dette gjør det enklere å se hvor behovet er registrert.
-if (Kommuner.Finnes(behov.Kommunenummer))
-{
-    punkt.Undertekst = Kommuner.VisNavn(behov.Kommunenummer)
-        + " · " + punkt.Undertekst;
-}
+            // Kommunen vises foran registreringstidspunktet når den er kjent.
+            // Dette gjør det enklere å se hvor behovet er registrert.
+            if (Kommuner.Finnes(behov.Kommunenummer))
+            {
+                punkt.Undertekst = Kommuner.VisNavn(behov.Kommunenummer)
+                    + " · " + punkt.Undertekst;
+            }
 
-// Bestemmer fargen på behovsmarkøren ut fra prioriteten.
-// Akutte behov vises med rød markør.
-string prioritetFarge = "merke-lys";
+            // Bestemmer fargen på behovsmarkøren ut fra prioriteten.
+            // Akutte behov vises med rød markør.
+            string prioritetFarge = "merke-lys";
 
             if (behov.Prioritet == BehovPrioritet.Urgent)
             {
@@ -161,28 +159,40 @@ string prioritetFarge = "merke-lys";
                 behov.KontaktEpost
             );
 
-            // Finner nærmeste ledige ressurs som passer til behovet.
+            LeggTilNaermesteRessurs(punkt, behov, ressurser);
+            LeggTilBehovLenker(punkt, behov);
+
+            return punkt;
+        }
+
+        // Skriver i boksen hvilken ledig ressurs som passer og ligger nærmest behovet,
+        // i luftlinje (se Services/Ressursmatching.cs), eller at ingen passer.
+        private void LeggTilNaermesteRessurs(KartPunkt punkt, Behov behov, List<Ressurs> ressurser)
+        {
             NaermesteRessurs? naermeste =
                 Ressursmatching.FinnNaermeste(behov, ressurser);
 
-            if (naermeste != null)
-            {
-                punkt.Fremhevet = T[
-                    "Nærmeste ressurs: {0}, {1} km unna",
-                    Visningstekst.RessursType(
-                        naermeste.Ressurs.Type,
-                        naermeste.Ressurs.AnnetType
-                    ),
-                    naermeste.AvstandKm.ToString("0.0")
-                ];
-
-                punkt.FremhevetErFunnet = true;
-            }
-            else
+            if (naermeste == null)
             {
                 punkt.Fremhevet = T["Ingen ledig ressurs som passer"];
+                return;
             }
 
+            punkt.Fremhevet = T[
+                "Nærmeste ressurs: {0}, {1} km unna",
+                Visningstekst.RessursType(
+                    naermeste.Ressurs.Type,
+                    naermeste.Ressurs.AnnetType
+                ),
+                naermeste.AvstandKm.ToString("0.0")
+            ];
+
+            punkt.FremhevetErFunnet = true;
+        }
+
+        // Knappene nederst i boksen: «Finn ressurs», og «Endre» hvis behovet kan endres.
+        private void LeggTilBehovLenker(KartPunkt punkt, Behov behov)
+        {
             // Lenke til siden der behovet kan matches med ressurser.
             punkt.Lenker.Add(new KartLenke
             {
@@ -199,8 +209,6 @@ string prioritetFarge = "merke-lys";
                     Adresse = "/Behov/Rediger/" + behov.Id
                 });
             }
-
-            return punkt;
         }
 
         // Lager kartpunkt for en registrert ressurs.

@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Nabohjelp.Models;
 
+// En ressurs noen kan stille med i en krise: utstyr, kjøretøy, lokaler eller innsats.
+// Dette er raden slik den lagres i databasen (tabellen Ressurser).
+// Skjemaet brukeren fyller ut, er RessursFormViewModel, som kopieres hit med KopierTil.
 public class Ressurs
 {
     public int Id { get; set; }

@@ -73,6 +73,7 @@ public class KartMerke
     public string Farge { get; set; } = "";
 }
 
+// Én linje i boksen, for eksempel «Telefon  +47 41234567». Lenke gjør verdien klikkbar.
 public class KartLinje
 {
     public string Etikett { get; set; } = "";
@@ -82,6 +83,7 @@ public class KartLinje
     public string? Lenke { get; set; }
 }
 
+// En knapp nederst i boksen, for eksempel «Finn ressurs».
 public class KartLenke
 {
     public string Tekst { get; set; } = "";

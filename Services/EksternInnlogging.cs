@@ -63,7 +63,12 @@ public static class EksternInnlogging
     // Vipps Login. Testmiljøet er apitest.vipps.no, det ekte er api.vipps.no.
     private static void SettOppVipps(OpenIdConnectOptions options, IConfigurationSection innstillinger)
     {
-        options.Authority = innstillinger["Authority"] ?? "https://apitest.vipps.no/access-management-1.0/access/";
+        // Adressen til Vipps. Står den ikke i appsettings, brukes testmiljøet.
+        options.Authority = innstillinger["Authority"];
+        if (string.IsNullOrEmpty(options.Authority))
+        {
+            options.Authority = "https://apitest.vipps.no/access-management-1.0/access/";
+        }
         options.ClientId = innstillinger["ClientId"];
         options.ClientSecret = innstillinger["ClientSecret"];
         options.CallbackPath = "/signin-vipps";

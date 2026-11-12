@@ -1,6 +1,4 @@
 @model BehovListeViewModel
-@using System.Security.Claims
-@using Nabohjelp.Models
 
 @{
     ViewData["Title"] = T["Mine behov"];
@@ -9,7 +7,7 @@
     bool erAnsatt = Tilgang.ErAnsatt(User);
 
     // Brukes til å vise «Trekk tilbake» bare på behov brukeren selv har meldt.
-    string? brukerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    string brukerId = Tilgang.BrukerId(User);
 }
 
 @functions {
@@ -72,7 +70,7 @@ else
             <article class="behov-kort @(behov.Prioritet == BehovPrioritet.Urgent ? "behov-akutt" : "")" aria-labelledby="behov-@behov.Id">
                 <div class="behov-topp">
                     <h3 id="behov-@behov.Id">@Visningstekst.Type(behov.Type, behov.AnnetType)</h3>
-                    <span class="merke @(behov.Prioritet == BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Visningstekst.Prioritet(behov.Prioritet)</span>
+                    <span class="merke @Visningstekst.PrioritetFarge(behov.Prioritet)">@Visningstekst.Prioritet(behov.Prioritet)</span>
                     <span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>
                 </div>
 
@@ -92,12 +90,11 @@ else
                 @if (steg >= 0)
                 {
                     <ol class="statuslinje" aria-label="@T["Status"]: @Visningstekst.Status(behov.Status)">
+                        @* Ett punkt for hvert steg. Fargen kommer fra Visningstekst.StegKlasse,
+                           og aria-current="step" sier fra til skjermlesere hvilket steg behovet står på. *@
                         @for (int i = 0; i < BehovStatusflyt.Steg.Length; i++)
                         {
-                            // Et løst behov er ferdig helt ut: også siste steg blir grønt.
-                            bool erLost = behov.Status == BehovStatus.Resolved;
-                            string klasse = i < steg ? "ferdig" : i == steg ? (erLost ? "ferdig na" : "na") : "";
-                            <li class="@klasse" aria-current="@(i == steg ? "step" : null)">@Visningstekst.Status(BehovStatusflyt.Steg[i])</li>
+                            <li class="@Visningstekst.StegKlasse(i, behov.Status)" aria-current="@(i == steg ? "step" : null)">@Visningstekst.Status(BehovStatusflyt.Steg[i])</li>
                         }
                     </ol>
                 }

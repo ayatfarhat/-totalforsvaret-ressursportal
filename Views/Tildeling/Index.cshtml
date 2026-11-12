@@ -1,4 +1,6 @@
 @model List<Behov>
+@* Første steg i tildelingen: behovene som kan få en ressurs. «Finn ressurs» går videre
+   til Match.cshtml for det valgte behovet. *@
 
 @{
     ViewData["Title"] = T["Tildeling"];
@@ -50,7 +52,7 @@ else
                         <td data-label="@T["Nr."]">@behov.Id</td>
                         <td data-label="@T["Behov"]"><strong>@Visningstekst.Type(behov.Type, behov.AnnetType)</strong></td>
                         <td data-label="@T["Prioritet"]">
-                            <span class="merke @(behov.Prioritet == BehovPrioritet.Urgent ? "merke-hjelp" : "")">@Visningstekst.Prioritet(behov.Prioritet)</span>
+                            <span class="merke @Visningstekst.PrioritetFarge(behov.Prioritet)">@Visningstekst.Prioritet(behov.Prioritet)</span>
                         </td>
                         <td data-label="@T["Status"]">
                             <span class="merke @Visningstekst.StatusFarge(behov.Status)">@Visningstekst.Status(behov.Status)</span>

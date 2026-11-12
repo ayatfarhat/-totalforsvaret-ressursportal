@@ -3,26 +3,19 @@
    «Mine behov». Alt sendes i adressen (GET), så filteret virker uten JavaScript og kan
    lagres som bokmerke. Fanene tar med filteret, og filteret tar med valgt fane. *@
 @{
+    // Siden partialen står på: «Ko» eller «MineBehov». Lenkene og skjemaet går tilbake dit.
     string handling = "" + ViewContext.RouteData.Values["action"];
-
-    // Fanene: kategori, tekst og antall.
-    var faner = new List<(string Kategori, string Tekst, int Antall)>
-    {
-        (BehovStatusflyt.KategoriApne, T["Åpne"], Model.AntallApne),
-        (BehovStatusflyt.KategoriPagar, T["Pågår"], Model.AntallPagar),
-        (BehovStatusflyt.KategoriLukket, T["Lukket"], Model.AntallLukket),
-        (BehovStatusflyt.KategoriAlle, T["Alle"], Model.AntallAlle)
-    };
 }
 
+@* Fanene lages i BehovListeViewModel.Faner(). Den valgte fanen får klassen «valgt»,
+   og aria-current="page" sier fra til skjermlesere. *@
 <nav class="faner" aria-label="@T["Velg hvilke behov som vises"]">
-    @foreach (var fane in faner)
+    @foreach (Fane fane in Model.Faner())
     {
-        bool valgt = Model.Kategori == fane.Kategori;
         <a asp-action="@handling" asp-route-kategori="@fane.Kategori"
            asp-route-type="@Model.Type" asp-route-prioritet="@Model.Prioritet"
            asp-route-kommune="@Model.Kommune" asp-route-sortering="@Model.Sortering"
-           class="@(valgt ? "valgt" : "")" aria-current="@(valgt ? "page" : null)">
+           class="@(fane.ErValgt ? "valgt" : "")" aria-current="@(fane.ErValgt ? "page" : null)">
             @fane.Tekst <span class="fane-antall">@fane.Antall</span>
         </a>
     }

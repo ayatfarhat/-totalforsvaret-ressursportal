@@ -1,3 +1,4 @@
+using System.Globalization;
 using Nabohjelp.Services;
 
 namespace Nabohjelp.Models;
@@ -40,6 +41,16 @@ public static class Visningstekst
         return Oversetter.Tekst("Planlagt");
     }
 
+    // CSS-klassen for merket som viser hast: akutte behov får rødt merke.
+    public static string PrioritetFarge(BehovPrioritet prioritet)
+    {
+        if (prioritet == BehovPrioritet.Urgent)
+        {
+            return "merke-hjelp";
+        }
+        return "";
+    }
+
     public static string Status(BehovStatus status)
     {
         switch (status)
@@ -65,6 +76,46 @@ public static class Visningstekst
             case BehovStatus.Rejected: return "merke-hjelp";
             default: return "";
         }
+    }
+
+    // CSS-klassen for ett steg i statuslinjen på «Mine behov» (Ny → Under vurdering → Tildelt → Løst).
+    //   stegnummer: steget som tegnes (0 = Ny ... 3 = Løst)
+    //   status:     statusen behovet har nå
+    // Steg behovet er ferdig med, er grønne («ferdig»). Steget behovet står på, er
+    // markert («na»). Et løst behov er ferdig helt ut, så siste steg er både grønt og markert.
+    public static string StegKlasse(int stegnummer, BehovStatus status)
+    {
+        int stegNaa = BehovStatusflyt.StegNummer(status);
+
+        if (stegnummer < stegNaa)
+        {
+            return "ferdig";
+        }
+        if (stegnummer > stegNaa)
+        {
+            return "";
+        }
+        if (status == BehovStatus.Resolved)
+        {
+            return "ferdig na";
+        }
+        return "na";
+    }
+
+    // En koordinat som tekst med punktum som desimaltegn, for eksempel «58.34051».
+    // Kartet (kart.js) og kartlenker forstår ikke komma, som norsk tallformat bruker.
+    public static string Koordinat(double verdi)
+    {
+        return verdi.ToString("0.#####", CultureInfo.InvariantCulture);
+    }
+
+    // Adressen som åpner et punkt i OpenStreetMap, med en nål på punktet.
+    public static string KartLenke(double breddegrad, double lengdegrad)
+    {
+        string bredde = Koordinat(breddegrad);
+        string lengde = Koordinat(lengdegrad);
+        return "https://www.openstreetmap.org/?mlat=" + bredde + "&mlon=" + lengde
+            + "#map=15/" + bredde + "/" + lengde;
     }
 
     // Ressurstypene er tekst (se RessursFormViewModel.Typer). Som for behov

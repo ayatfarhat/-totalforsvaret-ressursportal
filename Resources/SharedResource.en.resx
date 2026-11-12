@@ -1188,9 +1188,6 @@
   <data name="Ny lenke" xml:space="preserve">
     <value>New link</value>
   </data>
-  <data name="Nye behov som meldes inn, dukker opp her." xml:space="preserve">
-    <value>New needs that are reported show up here.</value>
-  </data>
   <data name="Når du velger behovstype, fyller vi inn noen spørsmål du kan svare på. Du kan endre teksten fritt." xml:space="preserve">
     <value>When you choose a type of need, we fill in a few questions you can answer. You can change the text freely.</value>
   </data>
@@ -1463,9 +1460,6 @@
   </data>
   <data name="Trykk på kartet for å sette en nål. Du kan dra nålen for å justere." xml:space="preserve">
     <value>Tap the map to place a pin. You can drag the pin to adjust it.</value>
-  </data>
-  <data name="Trykk på kartet, bruk posisjonen din, eller skriv inn koordinatene under." xml:space="preserve">
-    <value>Tap the map, use your location, or enter the coordinates below.</value>
   </data>
   <data name="Type" xml:space="preserve">
     <value>Type</value>

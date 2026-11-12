@@ -40,7 +40,11 @@ public class SokTests
 
         Assert.Single(treff);
         Assert.Equal("/Ressurs/Confirmation/4", treff[0].Adresse);
-        Assert.Contains(Nettstedsok.FinnSporsmal("tofaktor"), t => t.Adresse.StartsWith("/Home/Sporsmal#sporsmal-"));
+
+        // Spørsmålene: søket leter også i svarene, og lenken går rett til spørsmålet.
+        List<ViewModels.SokTreff> sporsmal = Nettstedsok.FinnSporsmal("tofaktor");
+        Assert.NotEmpty(sporsmal);
+        Assert.StartsWith("/Home/Sporsmal#sporsmal-", sporsmal[0].Adresse);
     }
 
     [Theory]

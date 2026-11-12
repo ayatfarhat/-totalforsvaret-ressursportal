@@ -32,7 +32,7 @@
         <p><strong>@T["Status:"]</strong> @Visningstekst.Status(Model.Status)</p>
         <p>
             <strong>@T["Beskrivelse:"]</strong>
-            <span class="tekst-linjer">@(string.IsNullOrWhiteSpace(Model.Beskrivelse) ? T["Ingen beskrivelse"].Value : Model.Beskrivelse)</span>
+            <span class="tekst-linjer">@Model.VisBeskrivelse()</span>
         </p>
     </div>
 </div>
@@ -83,16 +83,9 @@ else
     </p>
 
     <div class="row">
-        @foreach (var ressurs in Model.MatchendeRessurser)
+        @foreach (MatchendeRessursViewModel ressurs in Model.MatchendeRessurser)
         {
-            // Tom avstand betyr at ressursen mangler posisjon.
-            string avstand = "";
-            if (ressurs.AvstandKm != null)
-            {
-                avstand = ressurs.AvstandKm.Value.ToString(CultureInfo.InvariantCulture);
-            }
-
-            <div class="col-12 col-md-6 mb-3 ressurs-kort" data-avstand="@avstand">
+            <div class="col-12 col-md-6 mb-3 ressurs-kort" data-avstand="@ressurs.AvstandForFilter()">
                 <div class="card h-100">
                     <div class="card-body">
                         <h3 class="h5">
@@ -104,9 +97,9 @@ else
                         </h3>
 
                         <p><strong>@T["Posisjon:"]</strong> @ressurs.Posisjon</p>
-                        <p><strong>@T["Avstand:"]</strong> @(ressurs.AvstandKm.HasValue ? ressurs.AvstandKm.Value.ToString("F1") + " km" : T["Avstand ukjent"].Value)</p>
+                        <p><strong>@T["Avstand:"]</strong> @ressurs.VisAvstand()</p>
                         <p><strong>@T["Status:"]</strong> @T[ressurs.Status]</p>
-                        <p><strong>@T["Navn:"]</strong> @(string.IsNullOrWhiteSpace(ressurs.Navn) ? T["Ikke oppgitt"].Value : ressurs.Navn)</p>
+                        <p><strong>@T["Navn:"]</strong> @ressurs.VisNavn()</p>
                         <p><strong>@T["Match:"]</strong> @ressurs.MatchBegrunnelse</p>
 
                         <form asp-action="Tildel" method="post">

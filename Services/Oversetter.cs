@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.Localization;
 
 namespace Nabohjelp.Services;
@@ -12,6 +13,24 @@ public static class Oversetter
     // Settes én gang i Program.cs. Er den ikke satt (for eksempel i enhetstestene),
     // kommer teksten tilbake på norsk.
     public static IStringLocalizer? Localizer { get; set; }
+
+    // Sier om brukeren har valgt engelsk med språkknappen.
+    // (Språket settes for hver forespørsel i Program.cs, se UseRequestLocalization.)
+    public static bool ErEngelsk()
+    {
+        return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "en";
+    }
+
+    // Språkkoden som står i <html lang="...">: "en" eller "nb".
+    // Skjermlesere bruker den til å lese teksten med riktig uttale.
+    public static string Sprakkode()
+    {
+        if (ErEngelsk())
+        {
+            return "en";
+        }
+        return "nb";
+    }
 
     // Gir teksten på valgt språk. Finnes ingen oversettelse, brukes den norske teksten.
     public static string Tekst(string norsk)
