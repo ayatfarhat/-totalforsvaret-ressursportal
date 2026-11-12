@@ -23,4 +23,8 @@ public class Tildeling
     public IdentityUser TildeltAvBruker { get; set; } = null!;
 
     public DateTime TildeltTid { get; set; } = DateTime.UtcNow;
+
+    // Om den som eier ressursen, har sett at ressursen er tildelt. Til da vises et
+    // varsel på forsiden og under «Mine ressurser» (se Services/Tildelingsvarsel.cs).
+    public bool EierHarSett { get; set; }
 }

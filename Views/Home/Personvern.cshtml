@@ -12,7 +12,7 @@
 @if (!engelsk)
 {
     <h1>Personvernerklæring</h1>
-    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 11)" />
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 12)" />
     <p class="ingress">Her forklarer vi hvilke personopplysninger BeredskapsPortalen lagrer, hvorfor, og hva du kan gjøre med dem. BeredskapsPortalen er et studentprosjekt i IS-200 ved Universitetet i Agder.</p>
 
     <h2>Hva vi lagrer</h2>
@@ -50,6 +50,7 @@
         <li>Kontoen og registreringene dine lagres til du sletter kontoen.</li>
         <li>Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager. Selve behovet beholdes uten kontaktinformasjon, slik at kommunen har oversikt over hva som har skjedd.</li>
         <li>Tildelinger (hvilken ressurs som ble sendt til hvilket behov) er historikk for kriseledelsen og slettes ikke automatisk.</li>
+        <li>Hvert behov har en statushistorikk: når statusen ble endret, og hvilken ansatt som gjorde det (e-postadressen). Du ser historikken på dine egne behov, men ikke hvem hos kommunen som gjorde endringen. Historikken slettes sammen med behovet. Blir kontoen til en ansatt slettet, fjernes e-postadressen fra historikken.</li>
         <li>Invitasjonslenker slettes automatisk 90 dager etter at de er brukt eller har gått ut.</li>
     </ul>
 
@@ -64,7 +65,7 @@
 else
 {
     <h1>Privacy policy</h1>
-    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 11)" />
+    <partial name="_SistOppdatert" model="new DateTime(2026, 11, 12)" />
     <p class="ingress">This page explains which personal data BeredskapsPortalen stores, why, and what you can do with it. BeredskapsPortalen is a student project in IS-200 at the University of Agder.</p>
 
     <h2>What we store</h2>
@@ -102,6 +103,7 @@ else
         <li>Your account and registrations are kept until you delete your account.</li>
         <li>Phone and email on needs that are resolved, rejected or withdrawn are deleted automatically after 90 days. The need itself is kept without contact details, so the municipality has an overview of what happened.</li>
         <li>Assignments (which resource was sent to which need) are history for emergency management and are not deleted automatically.</li>
+        <li>Each need has a status history: when the status was changed, and which staff member did it (their email address). You see the history of your own needs, but not who at the municipality made the change. The history is deleted together with the need. If a staff member's account is deleted, their email address is removed from the history.</li>
         <li>Invitation links are deleted automatically 90 days after they were used or expired.</li>
     </ul>
 

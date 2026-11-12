@@ -72,4 +72,29 @@
         }
         visAnnetFelt();
     }
+
+    // ---- 4) «Tilgjengelig fra» fylles med tiden nå i et nytt skjema ----
+    // I brukervennlighetstesten valgte testpersonen et tidspunkt som hadde passert,
+    // og fikk en feilmelding. Nå står tiden nå der fra start, og kan endres.
+    // Bare i «Registrer en ressurs», ikke når en ressurs endres.
+    var tidFelt = document.getElementById("TilgjengeligFra");
+    var nyRessurs = document.querySelector('form[action$="/Ressurs/Create"]');
+
+    if (tidFelt && nyRessurs && tidFelt.value === "") {
+        tidFelt.value = tidNa();
+    }
+
+    // Tiden nå på formen feltet bruker: «2026-11-12T14:05» (lokal tid i nettleseren).
+    function tidNa() {
+        var na = new Date();
+        return na.getFullYear() + "-" + toSifre(na.getMonth() + 1) + "-" + toSifre(na.getDate()) +
+            "T" + toSifre(na.getHours()) + ":" + toSifre(na.getMinutes());
+    }
+
+    function toSifre(tall) {
+        if (tall < 10) {
+            return "0" + tall;
+        }
+        return "" + tall;
+    }
 })();

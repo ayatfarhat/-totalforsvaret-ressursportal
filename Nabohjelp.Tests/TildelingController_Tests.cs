@@ -135,6 +135,98 @@ public class TildelingController_Tests
 
         Assert.Equal(BehovStatus.New, behov2.Status);
     }
+
+    [Fact]
+    public async Task AngretTildeling_GjorRessursenLedigOgSkrivesIHistorikken()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+
+        var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseSqlite(connection)
+            .Options;
+
+        await using var db = new ApplicationDbContext(options);
+        await db.Database.EnsureCreatedAsync();
+
+        var bruker = new IdentityUser { UserName = "kommune", Email = "kommune@example.com" };
+        db.Users.Add(bruker);
+
+        var behov = new Behov
+        {
+            Type = BehovType.Generator,
+            Latitude = 58.34,
+            Longitude = 8.59,
+            Status = BehovStatus.UnderReview
+        };
+        db.Behovsliste.Add(behov);
+
+        var ressurs = new Ressurs
+        {
+            Type = "Aggregat",
+            Posisjon = "Grimstad",
+            Status = "Tilgjengelig",
+            Breddegrad = 58.35m,
+            Lengdegrad = 8.60m
+        };
+        db.Ressurser.Add(ressurs);
+
+        await db.SaveChangesAsync();
+
+        var controller = LagController(db, bruker.Id);
+
+        // Tildeler aggregatet. Ressursen settes til «Tildelt» direkte i databasen,
+        // så vi leser den inn på nytt (ReloadAsync) før neste steg.
+        await controller.Tildel(behov.Id, ressurs.Id);
+        await db.Entry(ressurs).ReloadAsync();
+        Assert.Equal("Tildelt", ressurs.Status);
+
+        Tildeling tildeling = await db.Tildelinger.SingleAsync();
+        Assert.False(tildeling.EierHarSett);
+
+        // Angrer tildelingen.
+        var resultat = await controller.Angre(tildeling.Id, null);
+        Assert.IsType<RedirectToActionResult>(resultat);
+
+        await db.Entry(ressurs).ReloadAsync();
+        await db.Entry(behov).ReloadAsync();
+
+        Assert.Equal("Tilgjengelig", ressurs.Status);
+        Assert.Equal(BehovStatus.UnderReview, behov.Status);
+        Assert.Equal(0, await db.Tildelinger.CountAsync());
+
+        // Historikken har to linjer: tildelt, og så angret.
+        List<StatusEndring> historikk = await db.StatusEndringer.OrderBy(s => s.Id).ToListAsync();
+        Assert.Equal(2, historikk.Count);
+        Assert.Equal(BehovStatus.Assigned, historikk[0].TilStatus);
+        Assert.False(historikk[0].ErAngret);
+        Assert.True(historikk[1].ErAngret);
+        Assert.Equal("Aggregat", historikk[1].RessursType);
+    }
+
+    // Lager en TildelingController med en innlogget bruker med rollen Kommune.
+    private static TildelingController LagController(ApplicationDbContext db, string brukerId)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, brukerId),
+            new Claim(ClaimTypes.Role, "Kommune")
+        };
+
+        return new TildelingController(db)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthentication"))
+                }
+            },
+            TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
+                new DefaultHttpContext(),
+                new TestTempDataProvider())
+        };
+    }
 }
 public class TestTempDataProvider :
     Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider

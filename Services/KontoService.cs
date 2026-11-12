@@ -66,6 +66,17 @@ public class KontoService
 
         try
         {
+            // Historikken til egne behov slettes sammen med behovene (Cascade i ApplicationDbContext).
+            // Har brukeren endret status på andres behov (Admin/Kommune), blir linjene i
+            // historikken stående, men uten hvem som gjorde det.
+            List<StatusEndring> endringerAvBrukeren = await _db.StatusEndringer
+                .Where(s => s.EndretAvBrukerId == bruker.Id)
+                .ToListAsync();
+            foreach (StatusEndring endring in endringerAvBrukeren)
+            {
+                endring.EndretAvBrukerId = null;
+            }
+
             _db.Behovsliste.RemoveRange(behov);
             _db.Ressurser.RemoveRange(ressurser);
             await _db.SaveChangesAsync();
@@ -108,9 +119,36 @@ public class KontoService
 
         // new { ... } lager et objekt uten egen klasse. Vi bruker det bare til å
         // bestemme hvilke felt som kommer med i JSON-filen, og hva de heter.
+        // Historikken til brukerens behov (når statusen endret seg).
+        var behovIder = new List<int>();
+        foreach (Behov b in behov)
+        {
+            behovIder.Add(b.Id);
+        }
+        List<StatusEndring> historikk = await _db.StatusEndringer
+            .Where(s => behovIder.Contains(s.BehovId))
+            .OrderBy(s => s.Tid)
+            .ToListAsync();
+
         var behovIFilen = new List<object>();
         foreach (Behov b in behov)
         {
+            var historikkIFilen = new List<object>();
+            foreach (StatusEndring endring in historikk)
+            {
+                if (endring.BehovId == b.Id)
+                {
+                    historikkIFilen.Add(new
+                    {
+                        endring.Tid,
+                        FraStatus = endring.FraStatus.ToString(),
+                        TilStatus = endring.TilStatus.ToString(),
+                        endring.RessursType,
+                        endring.ErAngret
+                    });
+                }
+            }
+
             behovIFilen.Add(new
             {
                 b.Id,
@@ -125,7 +163,8 @@ public class KontoService
                 b.KontaktTelefon,
                 b.KontaktEpost,
                 b.OpprettetTid,
-                b.SistEndretTid
+                b.SistEndretTid,
+                Historikk = historikkIFilen
             });
         }
 

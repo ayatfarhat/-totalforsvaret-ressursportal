@@ -5,6 +5,7 @@ using Nabohjelp.Models;
 using Nabohjelp.Services;
 using Nabohjelp.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -17,10 +18,12 @@ namespace Nabohjelp.Controllers;
 public class BehovController : Controller
 {
     private readonly ApplicationDbContext _db;
+    private readonly UserManager<IdentityUser> _userManager;
 
-    public BehovController(ApplicationDbContext db)
+    public BehovController(ApplicationDbContext db, UserManager<IdentityUser> userManager)
     {
         _db = db;
+        _userManager = userManager;
     }
 
     // GET: /Behov/Opprett
@@ -103,6 +106,7 @@ public class BehovController : Controller
 
         // Her vises alle kategorier hvis ingen er valgt.
         filter.Fyll(await sporring.ToListAsync(), BehovStatusflyt.KategoriAlle);
+        await LeggTilHistorikk(filter);
         return View(filter);
     }
 
@@ -225,9 +229,12 @@ public class BehovController : Controller
             return RedirectToAction(nameof(MineBehov));
         }
 
+        string brukerId = Tilgang.BrukerId(User);
+        _db.StatusEndringer.Add(StatusEndring.Ny(behov.Id, behov.Status, BehovStatus.Withdrawn, brukerId));
+
         behov.Status = BehovStatus.Withdrawn;
         behov.SistEndretTid = DateTime.UtcNow;
-        behov.SistEndretAvBrukerId = Tilgang.BrukerId(User);
+        behov.SistEndretAvBrukerId = brukerId;
 
         await _db.SaveChangesAsync();
 
@@ -244,6 +251,7 @@ public class BehovController : Controller
     {
         List<Behov> alle = await _db.Behovsliste.AsNoTracking().ToListAsync();
         filter.Fyll(alle, BehovStatusflyt.KategoriApne);
+        await LeggTilHistorikk(filter);
         return View(filter);
     }
 
@@ -297,11 +305,14 @@ public class BehovController : Controller
             }
         }
 
+        string brukerId = Tilgang.BrukerId(User);
+        _db.StatusEndringer.Add(StatusEndring.Ny(behov.Id, behov.Status, nyStatus, brukerId));
+
         behov.Status = nyStatus;
         behov.SistEndretTid = DateTime.UtcNow;
-        behov.SistEndretAvBrukerId = Tilgang.BrukerId(User);
+        behov.SistEndretAvBrukerId = brukerId;
 
-        // SaveChangesAsync lagrer behovet og ressursene samtidig. Feiler noe,
+        // SaveChangesAsync lagrer behovet, historikken og ressursene samtidig. Feiler noe,
         // lagres ingenting, så ressursene blir aldri frigjort uten at behovet er løst.
         await _db.SaveChangesAsync();
 
@@ -335,5 +346,99 @@ public class BehovController : Controller
         }
 
         return melding;
+    }
+
+    // Henter historikken til behovene som vises (se Models/StatusEndring.cs).
+    // Kriseledelsen får i tillegg se hvem som gjorde endringene, og hvilke ressurser
+    // som er tildelt nå (de vises i behovskøen med knappen «Angre tildeling»).
+    private async Task LeggTilHistorikk(BehovListeViewModel modell)
+    {
+        var behovIder = new List<int>();
+        foreach (Behov behov in modell.Liste)
+        {
+            behovIder.Add(behov.Id);
+        }
+
+        // Alle endringene for disse behovene, eldste først (s => ... betyr «for hver endring s»).
+        modell.Historikk = await _db.StatusEndringer.AsNoTracking()
+            .Where(s => behovIder.Contains(s.BehovId))
+            .OrderBy(s => s.Tid)
+            .ToListAsync();
+
+        // Frivillige ser historikken til sine egne behov, men ikke hvem i kommunen som gjorde hva.
+        if (!Tilgang.ErAnsatt(User))
+        {
+            return;
+        }
+
+        // Slår opp e-postadressen én gang for hver bruker som har endret noe.
+        foreach (StatusEndring endring in modell.Historikk)
+        {
+            string? id = endring.EndretAvBrukerId;
+            if (id != null && !modell.Brukernavn.ContainsKey(id))
+            {
+                IdentityUser? bruker = await _userManager.FindByIdAsync(id);
+                if (bruker != null && bruker.Email != null)
+                {
+                    modell.Brukernavn[id] = bruker.Email;
+                }
+            }
+        }
+
+        // Ressursene som er tildelt behovene nå. Etter at et behov er løst, er tildelingen
+        // historikk og kan ikke angres, så vi tar bare med behov som er «Tildelt».
+        List<Tildeling> tildelinger = await _db.Tildelinger.AsNoTracking()
+            .Where(t => behovIder.Contains(t.BehovId))
+            .ToListAsync();
+
+        var ressursIder = new List<int>();
+        foreach (Tildeling tildeling in tildelinger)
+        {
+            ressursIder.Add(tildeling.RessursId);
+        }
+
+        List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking()
+            .Where(r => ressursIder.Contains(r.Id))
+            .ToListAsync();
+
+        foreach (Tildeling tildeling in tildelinger)
+        {
+            Behov? behov = FinnBehov(modell.Liste, tildeling.BehovId);
+            Ressurs? ressurs = FinnRessurs(ressurser, tildeling.RessursId);
+
+            if (behov != null && ressurs != null && BehovStatusflyt.KanAngreTildeling(behov.Status))
+            {
+                modell.Tildelte.Add(new TildeltRessursViewModel
+                {
+                    TildelingId = tildeling.Id,
+                    BehovId = tildeling.BehovId,
+                    Ressurs = ressurs
+                });
+            }
+        }
+    }
+
+    private static Behov? FinnBehov(List<Behov> liste, int id)
+    {
+        foreach (Behov behov in liste)
+        {
+            if (behov.Id == id)
+            {
+                return behov;
+            }
+        }
+        return null;
+    }
+
+    private static Ressurs? FinnRessurs(List<Ressurs> liste, int id)
+    {
+        foreach (Ressurs ressurs in liste)
+        {
+            if (ressurs.Id == id)
+            {
+                return ressurs;
+            }
+        }
+        return null;
     }
 }

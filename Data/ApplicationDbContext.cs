@@ -23,6 +23,9 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<Ressurs> Ressurser { get; set; } = null!;
     public DbSet<Tildeling> Tildelinger { get; set; } = null!;
 
+    // Historikken til behovene: hver statusendring (se Models/StatusEndring.cs).
+    public DbSet<StatusEndring> StatusEndringer { get; set; } = null!;
+
     // Ressurser som kommunen eller kriseledelsen ønsker at innbyggere registrerer.
     public DbSet<OnsketRessurs> OnskedeRessurser { get; set; } = null!;
 
@@ -56,6 +59,14 @@ public class ApplicationDbContext : IdentityDbContext
             .WithMany()
             .HasForeignKey(t => t.TildeltAvBrukerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Historikken hører til behovet. Cascade betyr at historikken slettes sammen med
+        // behovet, for eksempel når en bruker sletter kontoen sin.
+        builder.Entity<StatusEndring>()
+            .HasOne<Behov>()
+            .WithMany()
+            .HasForeignKey(s => s.BehovId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Hver kode finnes bare én gang, og databasen kan slå den opp raskt.
         builder.Entity<Invitasjon>()

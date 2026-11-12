@@ -8,6 +8,8 @@ namespace Nabohjelp.Models;
 //
 //   Ny / Under vurdering → Trukket tilbake  (den som meldte behovet)
 //
+//   Tildelt → Under vurdering  (Admin/Kommune angrer en tildeling, se TildelingController.Angre)
+//
 // Så lenge behovet er Ny eller Under vurdering, kan det også endres
 // av den som meldte det, eller av Admin/Kommune.
 //
@@ -81,6 +83,24 @@ public static class BehovStatusflyt
             return KategoriLukket;
         }
         return KategoriPagar;
+    }
+
+    // En tildeling kan angres så lenge behovet er «Tildelt». Når behovet er løst,
+    // er hjelpen gitt, og tildelingen er historikk.
+    public static bool KanAngreTildeling(BehovStatus status)
+    {
+        return status == BehovStatus.Assigned;
+    }
+
+    // Statusen behovet får når en tildeling angres. Har behovet flere ressurser,
+    // er det fortsatt «Tildelt». Var dette den eneste, går det tilbake til «Under vurdering».
+    public static BehovStatus StatusEtterAngretTildeling(int antallAndreTildelinger)
+    {
+        if (antallAndreTildelinger > 0)
+        {
+            return BehovStatus.Assigned;
+        }
+        return BehovStatus.UnderReview;
     }
 
     // Hvor langt behovet har kommet i statuslinjen: 0 = Ny ... 3 = Løst.

@@ -2064,4 +2064,64 @@
   <data name="(kan ikke vises)" xml:space="preserve">
     <value>(cannot be shown)</value>
   </data>
+  <data name="Angre tildeling" xml:space="preserve">
+    <value>Undo assignment</value>
+  </data>
+  <data name="Angre tildelingen av {0}" xml:space="preserve">
+    <value>Undo the assignment of {0}</value>
+  </data>
+  <data name="Historikk" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Jeg har sett det" xml:space="preserve">
+    <value>Got it</value>
+  </data>
+  <data name="Kommunen tar kontakt med deg." xml:space="preserve">
+    <value>The municipality will contact you.</value>
+  </data>
+  <data name="Meldt" xml:space="preserve">
+    <value>Reported</value>
+  </data>
+  <data name="Ressursen din er tildelt" xml:space="preserve">
+    <value>Your resource has been assigned</value>
+  </data>
+  <data name="Tildelingen av {0} ble angret" xml:space="preserve">
+    <value>The assignment of {0} was undone</value>
+  </data>
+  <data name="Tildelingen er angret. {0} er tilgjengelig igjen, og behovet har status «{1}»." xml:space="preserve">
+    <value>The assignment has been undone. {0} is available again, and the need has the status «{1}».</value>
+  </data>
+  <data name="Tildelingen kan bare angres mens behovet er «{0}»." xml:space="preserve">
+    <value>The assignment can only be undone while the need is «{0}».</value>
+  </data>
+  <data name="Tildelt: {0}" xml:space="preserve">
+    <value>Assigned: {0}</value>
+  </data>
+  <data name="Tilgjengelighet" xml:space="preserve">
+    <value>Accessibility</value>
+  </data>
+  <data name="Vil du angre tildelingen? Ressursen blir tilgjengelig igjen." xml:space="preserve">
+    <value>Undo the assignment? The resource will be available again.</value>
+  </data>
+  <data name="nye varsler" xml:space="preserve">
+    <value>new notices</value>
+  </data>
+  <data name="slettet konto" xml:space="preserve">
+    <value>deleted account</value>
+  </data>
+  <data name="{0} meldt" xml:space="preserve">
+    <value>{0} reported</value>
+  </data>
+  <data name="{0} registrert" xml:space="preserve">
+    <value>{0} registered</value>
+  </data>
+  <data name="Hvordan siden fungerer med tastatur, skjermleser og på mobil, og hva som ikke virker godt nok ennå." xml:space="preserve">
+    <value>How the site works with a keyboard, a screen reader and on mobile, and what does not work well enough yet.</value>
+  </data>
+  <data name="{0} er tildelt et behov i {1}, {2}." xml:space="preserve">
+    <value>{0} has been assigned to a need in {1}, {2}.</value>
+  </data>
+  <data name="{0} er tildelt et behov, {1}." xml:space="preserve">
+    <value>{0} has been assigned to a need, {1}.</value>
+  </data>
 </root>

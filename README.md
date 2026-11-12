@@ -10,19 +10,23 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 
 ### Hovedfunksjoner
 
-- **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Det viktigste er påkrevd: type, kommune, adresse, når ressursen er tilgjengelig, beskrivelse, og navn og telefon til en kontaktperson. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
+- **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Det viktigste er påkrevd: type, kommune, adresse, når ressursen er tilgjengelig, beskrivelse, og navn og telefon til en kontaktperson. «Tilgjengelig fra» er fylt inn med tiden nå, så brukeren slipper feilen for en tid som har vært. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
 - **Behov:** innbyggere melder behov med type, hast, posisjon, kommune og kontaktinfo. Beskrivelsen får forslag etter type. Behovet kan endres og trekkes tilbake så lenge det ikke er tildelt, og statusen følges under «Mine behov».
+- **Statushistorikk:** hvert behov viser når det ble meldt og hver statusendring etterpå (for eksempel «Under vurdering» og «Tildelt: Aggregat»). Den som meldte behovet, ser historikken under «Mine behov». Kriseledelsen ser den i behovskøen, sammen med hvem som gjorde endringen. Endringene lagres i `Models/StatusEndring.cs`.
 - **Behovskø og statusflyt:** Kommune og Admin ser alle behov med posisjon (kommune og punkt på kart), nyeste først, og flytter dem gjennom Ny → Under vurdering → Tildelt → Løst (eller Avvist). Køen er delt i fanene Åpne, Pågår og Lukket, og kan filtreres på type, hast og kommune og sorteres med akutte først. Reglene ligger i `Models/BehovStatusflyt.cs`.
 - **Ressursliste** (`/Ressurs/Oversikt`): Kommune og Admin ser alle ressursene, delt i Tilgjengelige og Tildelte, med filter på type og kommune.
 - **Kommune fra kartet:** når brukeren trykker «Bruk min posisjon» eller på kartet, slår siden opp kommunen og nærmeste adresse hos Kartverket og fyller dem inn. Kommunen kan også skrives inn selv (med forslag mens man skriver).
 - **Menyer:** innloggede har en brukermeny (Min konto, Mine behov, Mine ressurser, Logg ut). Kommune og Admin har i tillegg menyen «Kriseledelse» med behovskø, ressursliste, tildeling og Kommandobro.
 - **Tildeling og matching:** løsningen foreslår ressurser som passer til behovstypen. Når et behov markeres som løst, blir ressursene ledige igjen.
+- **Angre tildeling:** en tildeling kan angres så lenge behovet har status «Tildelt», fra resultatsiden eller fra behovskøen. Ressursen blir ledig igjen, behovet går tilbake til «Under vurdering» (eller blir stående som «Tildelt» hvis en annen ressurs fortsatt er tildelt), og angringen står i historikken.
+- **Varsel om tildeling:** når en ressurs blir tildelt, får eieren et varsel på forsiden og på «Mine ressurser», og et tall på brukermenyen. Varselet forsvinner når eieren trykker «Jeg har sett det» (`Services/Tildelingsvarsel.cs`). Varselet vises på nettsiden; appen sender ikke e-post.
+- **Mine registreringer:** innloggede får en snarvei på forsiden til «Mine behov» og «Mine ressurser». De to sidene har hver sin farge (rød for behov, grønn for ressurser), både i menyen, på Min konto og i overskriften, så de er lettere å skille.
 - **Ressursliste per kommune:** Kommune og Admin kan filtrere på fylke eller kommune og skrive ut listen (eller lagre som PDF).
 - **Ønskede ressurser:** kriseledelsen legger ut hva de trenger, og frivillige kan registrere en ressurs rett fra ønsket.
 - **Kommandobro:** kart og tall over aktive behov og ressurser for kriseledelsen.
 - **«Annet» med egen tekst:** finnes ikke typen i lista, velger brukeren «Annet» og skriver hva det er. Gjelder behov, ressurser og ønskede ressurser.
 - **Søk** (`/Sok`): alle kan søke i sidene og i «Spørsmål og svar». Innloggede får også treff i behov og ressurser: frivillige i sine egne, Kommune og Admin i alle.
-- **Infosider:** spørsmål og svar, personvernerklæring, vilkår for bruk og cookies, med «Sist oppdatert»-dato. En egen side for «Siden finnes ikke» (404) har søk og lenker videre.
+- **Infosider:** spørsmål og svar, personvernerklæring, vilkår for bruk, cookies og tilgjengelighetserklæring, med «Sist oppdatert»-dato. En egen side for «Siden finnes ikke» (404) har søk og lenker videre.
 - **Nødnumre:** 110, 112 og 113 øverst på alle sider er knapper som ringer nummeret på mobil.
 
 ## Gruppemedlemmer og Roller
@@ -148,13 +152,13 @@ Prosjektet følger MVC-arkitekturen. Hver funksjon har sin egen Controller, View
 | Brukeradministrasjon | `AdminController` | `Views/Admin/` | `AdminBrukerViewModel` |
 | Ressurser (registrere, endre, slette, ressursliste, utskrift) | `RessursController` | `Views/Ressurs/` | `Ressurs`, `RessursFormViewModel`, `RessursListeViewModel`, `RessursUtskriftViewModel`, `Fane`, `Kommuner` |
 | Ønskede ressurser | `OnsketRessursController` | `Views/OnsketRessurs/` | `OnsketRessurs` |
-| Behov (melde, endre, trekke tilbake, kø med faner og filter) | `BehovController` | `Views/Behov/` | `Behov`, `BehovViewModel`, `BehovListeViewModel`, `Fane`, `BehovStatusflyt` |
-| Tildeling og matching | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
+| Behov (melde, endre, trekke tilbake, kø med faner og filter, statushistorikk) | `BehovController` | `Views/Behov/` | `Behov`, `StatusEndring`, `BehovViewModel`, `BehovListeViewModel`, `HistorikkViewModel`, `Fane`, `BehovStatusflyt` |
+| Tildeling, matching og angre tildeling | `TildelingController` | `Views/Tildeling/` | `TildelingViewModel` |
 | Kommandobro og kart | `KommandobroController` | `Views/Kommandobro/` | `MapViewModel`, `KartPunkt` |
-| Forside, infosider (personvern, vilkår, cookies, spørsmål og svar), feilsider og språkvalg | `HomeController` | `Views/Home/` | `VanligeSporsmal` |
+| Forside (med varsler og «Mine registreringer»), infosider (personvern, vilkår, cookies, tilgjengelighet, spørsmål og svar), feilsider og språkvalg | `HomeController` | `Views/Home/` | `ForsideViewModel`, `TildelingsvarselViewModel`, `VanligeSporsmal` |
 | Søk på nettsiden | `SokController` | `Views/Sok/` | `SokViewModel` |
 
-`Models/` inneholder det som lagres i databasen (`Behov`, `Ressurs`, `Tildeling`, `OnsketRessurs`) og regler som hører til dem (`BehovStatusflyt`, `Kommuner`, `Visningstekst`). `ViewModels/` inneholder klassene som bare brukes til å vise sider og ta imot skjemaer, slik at brukeren aldri sender inn felt som eier, status eller ID direkte til databasen.
+`Models/` inneholder det som lagres i databasen (`Behov`, `Ressurs`, `Tildeling`, `OnsketRessurs`, `StatusEndring`) og regler som hører til dem (`BehovStatusflyt`, `Kommuner`, `Visningstekst`). `ViewModels/` inneholder klassene som bare brukes til å vise sider og ta imot skjemaer, slik at brukeren aldri sender inn felt som eier, status eller ID direkte til databasen.
 
 Database-tilgangen går gjennom `ApplicationDbContext` i `Data/`, sammen med `SeedData.cs` (testbrukere) og `RoleInitializer.cs` (roller). Selve databasestrukturen styres av migrasjonsfilene i `Migrations/`.
 
@@ -175,6 +179,7 @@ Kode som brukes av flere controllere, ligger i `Services/`:
 | `Oversetter.cs` | Gir tekst på valgt språk i kode som ikke har `T["..."]`, for eksempel modeller og tjenester. Svarer også på hvilket språk som er valgt. |
 | `EksternInnlogging.cs` | Setter opp innlogging med Vipps og Apple (se «Innlogging med Vipps og Apple» under). |
 | `Kryptering.cs` | Krypterer personopplysninger før de lagres (se «Kryptering av personopplysninger» under). |
+| `Tildelingsvarsel.cs` | Finner tildelingene eieren av en ressurs ikke har sett ennå. Brukes av forsiden, «Mine ressurser» og tallet på brukermenyen. |
 
 ### Slik går en forespørsel gjennom koden
 
@@ -250,6 +255,7 @@ Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det
 - **Skjermleser:** valgt side i menyen har `aria-current="page"`, ikoner er skjult med `aria-hidden`, og nødnummer-knappene leses opp som «Ring 110, Brann».
 - **Kontrast:** tekst har minst 4,5:1 mot bakgrunnen, og kanter rundt felt minst 3:1. Teksten i tomme felt (placeholder) er gjort mørkere for å nå kravet.
 - **Sjekket med** [axe-core](https://github.com/dequelabs/axe-core) på alle sidene for alle roller (WCAG 2.1 A og AA): ingen feil.
+- **Tilgjengelighetserklæring** på `/Home/Tilgjengelighet` (lenke i bunnen av alle sider): hva som er på plass, hva som ikke virker godt nok ennå (kartet med skjermleser), og hvor man sier fra.
 
 ## Innlogging, roller, personvern og språk
 
@@ -319,7 +325,7 @@ Admin kan ikke endre, låse eller slette sin egen konto fra listen, så den sist
 | Samtykke | Avkrysning for vilkårene og personvernerklæringen ved registrering |
 | Cookies | Bare nødvendige cookies, så samtykke trengs ikke (ekomloven § 3-15). En boks nederst forteller om dem til brukeren trykker «OK» (`Views/Shared/_CookieInfo.cshtml`) |
 | Rett til innsyn og dataportabilitet | «Last ned mine data» på Min konto gir en JSON-fil med alt som er lagret om brukeren |
-| Rett til sletting | «Slett konto» sletter kontoen, behovene, ressursene og bildene |
+| Rett til sletting | «Slett konto» sletter kontoen, behovene, ressursene og bildene. Statushistorikken slettes med behovet, og e-posten til en ansatt som slettes, fjernes fra historikken |
 | Lagringsbegrensning | Telefon og e-post på behov som er løst, avvist eller trukket tilbake, slettes automatisk etter 90 dager (`Services/PersonvernOpprydding.cs`, kjøres ved oppstart). Antall dager settes i `Personvern:SlettKontaktinfoEtterDager`. Invitasjonslenker slettes like mange dager etter at de er brukt eller har gått ut, fordi de inneholder e-posten til den som brukte dem |
 | Tilgangskontroll | Bare eieren, Kommune og Admin ser kontaktinformasjon |
 | Dataminimering | Kontoen lagrer bare e-post, passord-hash, rolle og 2FA-nøkkel. På ressurser spør vi bare om det kriseledelsen trenger (kontaktperson og telefon). Bare nødvendige cookies brukes |
@@ -408,7 +414,7 @@ Enhetstester: `Nabohjelp.Tests/Personvern_Tests.cs` tester regelen for automatis
 
 Testene ligger i `Nabohjelp.Tests/` (xUnit) og er av to slag.
 
-**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs, fanene og filteret i behovskøen og ressurslisten, søket, beskyttelsen mot søppelpost, sletting av gamle invitasjoner og at alle tekster har engelsk oversettelse.
+**Enhetstester** tester én klasse om gangen, uten database eller nettleser. De dekker blant annet statusflyten for behov, statushistorikken og angring av tildeling (`Statushistorikk_Tests.cs`, `TildelingController_Tests.cs`), skjemaene, telefon med landskode, ønskede ressurser, kommunelisten, utskrift per kommune, tilgangsregelen, bilder, invitasjonslenker, matching av ressurser, nærmeste ressurs, fanene og filteret i behovskøen og ressurslisten, søket, beskyttelsen mot søppelpost, sletting av gamle invitasjoner og at alle tekster har engelsk oversettelse.
 
 ```bash
 dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtest&Kategori!=Fartsgrense"
@@ -425,7 +431,7 @@ dotnet test Nabohjelp.Tests/Nabohjelp.Tests.csproj --filter "Kategori!=Systemtes
 | `Skjema_UtenAntiForgeryToken_Avvises` | Skjema uten token avvises (CSRF) |
 | `Skjema_MedSkjultFeltUtfylt_AvvisesSomSoppelpost` | Et behov med det skjulte feltet utfylt (slik roboter gjør) avvises med 400 |
 | `FeilPassord_GirFeilmeldingOgIngenInnlogging` | Feil passord gir feilmelding |
-| `Hovedflyt_MeldeBehov_RegistrereRessurs_Tildele` | Frivillig melder behov og registrerer aggregat, kommunen tildeler, og statusen blir «Tildelt» |
+| `Hovedflyt_MeldeBehov_RegistrereRessurs_Tildele` | Frivillig melder behov og registrerer aggregat, kommunen tildeler, og statusen blir «Tildelt». Eieren av ressursen får varsel, kommunen angrer tildelingen, ressursen blir ledig igjen, og historikken viser angringen |
 | `Invitasjonslenke_GirRollenEnGang` | En ny bruker får rollen Kommune fra lenken, og lenken virker ikke en gang til |
 | `Sprakvalg_ViserSidenPaEngelsk` | Språkknappen gir engelsk side |
 | `MangeInnloggingsforsok_GirFeilkode429` | Fartsgrensen stopper forsøk nr. 11 innen ett minutt |

@@ -74,8 +74,10 @@
         <p class="dempet">@T["Her finner du behovene og ressursene du har registrert."]</p>
 
         <div class="d-flex gap-3 flex-wrap mt-3">
-            <a asp-controller="Behov" asp-action="MineBehov" class="btn btn-primary">@T["Mine behov"]</a>
-            <a asp-controller="Ressurs" asp-action="Index" class="btn btn-outline-secondary">@T["Mine ressurser"]</a>
+            @* Rødt for behov og grønt for ressurser, som ellers på siden. Knappen til høyre er
+               fortsatt hvit inni. *@
+            <a asp-controller="Behov" asp-action="MineBehov" class="btn btn-danger">@T["Mine behov"]</a>
+            <a asp-controller="Ressurs" asp-action="Index" class="btn btn-outline-success">@T["Mine ressurser"]</a>
         </div>
     </div>
 

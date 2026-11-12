@@ -145,12 +145,14 @@ namespace Nabohjelp.ViewModels
             return Visningstekst.RessursType(Type, AnnetType);
         }
 
+        // Hvor langt tilbake i tid «Tilgjengelig fra» kan være. Skjemaet fyller inn tiden nå
+        // (se wwwroot/js/ressurs-skjema.js), og det tar litt tid å fylle ut resten. Et tidspunkt
+        // som nettopp har passert, betyr bare «fra nå», og skal ikke gi feilmelding.
+        public const int MinutterTilbakeITid = 60;
+
         public bool ErValidTilgjengeligFra()
         {
-            // Skjemaet (datetime-local) sender tidspunktet uten sekunder. Hvis noen
-            // velger «nå», er tidspunktet allerede noen sekunder gammelt når skjemaet
-            // sendes inn. Derfor tillater vi ett minutt «slingringsmonn».
-            return TilgjengeligFra == null || TilgjengeligFra >= DateTime.Now.AddMinutes(-1);
+            return TilgjengeligFra == null || TilgjengeligFra >= DateTime.Now.AddMinutes(-MinutterTilbakeITid);
         }
 
         // Disse metodene lager tekst som er enkel å vise i sidene,

@@ -26,6 +26,9 @@ public class TildelingViewModel
 
     public List<MatchendeRessursViewModel> MatchendeRessurser { get; set; } = new List<MatchendeRessursViewModel>();
 
+    // Brukes bare på resultatsiden: tildelingen som kan angres. 0 = ingen knapp.
+    public int TildelingId { get; set; }
+
     // Tekst som er enkel å vise i siden, så siden slipper egne if-setninger for tomme felt.
     public string VisBeskrivelse()
     {

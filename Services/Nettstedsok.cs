@@ -31,6 +31,7 @@ public static class Nettstedsok
         Side("Personvern", "Hvilke personopplysninger vi lagrer, hvorfor og hvor lenge.", "/Home/Personvern", ForAlle),
         Side("Vilkår for bruk", "Reglene for å bruke BeredskapsPortalen.", "/Home/Vilkar", ForAlle),
         Side("Cookies", "Hvilke cookies siden bruker, og hvorfor.", "/Home/Cookies", ForAlle),
+        Side("Tilgjengelighet", "Hvordan siden fungerer med tastatur, skjermleser og på mobil, og hva som ikke virker godt nok ennå.", "/Home/Tilgjengelighet", ForAlle),
         Side("Kommandobro", "Kart over behov og ressurser for kriseledelsen.", "/Kommandobro", ForAnsatte),
         Side("Behovskø", "Alle meldte behov med kontaktinformasjon og status.", "/Behov/Ko", ForAnsatte),
         Side("Ressursliste", "Alle registrerte ressurser med kontaktinformasjon og status.", "/Ressurs/Oversikt", ForAnsatte),

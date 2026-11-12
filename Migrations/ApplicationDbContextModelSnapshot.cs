@@ -409,6 +409,47 @@ namespace Nabohjelp.Migrations
                     b.ToTable("Ressurser");
                 });
 
+            modelBuilder.Entity("Nabohjelp.Models.StatusEndring", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BehovId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EndretAvBrukerId")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("ErAngret")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("FraStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RessursAnnetType")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("RessursType")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("Tid")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("TilStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BehovId");
+
+                    b.ToTable("StatusEndringer");
+                });
+
             modelBuilder.Entity("Nabohjelp.Models.Tildeling", b =>
                 {
                     b.Property<int>("Id")
@@ -419,6 +460,9 @@ namespace Nabohjelp.Migrations
 
                     b.Property<int>("BehovId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("EierHarSett")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int>("RessursId")
                         .HasColumnType("int");
@@ -488,6 +532,15 @@ namespace Nabohjelp.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Nabohjelp.Models.StatusEndring", b =>
+                {
+                    b.HasOne("Nabohjelp.Models.Behov", null)
+                        .WithMany()
+                        .HasForeignKey("BehovId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

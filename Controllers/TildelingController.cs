@@ -146,18 +146,23 @@ public class TildelingController : Controller
 
         DateTime tidspunkt = DateTime.UtcNow;
 
+        // Skriver tildelingen i historikken til behovet (se Models/StatusEndring.cs).
+        _db.StatusEndringer.Add(StatusEndring.ForTildeling(behov.Id, behov.Status, BehovStatus.Assigned, brukerId, ressurs, false));
+
         // Oppdaterer behovets status.
         behov.Status = BehovStatus.Assigned;
         behov.SistEndretTid = tidspunkt;
         behov.SistEndretAvBrukerId = brukerId;
 
         // Lagrer koblingen mellom behov, ressurs og brukeren.
+        // EierHarSett = false gir eieren av ressursen et varsel (se Services/Tildelingsvarsel.cs).
         var tildeling = new Tildeling
         {
             BehovId = behovId,
             RessursId = ressursId,
             TildeltAvBrukerId = brukerId,
-            TildeltTid = tidspunkt
+            TildeltTid = tidspunkt,
+            EierHarSett = false
         };
 
         _db.Tildelinger.Add(tildeling);
@@ -187,7 +192,91 @@ public class TildelingController : Controller
 
         var tildelt = new List<MatchendeRessursViewModel>();
         tildelt.Add(LagMatchendeRessurs(behov, ressurs));
-        return View(LagViewModel(behov, tildelt));
+        TildelingViewModel modell = LagViewModel(behov, tildelt);
+
+        // Tildelingen, så siden kan vise knappen «Angre tildeling».
+        Tildeling? tildeling = await _db.Tildelinger
+            .FirstOrDefaultAsync(t => t.BehovId == behovId && t.RessursId == ressursId);
+        if (tildeling != null && BehovStatusflyt.KanAngreTildeling(behov.Status))
+        {
+            modell.TildelingId = tildeling.Id;
+        }
+
+        return View(modell);
+    }
+
+    // POST: /Tildeling/Angre
+    // Angrer en tildeling, for eksempel hvis feil ressurs ble valgt eller ressursen likevel
+    // ikke kan brukes. Ressursen blir «Tilgjengelig» igjen, og behovet går tilbake til
+    // «Under vurdering» (eller forblir «Tildelt» hvis det har flere ressurser).
+    // Selve tildelingen slettes, men historikken til behovet viser at den ble angret.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Angre(int id, string? tilbake)
+    {
+        Tildeling? tildeling = await _db.Tildelinger.FindAsync(id);
+        if (tildeling == null)
+        {
+            return NotFound();
+        }
+
+        Behov? behov = await _db.Behovsliste.FindAsync(tildeling.BehovId);
+        Ressurs? ressurs = await _db.Ressurser.FindAsync(tildeling.RessursId);
+        if (behov == null || ressurs == null)
+        {
+            return NotFound();
+        }
+
+        // Når behovet er løst, er hjelpen gitt. Da er tildelingen historikk.
+        if (!BehovStatusflyt.KanAngreTildeling(behov.Status))
+        {
+            TempData["Feil"] = Oversetter.Tekst(
+                "Tildelingen kan bare angres mens behovet er «{0}».",
+                Visningstekst.Status(BehovStatus.Assigned));
+            return TilbakeEtterAngring(tilbake);
+        }
+
+        // Har behovet flere ressurser? Da er det fortsatt «Tildelt».
+        int antallAndre = await _db.Tildelinger
+            .Where(t => t.BehovId == behov.Id && t.Id != tildeling.Id)
+            .CountAsync();
+
+        BehovStatus forrigeStatus = behov.Status;
+        string brukerId = Tilgang.BrukerId(User);
+
+        _db.Tildelinger.Remove(tildeling);
+
+        if (ressurs.Status == "Tildelt")
+        {
+            ressurs.Status = "Tilgjengelig";
+        }
+
+        behov.Status = BehovStatusflyt.StatusEtterAngretTildeling(antallAndre);
+        behov.SistEndretTid = DateTime.UtcNow;
+        behov.SistEndretAvBrukerId = brukerId;
+
+        _db.StatusEndringer.Add(StatusEndring.ForTildeling(behov.Id, forrigeStatus, behov.Status, brukerId, ressurs, true));
+
+        // SaveChangesAsync lagrer alt samtidig: enten blir alt lagret, eller ingenting.
+        await _db.SaveChangesAsync();
+
+        TempData["Melding"] = Oversetter.Tekst(
+            "Tildelingen er angret. {0} er tilgjengelig igjen, og behovet har status «{1}».",
+            Visningstekst.RessursType(ressurs.Type, ressurs.AnnetType),
+            Visningstekst.Status(behov.Status));
+
+        return TilbakeEtterAngring(tilbake);
+    }
+
+    // Tilbake dit brukeren kom fra (behovskøen eller tildelingssiden). Bare adresser på
+    // vår egen side godtas, så lenken ikke kan sende brukeren til en annen nettside.
+    private IActionResult TilbakeEtterAngring(string? tilbake)
+    {
+        if (!string.IsNullOrEmpty(tilbake) && Url.IsLocalUrl(tilbake))
+        {
+            return LocalRedirect(tilbake);
+        }
+        return RedirectToAction("Ko", "Behov");
     }
 
     // Samler det sidene trenger å vise om behovet.
