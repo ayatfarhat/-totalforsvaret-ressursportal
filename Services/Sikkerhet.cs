@@ -94,13 +94,15 @@ public static class Sikkerhet
     // kartbildene fra OpenStreetMap og oppslag av kommune og adresse hos Kartverket
     // (ws.geonorge.no). 'unsafe-inline' trengs fordi noen sider har små skript og stiler
     // direkte i HTML-en.
+    // img-src tillater blob:, som er bildet brukeren nettopp har valgt i ressursskjemaet.
+    // Uten det blir forhåndsvisningen stoppet av nettleseren (se wwwroot/js/ressurs-skjema.js).
     // form-action tillater i tillegg Vipps og Apple, fordi knappene «Logg inn med Vipps/Apple»
     // sender brukeren videre dit (se Services/EksternInnlogging.cs).
     private const string InnholdsRegler =
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; " +
         "style-src 'self' 'unsafe-inline' https://unpkg.com; " +
-        "img-src 'self' data: https://tile.openstreetmap.org https://unpkg.com; " +
+        "img-src 'self' data: blob: https://tile.openstreetmap.org https://unpkg.com; " +
         "font-src 'self'; " +
         "connect-src 'self' https://ws.geonorge.no; " +
         "object-src 'none'; " +
