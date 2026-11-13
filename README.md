@@ -2,6 +2,16 @@
 
 IS-200 / IS-201 / IS-202 – Kriseberedskap, ressurs- og behovsportal for Totalforsvaret.
 
+## Gruppe 15
+| Medlemmer | Mail | GitHub Brukernavn |
+| --------- | ---- | ----------------- |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+
 ## Om Prosjektet
 
 BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
