@@ -1,3 +1,4 @@
+using Nabohjelp.Hubs;
 using System.Globalization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +25,10 @@ builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
 // Språkvalg: tekstene på engelsk ligger i mappen Resources.
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+// SignalR sender beskjed til brukerne når ressurser eller behov endres.
+// Dermed kan nettsiden oppdateres uten at brukeren laster den inn på nytt.
+builder.Services.AddSignalR();
 
 // Legger til MVC
 builder.Services.AddControllersWithViews(options =>
@@ -238,6 +243,8 @@ app.UseStaticFiles();
 
 app.MapStaticAssets();
 
+// Nettleserne kobler seg til denne adressen for å motta oppdateringer.
+app.MapHub<OppdateringsHub>("/oppdateringer");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")

@@ -183,11 +183,16 @@
         </div>
     </footer>
 
-    <partial name="_CookieInfo" />
+       <partial name="_JsTekster" />
 
-    <partial name="_JsTekster" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SignalR-biblioteket -->
+    <script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+
+    <!-- Vår JavaScript-kode for sanntidsoppdatering -->
+    <script src="~/js/sanntid.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 

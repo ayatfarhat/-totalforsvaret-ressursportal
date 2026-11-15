@@ -91,8 +91,13 @@
     </main>
 
     <partial name="_JsTekster" />
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+@* SignalR gir Kommandobro sanntidsoppdateringer. *@
+<script src="~/lib/signalr/dist/browser/signalr.min.js"></script>
+<script src="~/js/sanntid.js" asp-append-version="true"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

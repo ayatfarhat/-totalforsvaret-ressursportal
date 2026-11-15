@@ -597,6 +597,13 @@ function visOversikt(elementId, ressurser, behov) {
     // Viser riktig antall punkter når kartet åpnes.
     oppdaterFilter();
 
+// Oppdaterer kartet når SignalR varsler om endringer.
+document.addEventListener('kartdataOppdatert', function () {
+    if (!document.hidden) {
+        hentOppdaterteKartdata();
+    }
+});
+
     // Henter oppdaterte ressurser og behov hvert 15. sekund.
     setInterval(function () {
 
