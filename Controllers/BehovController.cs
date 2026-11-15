@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.SignalR;
+using Nabohjelp.Hubs;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Nabohjelp.Data;
@@ -20,10 +22,17 @@ public class BehovController : Controller
     private readonly ApplicationDbContext _db;
     private readonly UserManager<IdentityUser> _userManager;
 
-    public BehovController(ApplicationDbContext db, UserManager<IdentityUser> userManager)
+    // Brukes til å varsle nettleserne når behov endres.
+    private readonly IHubContext<OppdateringsHub> _hub;
+
+    public BehovController(
+        ApplicationDbContext db,
+        UserManager<IdentityUser> userManager,
+        IHubContext<OppdateringsHub> hub)
     {
         _db = db;
         _userManager = userManager;
+        _hub = hub;
     }
 
     // GET: /Behov/Opprett
@@ -36,7 +45,9 @@ public class BehovController : Controller
 
         // Brukernavnet er e-postadressen (se AccountController.Register).
         string? brukernavn = User.FindFirstValue(ClaimTypes.Name);
-        if (!string.IsNullOrEmpty(brukernavn) && new EmailAddressAttribute().IsValid(brukernavn))
+
+        if (!string.IsNullOrEmpty(brukernavn) &&
+            new EmailAddressAttribute().IsValid(brukernavn))
         {
             skjema.KontaktEpost = brukernavn;
         }
@@ -47,10 +58,10 @@ public class BehovController : Controller
     // POST: /Behov/Opprett
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [EnableRateLimiting(Sikkerhet.NyRegistrering)] // maks 20 per minutt per bruker (se Services/Sikkerhet.cs)
+    [EnableRateLimiting(Sikkerhet.NyRegistrering)]
     public async Task<IActionResult> Opprett(BehovViewModel vm)
     {
-        // Skjult felt fylt ut = robot (se Services/Sikkerhet.cs).
+        // Skjult felt fylt ut = robot.
         if (Sikkerhet.ErRobot(Request))
         {
             return BadRequest();
@@ -61,17 +72,22 @@ public class BehovController : Controller
             return View(vm);
         }
 
-        // Status, tidspunkt og eier settes her. Resten kommer fra skjemaet.
+        // Status, tidspunkt og eier settes her.
         var behov = new Behov
         {
             Status = BehovStatus.New,
             OpprettetTid = DateTime.UtcNow,
             OpprettetAvBrukerId = Tilgang.BrukerId(User)
         };
+
         vm.KopierTil(behov);
 
+        // Lagrer behovet én gang.
         _db.Behovsliste.Add(behov);
         await _db.SaveChangesAsync();
+
+        // Varsler alle tilkoblede nettlesere om at et nytt behov er registrert.
+        await _hub.Clients.All.SendAsync("BehovOppdatert");
 
         // Admin og Kommune sendes til behovskøen.
         if (Tilgang.ErAnsatt(User))
@@ -89,29 +105,32 @@ public class BehovController : Controller
     // GET: /Behov/MineBehov
     // Frivillige ser bare egne behov.
     // Admin og Kommune ser alle behov.
-    // Kategori og filter kommer fra adressen (se ViewModels/BehovListeViewModel.cs).
     [HttpGet]
     public async Task<IActionResult> MineBehov(BehovListeViewModel filter)
     {
-        // Spørringen mot databasen bygges opp i flere steg og kjøres først ved ToListAsync.
-        // b => ... betyr «for hvert behov b»: Where velger behov.
         IQueryable<Behov> sporring = _db.Behovsliste.AsNoTracking();
 
         // Frivillige ser bare sine egne behov.
         if (!Tilgang.ErAnsatt(User))
         {
             string brukerId = Tilgang.BrukerId(User);
-            sporring = sporring.Where(b => b.OpprettetAvBrukerId == brukerId);
+
+            sporring = sporring.Where(
+                b => b.OpprettetAvBrukerId == brukerId);
         }
 
-        // Her vises alle kategorier hvis ingen er valgt.
-        filter.Fyll(await sporring.ToListAsync(), BehovStatusflyt.KategoriAlle);
+        // Viser alle kategorier hvis ingen er valgt.
+        filter.Fyll(
+            await sporring.ToListAsync(),
+            BehovStatusflyt.KategoriAlle);
+
         await LeggTilHistorikk(filter);
+
         return View(filter);
     }
 
     // GET: /Behov/Rediger/5
-    // Den som meldte behovet, Kommune og Admin kan endre det så lenge det ikke er tildelt.
+    // Eier, Kommune og Admin kan redigere behovet så lenge det ikke er tildelt.
     [HttpGet]
     public async Task<IActionResult> Rediger(int id)
     {
@@ -154,7 +173,7 @@ public class BehovController : Controller
             return Forbid();
         }
 
-        // Sjekkes på nytt: behovet kan ha blitt tildelt mens skjemaet var åpent.
+        // Sjekker at behovet fortsatt kan redigeres.
         if (!BehovStatusflyt.KanRedigeres(behov.Status))
         {
             TempData["Feil"] = IkkeRedigerbarMelding(behov.Status);
@@ -168,16 +187,21 @@ public class BehovController : Controller
         }
 
         vm.KopierTil(behov);
+
         behov.SistEndretTid = DateTime.UtcNow;
         behov.SistEndretAvBrukerId = Tilgang.BrukerId(User);
 
         await _db.SaveChangesAsync();
 
+        // Varsler alle tilkoblede nettlesere om at behovet er endret.
+        await _hub.Clients.All.SendAsync("BehovOppdatert");
+
         TempData["Melding"] = Oversetter.Tekst("Endringene er lagret.");
+
         return TilbakeEtterRedigering();
     }
 
-    // Den som meldte behovet, og kriseledelsen (Admin og Kommune).
+    // Kontrollerer om brukeren har lov til å endre behovet.
     private bool KanEndre(Behov behov)
     {
         return Tilgang.KanEndre(User, behov.OpprettetAvBrukerId);
@@ -190,7 +214,8 @@ public class BehovController : Controller
             Visningstekst.Status(status));
     }
 
-    // Kriseledelsen går tilbake til køen, den som meldte behovet til «Mine behov».
+    // Kriseledelsen går tilbake til køen.
+    // Andre brukere går tilbake til Mine behov.
     private IActionResult TilbakeEtterRedigering()
     {
         if (Tilgang.ErAnsatt(User))
@@ -202,7 +227,7 @@ public class BehovController : Controller
     }
 
     // POST: /Behov/TrekkTilbake/5
-    // Den som meldte behovet kan trekke det tilbake, så lenge det ikke er tildelt.
+    // Eier kan trekke tilbake behovet så lenge det ikke er tildelt.
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> TrekkTilbake(int id)
@@ -230,7 +255,13 @@ public class BehovController : Controller
         }
 
         string brukerId = Tilgang.BrukerId(User);
-        _db.StatusEndringer.Add(StatusEndring.Ny(behov.Id, behov.Status, BehovStatus.Withdrawn, brukerId));
+
+        _db.StatusEndringer.Add(
+            StatusEndring.Ny(
+                behov.Id,
+                behov.Status,
+                BehovStatus.Withdrawn,
+                brukerId));
 
         behov.Status = BehovStatus.Withdrawn;
         behov.SistEndretTid = DateTime.UtcNow;
@@ -238,20 +269,28 @@ public class BehovController : Controller
 
         await _db.SaveChangesAsync();
 
+        // Varsler alle tilkoblede nettlesere om at behovet er trukket tilbake.
+        await _hub.Clients.All.SendAsync("BehovOppdatert");
+
         TempData["Melding"] = Oversetter.Tekst("Behovet er trukket tilbake.");
+
         return RedirectToAction(nameof(MineBehov));
     }
 
     // GET: /Behov/Ko
-    // Kun Admin og Kommune har tilgang. Viser åpne behov hvis ingen kategori er valgt.
-    // Kategori og filter kommer fra adressen (se ViewModels/BehovListeViewModel.cs).
+    // Kun Admin og Kommune har tilgang.
     [HttpGet]
-    [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
+    [Authorize(Policy = "Ansatt")]
     public async Task<IActionResult> Ko(BehovListeViewModel filter)
     {
-        List<Behov> alle = await _db.Behovsliste.AsNoTracking().ToListAsync();
+        List<Behov> alle = await _db.Behovsliste
+            .AsNoTracking()
+            .ToListAsync();
+
         filter.Fyll(alle, BehovStatusflyt.KategoriApne);
+
         await LeggTilHistorikk(filter);
+
         return View(filter);
     }
 
@@ -259,7 +298,7 @@ public class BehovController : Controller
     // Kun Admin og Kommune kan endre status.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [Authorize(Policy = "Ansatt")] // Admin og Kommune (se Program.cs)
+    [Authorize(Policy = "Ansatt")]
     public async Task<IActionResult> EndreStatus(
         int id,
         BehovStatus nyStatus,
@@ -284,18 +323,17 @@ public class BehovController : Controller
 
         int antallFrigjort = 0;
 
-        // Når behovet er løst, trengs ikke ressursene lenger.
-        // De blir «Tilgjengelig» igjen, så de kan tildeles nye behov.
+        // Når behovet er løst, blir tildelte ressurser tilgjengelige igjen.
         if (nyStatus == BehovStatus.Resolved)
         {
-            // Alle tildelingene til dette behovet (t => ... betyr «for hver tildeling t»).
             List<Tildeling> tildelinger = await _db.Tildelinger
                 .Where(t => t.BehovId == id)
                 .ToListAsync();
 
             foreach (Tildeling tildeling in tildelinger)
             {
-                Ressurs? ressurs = await _db.Ressurser.FindAsync(tildeling.RessursId);
+                Ressurs? ressurs = await _db.Ressurser.FindAsync(
+                    tildeling.RessursId);
 
                 if (ressurs != null && ressurs.Status == "Tildelt")
                 {
@@ -306,78 +344,104 @@ public class BehovController : Controller
         }
 
         string brukerId = Tilgang.BrukerId(User);
-        _db.StatusEndringer.Add(StatusEndring.Ny(behov.Id, behov.Status, nyStatus, brukerId));
+
+        _db.StatusEndringer.Add(
+            StatusEndring.Ny(
+                behov.Id,
+                behov.Status,
+                nyStatus,
+                brukerId));
 
         behov.Status = nyStatus;
         behov.SistEndretTid = DateTime.UtcNow;
         behov.SistEndretAvBrukerId = brukerId;
 
-        // SaveChangesAsync lagrer behovet, historikken og ressursene samtidig. Feiler noe,
-        // lagres ingenting, så ressursene blir aldri frigjort uten at behovet er løst.
+        // Lagrer behovet, historikken og eventuelle ressursendringer samlet.
         await _db.SaveChangesAsync();
 
-        TempData["Melding"] = LagStatusMelding(nyStatus, antallFrigjort);
+        // Varsler alle nettlesere om at behovet har fått ny status.
+        await _hub.Clients.All.SendAsync("BehovOppdatert");
+
+        // Varsler også om ressursendringer.
+        // Dette er viktig når ressurser frigjøres.
+        await _hub.Clients.All.SendAsync("RessurserOppdatert");
+
+        // Viser bekreftelse og sender brukeren tilbake til behovskøen.
+        TempData["Melding"] = LagStatusMelding(
+            nyStatus,
+            antallFrigjort);
+
         return TilbakeTilKoen(tilbake);
     }
 
-    // Tilbake til køen med samme kategori og filter som før (adressen kommer fra skjemaet).
-    // Bare adresser på vår egen side godtas, så lenken ikke kan sende brukeren til en annen nettside.
+    // Sender brukeren tilbake til behovskøen med samme filter.
+    // Godtar bare lokale adresser.
     private IActionResult TilbakeTilKoen(string? tilbake)
     {
         if (!string.IsNullOrEmpty(tilbake) && Url.IsLocalUrl(tilbake))
         {
             return LocalRedirect(tilbake);
         }
+
         return RedirectToAction(nameof(Ko));
     }
 
-    // Bekreftelsen som vises øverst i køen etter en statusendring.
-    private static string LagStatusMelding(BehovStatus nyStatus, int antallFrigjort)
+    // Lager bekreftelsen som vises etter en statusendring.
+    private static string LagStatusMelding(
+        BehovStatus nyStatus,
+        int antallFrigjort)
     {
-        string melding = Oversetter.Tekst("Behovet har nå status «{0}».", Visningstekst.Status(nyStatus));
+        string melding = Oversetter.Tekst(
+            "Behovet har nå status «{0}».",
+            Visningstekst.Status(nyStatus));
 
         if (antallFrigjort == 1)
         {
-            melding += " " + Oversetter.Tekst("Ressursen som var tildelt, er tilgjengelig igjen.");
+            melding += " " + Oversetter.Tekst(
+                "Ressursen som var tildelt, er tilgjengelig igjen.");
         }
         else if (antallFrigjort > 1)
         {
-            melding += " " + Oversetter.Tekst("{0} ressurser som var tildelt, er tilgjengelige igjen.", antallFrigjort);
+            melding += " " + Oversetter.Tekst(
+                "{0} ressurser som var tildelt, er tilgjengelige igjen.",
+                antallFrigjort);
         }
 
         return melding;
     }
 
-    // Henter historikken til behovene som vises (se Models/StatusEndring.cs).
-    // Kriseledelsen får i tillegg se hvem som gjorde endringene, og hvilke ressurser
-    // som er tildelt nå (de vises i behovskøen med knappen «Angre tildeling»).
+    // Henter historikken til behovene som vises.
     private async Task LeggTilHistorikk(BehovListeViewModel modell)
     {
         var behovIder = new List<int>();
+
         foreach (Behov behov in modell.Liste)
         {
             behovIder.Add(behov.Id);
         }
 
-        // Alle endringene for disse behovene, eldste først (s => ... betyr «for hver endring s»).
-        modell.Historikk = await _db.StatusEndringer.AsNoTracking()
+        // Henter statusendringer, eldste først.
+        modell.Historikk = await _db.StatusEndringer
+            .AsNoTracking()
             .Where(s => behovIder.Contains(s.BehovId))
             .OrderBy(s => s.Tid)
             .ToListAsync();
 
-        // Frivillige ser historikken til sine egne behov, men ikke hvem i kommunen som gjorde hva.
+        // Frivillige skal ikke se hvem i kommunen som gjorde endringene.
         if (!Tilgang.ErAnsatt(User))
         {
             return;
         }
 
-        // Slår opp e-postadressen én gang for hver bruker som har endret noe.
+        // Henter brukernavnene til dem som har endret status.
         foreach (StatusEndring endring in modell.Historikk)
         {
             string? id = endring.EndretAvBrukerId;
+
             if (id != null && !modell.Brukernavn.ContainsKey(id))
             {
                 IdentityUser? bruker = await _userManager.FindByIdAsync(id);
+
                 if (bruker != null && bruker.Email != null)
                 {
                     modell.Brukernavn[id] = bruker.Email;
@@ -385,39 +449,50 @@ public class BehovController : Controller
             }
         }
 
-        // Ressursene som er tildelt behovene nå. Etter at et behov er løst, er tildelingen
-        // historikk og kan ikke angres, så vi tar bare med behov som er «Tildelt».
-        List<Tildeling> tildelinger = await _db.Tildelinger.AsNoTracking()
+        // Henter ressurser som er tildelt behovene.
+        List<Tildeling> tildelinger = await _db.Tildelinger
+            .AsNoTracking()
             .Where(t => behovIder.Contains(t.BehovId))
             .ToListAsync();
 
         var ressursIder = new List<int>();
+
         foreach (Tildeling tildeling in tildelinger)
         {
             ressursIder.Add(tildeling.RessursId);
         }
 
-        List<Ressurs> ressurser = await _db.Ressurser.AsNoTracking()
+        List<Ressurs> ressurser = await _db.Ressurser
+            .AsNoTracking()
             .Where(r => ressursIder.Contains(r.Id))
             .ToListAsync();
 
         foreach (Tildeling tildeling in tildelinger)
         {
-            Behov? behov = FinnBehov(modell.Liste, tildeling.BehovId);
-            Ressurs? ressurs = FinnRessurs(ressurser, tildeling.RessursId);
+            Behov? behov = FinnBehov(
+                modell.Liste,
+                tildeling.BehovId);
 
-            if (behov != null && ressurs != null && BehovStatusflyt.KanAngreTildeling(behov.Status))
+            Ressurs? ressurs = FinnRessurs(
+                ressurser,
+                tildeling.RessursId);
+
+            if (behov != null &&
+                ressurs != null &&
+                BehovStatusflyt.KanAngreTildeling(behov.Status))
             {
-                modell.Tildelte.Add(new TildeltRessursViewModel
-                {
-                    TildelingId = tildeling.Id,
-                    BehovId = tildeling.BehovId,
-                    Ressurs = ressurs
-                });
+                modell.Tildelte.Add(
+                    new TildeltRessursViewModel
+                    {
+                        TildelingId = tildeling.Id,
+                        BehovId = tildeling.BehovId,
+                        Ressurs = ressurs
+                    });
             }
         }
     }
 
+    // Finner et behov i listen basert på ID.
     private static Behov? FinnBehov(List<Behov> liste, int id)
     {
         foreach (Behov behov in liste)
@@ -427,9 +502,11 @@ public class BehovController : Controller
                 return behov;
             }
         }
+
         return null;
     }
 
+    // Finner en ressurs i listen basert på ID.
     private static Ressurs? FinnRessurs(List<Ressurs> liste, int id)
     {
         foreach (Ressurs ressurs in liste)
@@ -439,6 +516,7 @@ public class BehovController : Controller
                 return ressurs;
             }
         }
+
         return null;
     }
 }

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.SignalR;
+using Nabohjelp.Hubs;
 using Nabohjelp.Models;
 using Nabohjelp.Services;
 using Nabohjelp.Data;
@@ -14,16 +16,22 @@ namespace Nabohjelp.Controllers
     public class RessursController : Controller
     {
         private readonly ApplicationDbContext _db;
+// Brukes til å varsle tilkoblede nettlesere om endringer.
+private readonly IHubContext<OppdateringsHub> _hub;
 
         // Gir oss mappen wwwroot, der opplastede bilder lagres (se Services/Ressursbilder.cs).
         private readonly IWebHostEnvironment _miljo;
 
         // Gir tilgang til databasen og til mappen for bilder.
-        public RessursController(ApplicationDbContext db, IWebHostEnvironment miljo)
-        {
-            _db = db;
-            _miljo = miljo;
-        }
+        public RessursController(
+    ApplicationDbContext db,
+    IWebHostEnvironment miljo,
+    IHubContext<OppdateringsHub> hub)
+{
+    _db = db;
+    _miljo = miljo;
+    _hub = hub;
+}
 
         // «Ressurser og behov»: valg mellom å melde behov og registrere ressurs,
         // og lista over brukerens egne ressurser (også for Kommune og Admin).
@@ -163,6 +171,10 @@ namespace Nabohjelp.Controllers
             _db.Ressurser.Add(ressurs);
             await _db.SaveChangesAsync();
 
+
+// Varsler alle tilkoblede nettlesere om at ressursene er endret.
+await _hub.Clients.All.SendAsync("RessurserOppdatert");
+
             // Bildet lagres med ressursens ID som filnavn, så det må skje etter lagringen.
             if (bildefil != null && bildefil.Length > 0)
             {
@@ -252,6 +264,12 @@ namespace Nabohjelp.Controllers
             model.KopierTil(ressurs);
             await _db.SaveChangesAsync();
 
+model.KopierTil(ressurs);
+await _db.SaveChangesAsync();
+
+// Varsler alle tilkoblede nettlesere om at en ressurs er endret.
+await _hub.Clients.All.SendAsync("RessurserOppdatert");
+
             // Nytt bilde erstatter det gamle. Uten nytt bilde kan det gamle fjernes.
             if (bildefil != null && bildefil.Length > 0)
             {
@@ -318,6 +336,12 @@ namespace Nabohjelp.Controllers
 
             _db.Ressurser.Remove(ressurs);
             await _db.SaveChangesAsync();
+
+            _db.Ressurser.Remove(ressurs);
+await _db.SaveChangesAsync();
+
+// Varsler alle tilkoblede nettlesere om at en ressurs er slettet.
+await _hub.Clients.All.SendAsync("RessurserOppdatert");
 
             Ressursbilder.Slett(_miljo.WebRootPath, id);
 
@@ -451,3 +475,4 @@ namespace Nabohjelp.Controllers
         }
     }
 }
+
