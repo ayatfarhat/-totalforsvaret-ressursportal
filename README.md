@@ -8,6 +8,17 @@ BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utvi
 
 Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
 
+## Gruppe 15
+| Medlemmer | Mail | GitHub Brukernavn |
+| --------- | ---- | ----------------- |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+| Navn      | Mail | Brukernavn        |
+
+
 ### Hovedfunksjoner
 
 - **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Det viktigste er påkrevd: type, kommune, adresse, når ressursen er tilgjengelig, beskrivelse, og navn og telefon til en kontaktperson. «Tilgjengelig fra» er fylt inn med tiden nå, så brukeren slipper feilen for en tid som har vært. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
