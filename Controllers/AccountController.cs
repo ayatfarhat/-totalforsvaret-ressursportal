@@ -9,6 +9,7 @@ using Nabohjelp.Data;
 using Nabohjelp.Models;
 using Nabohjelp.ViewModels;
 using Nabohjelp.Services;
+using System.Security.Cryptography;
 
 namespace Nabohjelp.Controllers;
 
@@ -58,7 +59,10 @@ public class AccountController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [EnableRateLimiting(Sikkerhet.Innlogging)] // maks 10 forsøk per minutt (se Services/Sikkerhet.cs)
-    public async Task<IActionResult> Register(RegisterViewModel model, string? returnUrl = null)
+    public async Task<IActionResult> Register(
+    RegisterViewModel model,
+    [FromServices] IWebHostEnvironment miljo,
+    string? returnUrl = null)
     {
         // Skjult felt fylt ut = robot (se Services/Sikkerhet.cs).
         if (Sikkerhet.ErRobot(Request))
@@ -111,6 +115,12 @@ public class AccountController : Controller
 
         // Alle nye brukere får rollen Frivillig.
         await _userManager.AddToRoleAsync(bruker, "Frivillig");
+
+        // Viser demoen etter vanlig registrering i utviklingsmiljÃ¸et.
+        if (miljo.IsDevelopment() && string.IsNullOrEmpty(returnUrl))
+        {
+            return RedirectToAction(nameof(EpostDemo));
+        }   
 
         await _signInManager.SignInAsync(bruker, isPersistent: false);
 
@@ -745,4 +755,40 @@ public class AccountController : Controller
 
         return RedirectToAction("Index", "Home");
     }
+
+     [HttpGet]
+    public IActionResult EpostDemo([FromServices] IWebHostEnvironment miljo)
+    {
+        // Demosiden er bare tilgjengelig i utviklingsmiljøet.
+        if (!miljo.IsDevelopment())
+            return NotFound();
+
+        var kode = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+
+        // Viser koden i demoen og husker den til skjemaet sendes inn.
+        TempData["EpostDemoKode"] = kode;
+        ViewBag.DemoKode = kode;
+
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult EpostDemo(
+        string? kode,
+        [FromServices] IWebHostEnvironment miljo)
+    {
+        if (!miljo.IsDevelopment())
+            return NotFound();
+
+        // Leser koden én gang og sammenligner med det brukeren skrev.
+        var forventetKode = TempData["EpostDemoKode"] as string;
+
+        ViewBag.Resultat = forventetKode != null && kode?.Trim() == forventetKode
+            ? "Riktig kode! I den ferdige løsningen ville e-posten nå vært bekreftet."
+            : "Koden stemmer ikke eller er allerede brukt. Generer en ny kode.";
+
+        return View();
+    }
+
 }

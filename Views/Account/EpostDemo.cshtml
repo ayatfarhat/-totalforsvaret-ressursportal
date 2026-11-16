@@ -1,0 +1,20 @@
+<h1>Demo: Bekreft e-post</h1>
+<p>I den ferdige løsningen ville koden blitt sendt på e-post.</p>
+
+@if (ViewBag.DemoKode != null)
+{
+    <p><strong>Simulert e-post:</strong> Koden din er @ViewBag.DemoKode.</p>
+
+    <form asp-action="EpostDemo" method="post">
+        <label for="kode">Skriv inn koden:</label>
+        <input id="kode" name="kode" inputmode="numeric"
+               maxlength="6" required />
+        <button type="submit">Bekreft kode</button>
+    </form>
+}
+
+@if (ViewBag.Resultat != null)
+{
+    <p>@ViewBag.Resultat</p>
+    <a asp-action="EpostDemo">Generer ny kode</a>
+}
