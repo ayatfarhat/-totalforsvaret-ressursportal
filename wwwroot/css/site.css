@@ -278,6 +278,16 @@ textarea.form-control { min-height: 7rem; }
 .alert-info    { background: #E7EEF3;           border-color: var(--natt-lys); color: var(--natt); }
 .alert-warning { background: var(--lys-lys);    border-color: var(--lys);   color: #5B4300; }
 
+/* Melding fra sanntid.js når listen kan ha blitt endret. Blir stående øverst mens man ruller. */
+.endringsmelding {
+    position: sticky; top: 0; z-index: 1040;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .5rem 1rem;
+    padding: .6rem 1rem;
+    background: var(--lys-lys); color: #5B4300;
+    border-bottom: 2px solid var(--lys);
+    font-weight: 600;
+}
+
 /* Kort (brukes av Tildeling-sidene m.fl.) */
 .card {
     background: var(--flate);

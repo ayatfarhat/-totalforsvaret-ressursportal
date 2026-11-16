@@ -1,5 +1,5 @@
 @using System.Text.Json
-@* Tekstene som JavaScript-filene (kart.js og ressurs-skjema.js) viser, på språket brukeren har valgt.
+@* Tekstene som JavaScript-filene (kart.js, ressurs-skjema.js og sanntid.js) viser, på språket brukeren har valgt.
    JavaScript slår opp med den norske teksten, på samme måte som T["..."] i sidene:
    tekst('Henter posisjonen din ...') eller tekst('Viser alle {0}.', '3 punkter').
    Nye tekster legges til i listen under og i Resources/SharedResource.en.resx. *@
@@ -22,7 +22,9 @@
         "Viser {0} innenfor {1} km.",
         "Valgt utgangspunkt",
         "Bildet er for stort. Maks størrelse er 5 MB.",
-        "Filen er ikke et bilde."
+        "Filen er ikke et bilde.",
+        "Det kan ha kommet endringer i listen.",
+        "Oppdater listen"
     };
 
     var tekster = new Dictionary<string, string>();
