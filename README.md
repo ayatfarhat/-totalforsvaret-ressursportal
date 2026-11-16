@@ -2,16 +2,6 @@
 
 IS-200 / IS-201 / IS-202 – Kriseberedskap, ressurs- og behovsportal for Totalforsvaret.
 
-## Gruppe 15
-| Medlemmer | Mail | GitHub Brukernavn |
-| --------- | ---- | ----------------- |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-
 ## Om Prosjektet
 
 BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
@@ -34,6 +24,7 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 - **Ressursliste per kommune:** Kommune og Admin kan filtrere på fylke eller kommune og skrive ut listen (eller lagre som PDF).
 - **Ønskede ressurser:** kriseledelsen legger ut hva de trenger, og frivillige kan registrere en ressurs rett fra ønsket.
 - **Kommandobro:** kart og tall over aktive behov og ressurser for kriseledelsen.
+- **Sanntid (SignalR):** når et behov eller en ressurs blir meldt, endret, tildelt eller slettet, får alle åpne nettlesere beskjed med en gang. Kartet på Kommandobro henter nye data av seg selv. Behovskøen, «Mine behov» og ressurslisten viser meldingen «Det kan ha kommet endringer i listen» med knappen «Oppdater listen», så det brukeren holder på med (filter, åpen historikk) ikke forsvinner. Beskjeden inneholder ingen personopplysninger, bare at noe er endret.
 - **«Annet» med egen tekst:** finnes ikke typen i lista, velger brukeren «Annet» og skriver hva det er. Gjelder behov, ressurser og ønskede ressurser.
 - **Søk** (`/Sok`): alle kan søke i sidene og i «Spørsmål og svar». Innloggede får også treff i behov og ressurser: frivillige i sine egne, Kommune og Admin i alle.
 - **Infosider:** spørsmål og svar, personvernerklæring, vilkår for bruk, cookies og tilgjengelighetserklæring, med «Sist oppdatert»-dato. En egen side for «Siden finnes ikke» (404) har søk og lenker videre.
@@ -205,6 +196,8 @@ Et skjema går samme vei tilbake: skjemaet sendes med POST til controlleren, ASP
 
 Kartet er det eneste stedet der JavaScript henter data selv: `wwwroot/js/kart.js` spør `/Kommandobro/Kartdata` hvert 15. sekund og tegner nålene på nytt.
 
+Sanntid går gjennom SignalR. Nettleseren kobler seg til `/oppdateringer` (`Hubs/OppdateringsHub.cs`) med `wwwroot/js/sanntid.js`. Når en controller har lagret en endring, sender den `BehovOppdatert` eller `RessurserOppdatert` til alle med `_hub.Clients.All.SendAsync(...)`. Da henter kartet nye data med en gang, i stedet for å vente på neste runde på 15 sekunder, og listene viser meldingen med «Oppdater listen».
+
 ### Filene på toppnivå
 
 | Fil/mappe | Hvorfor den trengs |
@@ -215,10 +208,12 @@ Kartet er det eneste stedet der JavaScript henter data selv: `wwwroot/js/kart.js
 | `Controllers/`, `Models/`, `ViewModels/`, `Views/` | MVC-delene av appen. |
 | `Data/`, `Migrations/` | Databasen: oppsett, testbrukere, roller og migrasjoner. |
 | `Services/` | Kode som brukes av flere controllere (se over). |
+| `Hubs/` | `OppdateringsHub.cs`: adressen nettleserne kobler seg til for sanntid (SignalR). |
 | `Resources/` | Engelske tekster for språkvalget. |
 | `SharedResource.cs` | Tom klasse som gir oversettelsene et navn. Må ligge utenfor `Resources/`, ellers finner ikke appen de engelske tekstene. |
 | `Nabohjelp.Tests/` | Enhetstestene. |
-| `wwwroot/` | CSS, JavaScript, skrifter, ikoner og bibliotekene Bootstrap og jQuery (bare filene som brukes). |
+| `wwwroot/` | CSS, JavaScript, skrifter, ikoner og bibliotekene Bootstrap, jQuery og SignalR (bare filene som brukes). |
+| `libman.json` | Sier hvor SignalR-biblioteket i `wwwroot/lib/signalr/` er hentet fra (Library Manager i Visual Studio). |
 | `Properties/launchSettings.json` | Port og miljø når appen startes med `dotnet run`. |
 | `appsettings.json`, `appsettings.Development.json` | Innstillinger, og egne innstillinger under utvikling (for eksempel at 2FA ikke kreves). |
 | `Dockerfile`, `docker-compose.yml` | Bygger og starter appen og MariaDB i Docker. |
