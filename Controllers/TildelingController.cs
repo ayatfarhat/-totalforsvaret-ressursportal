@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.SignalR;
+using Nabohjelp.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +16,16 @@ public class TildelingController : Controller
 {
     private readonly ApplicationDbContext _db;
 
-    public TildelingController(ApplicationDbContext db)
-    {
-        _db = db;
-    }
+// Brukes til å varsle nettleserne når tildelinger endres.
+private readonly IHubContext<OppdateringsHub> _hub;
+
+public TildelingController(
+    ApplicationDbContext db,
+    IHubContext<OppdateringsHub>? hub = null)
+{
+    _db = db;
+    _hub = hub!;
+}
 
     // GET: /Tildeling
     // Viser behov som kan matches og tildeles.
@@ -172,6 +180,14 @@ public class TildelingController : Controller
         // Bekrefter endringene i databasen.
         await transaksjon.CommitAsync();
 
+// Varsler nettleserne etter at tildelingen er lagret.
+// Testene bruker ikke SignalR, derfor sjekker vi om _hub finnes.
+if (_hub != null)
+{
+    await _hub.Clients.All.SendAsync("RessurserOppdatert");
+    await _hub.Clients.All.SendAsync("BehovOppdatert");
+}
+
         return RedirectToAction(
             nameof(Resultat),
             new { behovId, ressursId });
@@ -259,6 +275,14 @@ public class TildelingController : Controller
 
         // SaveChangesAsync lagrer alt samtidig: enten blir alt lagret, eller ingenting.
         await _db.SaveChangesAsync();
+
+// Varsler nettleserne når en tildeling angres.
+// Ressursen blir tilgjengelig igjen, og behovet får oppdatert status.
+if (_hub != null)
+{
+    await _hub.Clients.All.SendAsync("RessurserOppdatert");
+    await _hub.Clients.All.SendAsync("BehovOppdatert");
+}
 
         TempData["Melding"] = Oversetter.Tekst(
             "Tildelingen er angret. {0} er tilgjengelig igjen, og behovet har status «{1}».",
