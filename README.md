@@ -52,20 +52,21 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 
 ## Drift og kjøring
 
-### Forutsetninger
-
-Applikasjonen kan kjøres på to måter:
-
-| | Med Docker (anbefalt) | Uten Docker |
-|---|---|---|
-| **Må være installert** | [Docker Desktop](https://www.docker.com/products/docker-desktop/) og [Git](https://git-scm.com/) | [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0), Docker Desktop og Git |
-| **Startes med** | `docker compose up --build` | `docker compose up -d mariadb` og `dotnet run` |
-| **Åpnes på** | <http://localhost:8080> | <http://localhost:5144> |
-| **Brukes til** | Vanlig kjøring og testing | Utvikling |
-
-Docker Desktop må være startet før du kjører `docker compose`.
-
-Begge bruker den samme MariaDB-databasen for brukere, behov, ressurser, tildelinger og ønskede ressurser. Bilder av ressurser lagres som filer i `wwwroot/uploads/ressurser/`. Kjør bare én av kjøremåtene om gangen.
+>[!TIP]
+>### Forutsetninger
+>
+>Applikasjonen kan kjøres på to måter:
+>
+>| | Med Docker (anbefalt) | Uten Docker |
+>|---|---|---|
+>| **Må være installert** | [Docker Desktop](https://www.docker.com/products/docker-desktop/) og [Git](https://git-scm.com/) | [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0), Docker Desktop og Git |
+>| **Startes med** | `docker compose up --build` | `docker compose up -d mariadb` og `dotnet run` |
+>| **Åpnes på** | <http://localhost:8080> | <http://localhost:5144> |
+>| **Brukes til** | Vanlig kjøring og testing | Utvikling |
+>
+>Docker Desktop må være startet før du kjører `docker compose`.
+>
+>Begge bruker den samme MariaDB-databasen for brukere, behov, ressurser, tildelinger og ønskede ressurser. Bilder av ressurser lagres som filer i `wwwroot/uploads/ressurser/`. Kjør bare én av kjøremåtene om gangen.
 
 ### Starte applikasjonen med Docker
 
