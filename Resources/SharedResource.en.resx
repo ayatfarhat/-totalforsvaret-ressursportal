@@ -2124,4 +2124,10 @@
   <data name="{0} er tildelt et behov, {1}." xml:space="preserve">
     <value>{0} has been assigned to a need, {1}.</value>
   </data>
+  <data name="Det kan ha kommet endringer i listen." xml:space="preserve">
+    <value>There may be changes to the list.</value>
+  </data>
+  <data name="Oppdater listen" xml:space="preserve">
+    <value>Refresh the list</value>
+  </data>
 </root>
