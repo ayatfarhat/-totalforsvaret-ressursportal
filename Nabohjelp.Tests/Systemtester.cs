@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
 namespace Nabohjelp.Tests;
@@ -210,62 +211,124 @@ public class Systemtester : IClassFixture<SystemtestOppsett>
     }
 
     [Fact]
-    public async Task Invitasjonslenke_GirRollenEnGang()
-    {
-        if (!_app.ErAktiv) return;
+public async Task Invitasjonslenke_GirRollenEnGang()
+{
+    if (!_app.ErAktiv) return;
 
-        // 1. Admin lager en lenke som gir rollen Kommune. Den vises bare én gang, rett etterpå.
-        var lagSvar = await SystemtestOppsett.SendSkjema(_app.Admin, "/Admin/LagInvitasjon", new Dictionary<string, string>
+    // 1. Admin oppretter en invitasjon til Kommune-rollen.
+    var lagSvar = await SystemtestOppsett.SendSkjema(
+        _app.Admin,
+        "/Admin/LagInvitasjon",
+        new Dictionary<string, string>
         {
             ["rolle"] = "Kommune",
             ["dager"] = "1"
-        }, skjemaFra: "/Admin/Invitasjoner");
-        Assert.Equal(HttpStatusCode.Redirect, lagSvar.StatusCode);
+        },
+        skjemaFra: "/Admin/Invitasjoner"
+    );
 
-        string adminside = await SystemtestOppsett.Hent(_app.Admin, "/Admin/Invitasjoner");
-        var lenke = Regex.Match(adminside, @"/Account/Invitasjon\?kode=([A-Za-z0-9_\-]+)");
-        Assert.True(lenke.Success);
-        string adresse = "/Account/Invitasjon?kode=" + lenke.Groups[1].Value;
+    Assert.Equal(HttpStatusCode.Redirect, lagSvar.StatusCode);
 
-        // 2. En ny bruker registrerer seg (blir Frivillig) og har ikke tilgang til Kommandobro.
-        var ny = _app.NyKlient();
-        string epost = "ny" + Guid.NewGuid().ToString("N").Substring(0, 8) + "@test.no";
-        var registrer = await SystemtestOppsett.SendSkjema(ny, "/Account/Register", new Dictionary<string, string>
-        {
-            ["Epost"] = epost,
-            ["Passord"] = "Systemtest1!",
-            ["BekreftPassord"] = "Systemtest1!",
-            ["GodtarPersonvern"] = "true"
-        });
-        Assert.Equal(HttpStatusCode.Redirect, registrer.StatusCode);
-        Assert.Equal(HttpStatusCode.Redirect, (await ny.GetAsync("/Kommandobro")).StatusCode);
+    string adminside = await SystemtestOppsett.Hent(
+        _app.Admin,
+        "/Admin/Invitasjoner"
+    );
 
-        // 3. Brukeren åpner lenken og tar imot rollen. Nå slipper hen inn på Kommandobro.
-        var taImot = await SystemtestOppsett.SendSkjema(ny, "/Account/TaImotInvitasjon",
-            new Dictionary<string, string> { ["kode"] = lenke.Groups[1].Value }, skjemaFra: adresse);
-        Assert.Equal(HttpStatusCode.Redirect, taImot.StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await ny.GetAsync("/Kommandobro")).StatusCode);
+    var lenke = Regex.Match(
+        adminside,
+        @"/Account/Invitasjon\?kode=([A-Za-z0-9_\-]+)"
+    );
 
-        // 4. Lenken kan ikke brukes igjen.
-        string igjen = await SystemtestOppsett.Hent(_app.Anonym, adresse);
-        Assert.Contains("allerede brukt", igjen);
+    Assert.True(lenke.Success);
+
+    string adresse = "/Account/Invitasjon?kode=" + lenke.Groups[1].Value;
+
+    // 2. Registrer en ny bruker.
+   var ny = _app.NyKlient();
+
+string epost = "ny" + Guid.NewGuid().ToString("N").Substring(0, 8) + "@test.no";
+
+var registrer = await SystemtestOppsett.SendSkjema(
+    ny,
+    "/Account/Register",
+    new Dictionary<string, string>
+    {
+        ["Epost"] = epost,
+        ["Passord"] = "Systemtest1!",
+        ["BekreftPassord"] = "Systemtest1!",
+        ["GodtarPersonvern"] = "true"
     }
+);
+
+    Console.WriteLine($"Registrering status: {registrer.StatusCode}");
+    Console.WriteLine($"Registrering redirect: {registrer.Headers.Location}");
+
+    Assert.Equal(HttpStatusCode.Redirect, registrer.StatusCode);
+
+    // Brukeren skal ikke ha tilgang til Kommandobro ennå.
+    var tilgangFor = await ny.GetAsync("/Kommandobro");
+
+    Console.WriteLine($"Tilgang før invitasjon: {tilgangFor.StatusCode}");
+    Console.WriteLine($"Redirect før invitasjon: {tilgangFor.Headers.Location}");
+
+    Assert.Equal(HttpStatusCode.Redirect, tilgangFor.StatusCode);
+
+    // 3. Brukeren aksepterer invitasjonen.
+    var taImot = await SystemtestOppsett.SendSkjema(
+        ny,
+        "/Account/TaImotInvitasjon",
+        new Dictionary<string, string>
+        {
+            ["kode"] = lenke.Groups[1].Value
+        },
+        skjemaFra: adresse
+    );
+
+    Console.WriteLine($"Invitasjon status: {taImot.StatusCode}");
+    Console.WriteLine($"Invitasjon redirect: {taImot.Headers.Location}");
+
+    Assert.Equal(HttpStatusCode.Redirect, taImot.StatusCode);
+
+  // Kontroller at brukeren har tilgang til Kommandobro.
+var kommandobroSvar = await ny.GetAsync("/Kommandobro");
+
+Assert.True(
+    kommandobroSvar.StatusCode == HttpStatusCode.OK,
+    $"Kommandobro returnerte {(int)kommandobroSvar.StatusCode} " +
+    $"{kommandobroSvar.StatusCode}. " +
+    $"Redirect: {kommandobroSvar.Headers.Location}"
+);
+
+// Kontroller at invitasjonen ikke kan brukes igjen.
+string igjen = await SystemtestOppsett.Hent(_app.Anonym, adresse);
+
+Assert.Contains("allerede brukt", igjen);
+}
 
     [Fact]
-    public async Task Sprakvalg_ViserSidenPaEngelsk()
-    {
-        if (!_app.ErAktiv) return;
+public async Task Sprakvalg_ViserSidenPaEngelsk()
+{
+    if (!_app.ErAktiv) return;
 
-        var klient = _app.NyKlient();
-        var svar = await SystemtestOppsett.SendSkjema(klient, "/Home/VelgSprak",
-            new Dictionary<string, string> { ["sprak"] = "en" }, skjemaFra: "/");
-        Assert.Equal(HttpStatusCode.Redirect, svar.StatusCode);
+    var klient = _app.NyKlient();
 
-        string forside = await SystemtestOppsett.Hent(klient, "/");
-        Assert.Contains("<title>Home", forside);
-        Assert.Contains("lang=\"en\"", forside);
-    }
+    var svar = await SystemtestOppsett.SendSkjema(
+        klient,
+        "/Home/VelgSprak",
+        new Dictionary<string, string>
+        {
+            ["sprak"] = "en"
+        },
+        skjemaFra: "/"
+    );
 
+    Assert.Equal(HttpStatusCode.Redirect, svar.StatusCode);
+
+    string forside = await SystemtestOppsett.Hent(klient, "/");
+
+    Assert.Contains("<title>Home", forside);
+    Assert.Contains("lang=\"en\"", forside);
+}
     private static string Hode(HttpResponseMessage svar, string navn)
     {
         return svar.Headers.TryGetValues(navn, out var verdier) ? string.Join(",", verdier) : "";
