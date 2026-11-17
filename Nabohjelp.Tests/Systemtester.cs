@@ -289,21 +289,20 @@ var registrer = await SystemtestOppsett.SendSkjema(
 
     Assert.Equal(HttpStatusCode.Redirect, taImot.StatusCode);
 
-    // 4. Brukeren skal nå ha tilgang til Kommandobro.
-    var kommandobroSvar = await ny.GetAsync("/Kommandobro");
+  // Kontroller at brukeren har tilgang til Kommandobro.
+var kommandobroSvar = await ny.GetAsync("/Kommandobro");
 
-    Console.WriteLine($"Kommandobro status: {kommandobroSvar.StatusCode}");
-    Console.WriteLine($"Kommandobro redirect: {kommandobroSvar.Headers.Location}");
+Assert.True(
+    kommandobroSvar.StatusCode == HttpStatusCode.OK,
+    $"Kommandobro returnerte {(int)kommandobroSvar.StatusCode} " +
+    $"{kommandobroSvar.StatusCode}. " +
+    $"Redirect: {kommandobroSvar.Headers.Location}"
+);
 
-    Assert.Equal(HttpStatusCode.OK, kommandobroSvar.StatusCode);
+// Kontroller at invitasjonen ikke kan brukes igjen.
+string igjen = await SystemtestOppsett.Hent(_app.Anonym, adresse);
 
-    // 5. Invitasjonen skal ikke kunne brukes flere ganger.
-    string igjen = await SystemtestOppsett.Hent(
-        _app.Anonym,
-        adresse
-    );
-
-    Assert.Contains("allerede brukt", igjen);
+Assert.Contains("allerede brukt", igjen);
 }
 
     [Fact]
