@@ -2052,6 +2052,9 @@
   <data name="eller" xml:space="preserve">
     <value>or</value>
   </data>
+  <data name="Logg inn med" xml:space="preserve">
+    <value>Sign in with</value>
+  </data>
   <data name="Logg inn med Vipps" xml:space="preserve">
     <value>Sign in with Vipps</value>
   </data>

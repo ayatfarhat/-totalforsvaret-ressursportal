@@ -9,7 +9,9 @@
 
     <form asp-controller="Account" asp-action="LoggInnMed" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
         <input type="hidden" name="leverandor" value="Vipps" />
-        <button type="submit" class="btn ekstern-knapp ekstern-vipps">@T["Logg inn med Vipps"]</button>
+        <button type="submit" class="btn ekstern-knapp ekstern-vipps">
+            @T["Logg inn med"] <img src="~/img/vipps.png" alt="Vipps" class="ekstern-logo" />
+        </button>
     </form>
 
     <form asp-controller="Account" asp-action="LoggInnMed" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
