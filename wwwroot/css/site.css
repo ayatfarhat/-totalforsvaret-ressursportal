@@ -1422,4 +1422,6 @@ a[href^="tel:"] { white-space: nowrap; }
     vertical-align: -.1em;
     margin-left: .35rem
 }
+/* Eplet er høyere enn det er bredt, så det trenger mer høyde for å se like stort ut. */
+.ekstern-logo-apple { height: 1.2em; vertical-align: -.25em }
 .ekstern-samtykke { font-size: .85rem; color: var(--dempet); margin: 0; }

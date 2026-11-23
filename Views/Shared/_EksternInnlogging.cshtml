@@ -16,7 +16,9 @@
 
     <form asp-controller="Account" asp-action="LoggInnMed" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
         <input type="hidden" name="leverandor" value="Apple" />
-        <button type="submit" class="btn ekstern-knapp ekstern-apple">@T["Logg inn med Apple"]</button>
+        <button type="submit" class="btn ekstern-knapp ekstern-apple">
+            @T["Logg inn med"] <img src="~/img/apple.png" alt="Apple" class="ekstern-logo ekstern-logo-apple" />
+        </button>
     </form>
 
     <p class="ekstern-samtykke">
