@@ -16,7 +16,7 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 | Hassan      | Mail | Hassanmufc        |
 | Torbjørn      | Mail | TorbjørnPedersen        |
 | Thea      | Mail | Elarixx       |
-| Christian      | Mail | INeedThing       |
+| Christian      | christiae@uia.no | INeedThing       |
 
 
 ### Hovedfunksjoner
