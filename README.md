@@ -6,20 +6,20 @@ IS-200 / IS-201 / IS-202 – Kriseberedskap, ressurs- og behovsportal for Totalf
 
 BeredskapsPortalen (tidligere Nabohjelp) er en ASP.NET Core MVC-applikasjon utviklet som et gruppeprosjekt.
 
-Formålet med løsningen er å utvikle en webapplikasjon knyttet til kriseberedskap, ressurser og behov i Totalforsvaret.
+Innbyggere melder behov, frivillige registrerer ressurser, og kommunens kriseledelse ser begge deler på et kart og kobler dem sammen.
 
 ## Gruppe 15
-| Medlemmer | Mail | GitHub Brukernavn |
-| --------- | ---- | ----------------- |
-| Marceli      | marcelim@uia.no | VlexUIA        |
-| Ayat      | Mail | Ayatfarhat       |
-| Hassan      | Mail | Hassanmufc        |
-| Torbjørn      | Mail | TorbjørnPedersen        |
-| Thea      | Mail | Elarixx       |
-| Christian      | christiae@uia.no | INeedThing       |
 
+| Navn | E-post | GitHub | Ansvarsområde |
+|---|---|---|---|
+| Marceli Majcher | marcelim@uia.no | VlexUIA | Ressurser, design og layout |
+| Ayat Youssef Farhat |  | ayatfarhat | Kart, tildeling og matching |
+| Hassan Al-Musawi | hsalmusawi@uia.no | Hassanmufc | Innlogging, roller og sikkerhet |
+| Torbjørn Pedersen | torbjornp@uia.no | TorbjornPedersen | Datamodell og database |
+| Thea Marie Stendal-Karlsen | theamste@uia.no | Elarixx | Infrastruktur og sanntid |
+| Christian Eretveit | christiae@uia.no | INeedThing | Behov og statusflyt |
 
-### Hovedfunksjoner
+## Hovedfunksjoner
 
 - **Ressurser:** frivillige registrerer utstyr, kjøretøy, lokaler eller innsats med type, kommune, adresse, posisjon på kart og bilde. Det viktigste er påkrevd: type, kommune, adresse, når ressursen er tilgjengelig, beskrivelse, og navn og telefon til en kontaktperson. «Tilgjengelig fra» er fylt inn med tiden nå, så brukeren slipper feilen for en tid som har vært. Eieren (og Kommune/Admin) kan endre og slette ressursen. En ressurs som er eller har vært tildelt, kan ikke slettes.
 - **Behov:** innbyggere melder behov med type, hast, posisjon, kommune og kontaktinfo. Beskrivelsen får forslag etter type. Behovet kan endres og trekkes tilbake så lenge det ikke er tildelt, og statusen følges under «Mine behov».
@@ -41,17 +41,6 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 - **Infosider:** spørsmål og svar, personvernerklæring, vilkår for bruk, cookies og tilgjengelighetserklæring, med «Sist oppdatert»-dato. En egen side for «Siden finnes ikke» (404) har søk og lenker videre.
 - **Nødnumre:** 110, 112 og 113 øverst på alle sider er knapper som ringer nummeret på mobil.
 
-## Gruppemedlemmer og Roller
-
-| Ansvarsområde | Gruppemedlem |
-|---|---|
-| Datamodell og database | Torbjørn |
-| Innlogging, roller og sikkerhet | Hassan |
-| Behov og statusflyt | Christian |
-| Kart, tildeling og matching | Ayat |
-| Ressurser, design og layout | Marceli |
-| Infrastruktur og sanntid | Thea |
-
 ## Drift og kjøring
 
 ### Forutsetninger
@@ -66,6 +55,8 @@ Applikasjonen kan kjøres på to måter:
 | **Brukes til** | Vanlig kjøring og testing | Utvikling |
 
 Docker Desktop må være startet før du kjører `docker compose`.
+
+**Windows:** Docker Desktop krever WSL 2. Installasjonen spør om det. Ellers kan du kjøre `wsl --install` i PowerShell som administrator og starte maskinen på nytt. Kommandoene i denne README-en virker likt i PowerShell, Git Bash og Terminal på Mac.
 
 Begge bruker den samme MariaDB-databasen for brukere, behov, ressurser, tildelinger og ønskede ressurser. Bilder av ressurser lagres som filer i `wwwroot/uploads/ressurser/`. Kjør bare én av kjøremåtene om gangen.
 
@@ -144,6 +135,7 @@ http://localhost:5144
 | Samme feil for 3306 (ofte en MySQL eller MariaDB du har installert fra før) | Endre `"3306:3306"` under `mariadb` til `"3307:3306"`. Appen i Docker merker ingen forskjell, fordi den snakker med databasen inne i Docker (`Server=mariadb`). Kjører du uten Docker, må du også endre `Port=3306` til `Port=3307` i `appsettings.json`. |
 | Testbrukerne kan ikke logge inn | De lages bare i `Development`, som `docker-compose.yml` allerede bruker. Har du en database fra en eldre versjon, start med en tom database: `docker compose down -v` og så `docker compose up --build`. **`-v` sletter alle data.** |
 | Første oppstart tar lang tid | Docker laster ned .NET- og MariaDB-bildene første gang. Appen er klar når terminalen viser `Now listening on: http://[::]:8080`. |
+| Windows: `WSL 2 installation is incomplete` eller Docker starter ikke | Kjør `wsl --update` i PowerShell som administrator og start Docker Desktop på nytt. |
 | Kartet er grått, men markørene vises | Kartbildene hentes fra OpenStreetMap og krever internett. Markørene og resten av appen virker uten. |
 
 ## Navigasjon i applikasjonen
@@ -242,7 +234,7 @@ Kode som brukes av flere controllere, ligger i `Services/`:
 
 Alle sidene følger samme vei. Eksempelet er behovskøen (`/Behov/Ko`):
 
-1. Nettleseren ber om `/Behov/Ko`. ASP.NET finner `BehovController` og metoden `Ko`. `[Authorize(Policy = "Ansatt")]` slipper bare inn Admin og Kommune.
+1. Nettleseren ber om `/Behov/Ko` med en GET-forespørsel. ASP.NET finner `BehovController` og metoden `Ko`. `[Authorize(Policy = "Ansatt")]` slipper bare inn Admin og Kommune.
 2. `Ko` henter behovene fra databasen gjennom `ApplicationDbContext` (`_db.Behovsliste`).
 3. ASP.NET har allerede fylt en `BehovListeViewModel` med valgene i adressen (fane og kommune). Controlleren kaller `Fyll`, som sorterer behovene, teller dem per fane og plukker ut dem som passer filteret.
 4. `return View(modell)` sender modellen til `Views/Behov/Ko.cshtml`, som bare viser det den får. Tekster som status og type hentes fra `Visningstekst`, slik at de blir like på alle sidene.
@@ -329,22 +321,11 @@ Oversiktskartet er bare tilgjengelig for brukere med rollen `Admin` eller `Kommu
 
 Når brukeren melder et behov (`Views/Behov/Opprett.cshtml`) eller registrerer en ressurs (`Views/Ressurs/_Skjema.cshtml`), velger hen posisjonen på et kart. Et klikk, eller «Bruk min posisjon», plasserer en markør og fyller ut breddegrad og lengdegrad. Siden slår også opp kommunen og nærmeste adresse hos Kartverket og fyller dem inn. Posisjonen lagres sammen med resten av registreringen.
 
-## GET og POST
+## Universell utforming og responsivt design
 
-Applikasjonen håndterer både GET- og POST-forespørsler. Et eksempel er registrering av ressurs i `RessursController`:
+Målet er WCAG 2.1 nivå AA.
 
-- **GET:** Skjemaet for ny ressurs vises, med et interaktivt kart for å velge posisjon.
-- **POST:** Når skjemaet sendes, mottas dataene og koordinatene gjennom `RessursFormViewModel`, og brukeren sendes videre til en bekreftelsesside som viser den valgte posisjonen på et kart.
-
-## Responsivt design
-
-Applikasjonen bruker Bootstrap for responsivt design.
-
-Navigasjonsmenyen tilpasser seg størrelsen på skjermen. På mindre skjermer vises navigasjonen som en mobilmeny.
-
-Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det tilpasser seg forskjellige skjermstørrelser.
-
-### Universell utforming (WCAG 2.1 AA)
+- **Mobil:** Bootstrap og egne bruddpunkter gjør at sidene virker fra mobil til PC. På små skjermer blir menyen en menyknapp, og kartet tilpasser seg bredden.
 
 - **Tastatur:** alt kan brukes med Tab, Enter og mellomrom. Den første lenken på hver side er «Hopp til innhold», og alt som får fokus, får en tydelig ramme. Spørsmål og svar bruker `<details>`, som virker med tastatur uten JavaScript.
 - **Skjermleser:** valgt side i menyen har `aria-current="page"`, ikoner er skjult med `aria-hidden`, og nødnummer-knappene leses opp som «Ring 110, Brann».
@@ -353,8 +334,6 @@ Kartet bruker hele den tilgjengelige bredden på kortet det står i, slik at det
 - **Tilgjengelighetserklæring** på `/Home/Tilgjengelighet` (lenke i bunnen av alle sider): hva som er på plass, hva som ikke virker godt nok ennå (kartet med skjermleser), og hvor man sier fra.
 
 ## Innlogging, roller, personvern og språk
-
-Ansvarlig: Hassan.
 
 ### Tilgang for de ulike brukerrollene
 
@@ -430,32 +409,18 @@ Sletting av en bruker skjer i `Services/KontoService.cs`, som brukes både når 
 
 ### Innlogging med Vipps og Apple
 
-Knappene ligger på innloggings- og registreringssiden (`Views/Shared/_EksternInnlogging.cshtml`). Koden for selve innloggingen er ferdig, men er **slått av** i denne versjonen:
+Knappene ligger på innloggings- og registreringssiden, og koden er ferdig (OpenID Connect, `Services/EksternInnlogging.cs`), men innloggingen er **slått av**. Vipps krever en bedrift med avtale og organisasjonsnummer, og Apple krever Apple Developer Program og et ekte domene med https. Det har vi ikke som studentgruppe. Trykker man på en av knappene, får man en melding om at innloggingen ikke er slått på, og kan logge inn med e-post og passord.
 
-- **Vipps Login** krever at man er en bedrift med avtale hos Vipps MobilePay (organisasjonsnummer) og et salgssted med «Logg inn». Først da får man nøkler, også til testmiljøet.
-- **Sign in with Apple** krever medlemskap i Apple Developer Program og et ekte domene med https. Apple godtar ikke `localhost`.
+Første innlogging med Vipps eller Apple lager en konto med rollen Frivillig, uten passord. Har brukeren 2FA, må koden fortsatt skrives inn. Finnes det allerede en konto med samme e-post, kobles den **ikke** automatisk, så ingen kan ta over en konto gjennom leverandøren. Vi ber bare om e-post (dataminimering).
 
-Som studentgruppe har vi ingen av delene. Trykker man på en knapp nå, får man en melding om at innloggingen ikke er slått på ennå, og kan logge inn med e-post og passord.
-
-**Slik virker det når nøklene er på plass** (OpenID Connect, `Services/EksternInnlogging.cs`):
-1. Brukeren trykker «Logg inn med Vipps» og sendes til Vipps (`AccountController.LoggInnMed`).
-2. Brukeren godkjenner i Vipps-appen. Vi ser aldri passordet.
-3. Vipps sender brukeren tilbake til `/signin-vipps`. ASP.NET henter e-posten direkte fra Vipps.
-4. `AccountController.LoggInnMedSvar` logger inn brukeren hvis hen har vært her før. Første gang lages en konto med rollen Frivillig, uten passord.
-5. Har brukeren 2FA, må koden fortsatt skrives inn.
-
-Finnes det allerede en konto med samme e-post, kobles den **ikke** automatisk. Ellers kunne noen som styrer en konto hos leverandøren, tatt over kontoen her. Vi ber bare om e-post (dataminimering).
-
-**Slå på:** legg nøklene i `EksternInnlogging:Vipps` eller `EksternInnlogging:Apple`, helst som miljøvariabler eller user secrets, ikke i `appsettings.json` på GitHub:
+**Slå på:** legg nøklene i `EksternInnlogging:Vipps` eller `EksternInnlogging:Apple` som miljøvariabler eller user secrets, ikke i `appsettings.json`:
 
 ```bash
 EksternInnlogging__Vipps__ClientId=...
 EksternInnlogging__Vipps__ClientSecret=...
 ```
 
-- Vipps: velg `client_secret_post` som innloggingsmetode for salgsstedet, og legg inn `https://<domene>/signin-vipps` som tilbakeadresse.
-- Apple: `ClientId` er Services ID. `ClientSecret` er et signert token (JWT) laget med nøkkelfilen (.p8), og må fornyes hver sjette måned. Tilbakeadressen er `https://<domene>/signin-apple`.
-- Bytt knappene til de offisielle knappene og logoene fra Vipps og Apple. Begge har regler for hvordan knappene skal se ut.
+Tilbakeadressene er `https://<domene>/signin-vipps` og `https://<domene>/signin-apple`.
 
 ### Kryptering av personopplysninger
 
@@ -546,62 +511,13 @@ GitHub Actions (`.github/workflows/ci.yml`) kjører enhetstestene ved hver pull 
 
 ### Manuelle tester av kartet
 
-Kartfunksjonen er testet manuelt underveis i utviklingen.
-
-### Test 1 – Kartet vises på Kommandobro
-
-**Handling:**
-En bruker med rollen Admin eller Kommune logger inn og åpner Kommandobro.
-
-**Forventet resultat:**
-Leaflet-kartet skal vises innebygd på siden, med markører for registrerte ressurser og behov.
-
-**Resultat:**
-Bestått.
-
-### Test 2 – Tilgangsstyring
-
-**Handling:**
-En bruker uten rollen Admin eller Kommune prøver å åpne Kommandobro.
-
-**Forventet resultat:**
-Brukeren skal ikke få tilgang til siden eller kartet.
-
-**Resultat:**
-Bestått (håndheves av `[Authorize(Policy = "Ansatt")]` på `KommandobroController`, som krever rollen Admin eller Kommune).
-
-### Test 3 – Velge posisjon ved oppretting av ressurs
-
-**Handling:**
-Brukeren fyller ut skjemaet for å opprette en ressurs og klikker på kartet for å velge posisjon.
-
-**Forventet resultat:**
-En markør skal vises der brukeren klikket, og koordinatene skal fylles ut i skjemaet.
-
-**Resultat:**
-Bestått.
-
-### Test 4 – Lagring av koordinater
-
-**Handling:**
-Brukeren bekrefter og lagrer en ny ressurs med valgt posisjon.
-
-**Forventet resultat:**
-Ressursen skal dukke opp som en grønn markør på kartet på Kommandobro, på riktig posisjon.
-
-**Resultat:**
-Bør verifiseres på nytt etter siste sammenslåing med hovedbranchen (databaseoppsettet ble byttet fra SQLite til MariaDB underveis).
-
-### Test 5 – Responsiv visning
-
-**Handling:**
-Applikasjonen åpnes i et smalt nettleservindu.
-
-**Forventet resultat:**
-Navigasjonen skal endres til en mobilmeny, og kortet med kartet skal fortsatt vises korrekt.
-
-**Resultat:**
-Bestått.
+| # | Test | Forventet resultat | Resultat |
+|---|---|---|---|
+| K1 | Admin eller Kommune åpner Kommandobro | Kartet vises med markører for ressurser og behov | Bestått |
+| K2 | En Frivillig prøver å åpne Kommandobro | Ingen tilgang | Bestått. Dekkes også av systemtesten `Frivillig_FarIkkeTilgangTilKriseledelsensSider` |
+| K3 | Klikk på kartet i skjemaet for ny ressurs | En markør vises, og koordinatene fylles ut | Bestått |
+| K4 | Lagre en ny ressurs med valgt posisjon | Ressursen vises som en grønn markør på riktig sted på Kommandobro | Bør verifiseres på nytt etter at databasen ble byttet fra SQLite til MariaDB |
+| K5 | Åpne appen i et smalt vindu | Menyen blir en mobilmeny, og kartet vises riktig | Bestått |
 
 ### Tester av universell utforming
 
@@ -757,9 +673,6 @@ Under utviklingen ble KI blant annet spurt om:
 - "Hvorfor blir Latitude og Longitude 0 etter POST i ASP.NET Core MVC?"
 - "Hvordan kan behov og tilgjengelige ressurser matches etter type?"
 - "Hvordan kan jeg implementere tildeling med GET og POST i ASP.NET Core MVC?"
-- "Ett steg om gangen."
-- "Hva gjør kodene..."
-- "Hvorfor må navnet endres?"
 - "Hvordan lager jeg en admin-side der admin kan endre roller, låse og slette brukere i ASP.NET Core Identity?"
 - "Hva krever GDPR av en app som lagrer telefon og e-post, og hvordan kan brukeren laste ned og slette sine egne data?"
 - "Hvordan legger jeg til språkvalg mellom norsk og engelsk uten at desimaltall fra kartet slutter å virke?"
