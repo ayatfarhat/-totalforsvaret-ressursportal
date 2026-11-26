@@ -13,7 +13,7 @@ Innbyggere melder behov, frivillige registrerer ressurser, og kommunens kriseled
 | Navn | E-post | GitHub | Ansvarsområde |
 |---|---|---|---|
 | Marceli Majcher | marcelim@uia.no | VlexUIA | Ressurser, design og layout |
-| Ayat Youssef Farhat |  | ayatfarhat | Kart, tildeling og matching |
+| Ayat Youssef Farhat | ayatyf@uia.no | ayatfarhat | Kart, tildeling og matching |
 | Hassan Al-Musawi | hsalmusawi@uia.no | Hassanmufc | Innlogging, roller og sikkerhet |
 | Torbjørn Pedersen | torbjornp@uia.no | TorbjornPedersen | Datamodell og database |
 | Thea Marie Stendal-Karlsen | theamste@uia.no | Elarixx | Infrastruktur og sanntid |
