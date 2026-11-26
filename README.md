@@ -11,12 +11,11 @@ Formålet med løsningen er å utvikle en webapplikasjon knyttet til krisebereds
 ## Gruppe 15
 | Medlemmer | Mail | GitHub Brukernavn |
 | --------- | ---- | ----------------- |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
-| Navn      | Mail | Brukernavn        |
+| Marceli      | marcelim@uia.no | VlexUIA        |
+| Ayat      | Mail | Brukernavn        |
+| Hassan      | Mail | Brukernavn        |
+| Torbjørn      | Mail | Brukernavn        |
+| Thea      | Mail | Brukernavn        |
 
 
 ### Hovedfunksjoner
