@@ -314,20 +314,20 @@ Hvem som eier et behov eller en ressurs (`OpprettetAvBrukerId`), har **ingen** f
 
 Kartet viser en oversikt over registrerte ressurser og aktive behov, direkte på Kommandobro-siden. Det oppdateres av seg selv: med en gang noe endres (SignalR), og ellers hvert 15. sekund. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
 
-Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for brukere med rollen `Admin` eller `Kommune`, på samme måte som resten av Kommandobro.
+Oversiktskartet er bare tilgjengelig for brukere med rollen `Admin` eller `Kommune`, på samme måte som resten av Kommandobro. Skjemaene for å melde behov og registrere ressurs har i tillegg et eget, lite kart der brukeren velger posisjon.
 
 ### Hvordan kartfunksjonen fungerer
 
 1. Brukeren logger inn som `Admin` eller `Kommune` og åpner Kommandobro.
 2. `KommandobroController` henter ressurser med registrert posisjon og aktive behov (ikke løst, avvist eller trukket tilbake) fra databasen.
-3. Punktene sendes til viewet som JSON og tegnes på kartet med Leaflet.
+3. Første gang siden åpnes, sendes punktene til viewet og tegnes på kartet med Leaflet. Etterpå henter `wwwroot/js/kart.js` oppdaterte punkter fra `/Kommandobro/Kartdata`.
 4. Fargen viser hva punktet er: rødt er et akutt behov, gult et planlagt behov, grønt en ledig ressurs og grått en ressurs som er tildelt.
 5. Et klikk på et punkt åpner en boks med alt om det. Øverst står typen og fargede merker for prioritet og status, og under det når behovet ble meldt (eller kommune og adresse for en ressurs). Beskrivelsen står i en egen grå boks, og telefon og e-post er lenker man kan ringe eller skrive til.
    - **Behov:** nederst står nærmeste ledige ressurs som passer, med avstand i luftlinje (`Services/Ressursmatching.cs`), i en grønn boks. Knappene «Finn ressurs» og «Endre» går rett til tildeling og redigering.
    - **Ressurs:** tilgjengelig fra, navn og telefon, med knappen «Endre».
 6. Avstandsfilteret over kartet viser bare punktene innenfor valgt avstand fra et sted man klikker på.
 
-Når en ny ressurs opprettes (`Views/Ressurs/Create.cshtml`), kan brukeren i tillegg velge posisjonen sin direkte på et interaktivt kart – et klikk plasserer en markør og fyller ut breddegrad/lengdegrad i skjemaet, som deretter lagres sammen med resten av ressursen.
+Når brukeren melder et behov (`Views/Behov/Opprett.cshtml`) eller registrerer en ressurs (`Views/Ressurs/_Skjema.cshtml`), velger hen posisjonen på et kart. Et klikk, eller «Bruk min posisjon», plasserer en markør og fyller ut breddegrad og lengdegrad. Siden slår også opp kommunen og nærmeste adresse hos Kartverket og fyller dem inn. Posisjonen lagres sammen med resten av registreringen.
 
 ## GET og POST
 
