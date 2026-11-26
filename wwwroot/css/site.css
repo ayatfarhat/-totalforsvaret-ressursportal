@@ -1417,4 +1417,11 @@ a[href^="tel:"] { white-space: nowrap; }
 .ekstern-vipps:hover, .ekstern-vipps:focus { background: #E84E1B; color: var(--natt); }
 .ekstern-apple { background: #000; color: #fff; }
 .ekstern-apple:hover, .ekstern-apple:focus { background: #333; color: #fff; }
+.ekstern-logo {
+    height: 1.05em;
+    vertical-align: -.1em;
+    margin-left: .35rem
+}
+/* Eplet er høyere enn det er bredt, så det trenger mer høyde for å se like stort ut. */
+.ekstern-logo-apple { height: 1.2em; vertical-align: -.25em }
 .ekstern-samtykke { font-size: .85rem; color: var(--dempet); margin: 0; }
