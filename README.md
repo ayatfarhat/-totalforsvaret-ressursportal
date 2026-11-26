@@ -134,6 +134,51 @@ dotnet run
 http://localhost:5144
 ```
 
+### Hvis det ikke virker
+
+| Problem | Løsning |
+|---|---|
+| `no configuration file provided: not found` | Du står ikke i prosjektmappen. Gå inn i mappen som har `docker-compose.yml` (`cd ressursportal`) og prøv igjen. |
+| `Cannot connect to the Docker daemon` eller kommandoen blir hengende | Docker Desktop er ikke startet. Start den og vent til den står som kjørende. |
+| `port is already allocated` eller `address already in use` for 8080 | Et annet program bruker porten. Endre `"8080:8080"` under `web` i `docker-compose.yml` til for eksempel `"8081:8080"`, og åpne <http://localhost:8081>. |
+| Samme feil for 3306 (ofte en MySQL eller MariaDB du har installert fra før) | Endre `"3306:3306"` under `mariadb` til `"3307:3306"`. Appen i Docker merker ingen forskjell, fordi den snakker med databasen inne i Docker (`Server=mariadb`). Kjører du uten Docker, må du også endre `Port=3306` til `Port=3307` i `appsettings.json`. |
+| Testbrukerne kan ikke logge inn | De lages bare i `Development`, som `docker-compose.yml` allerede bruker. Har du en database fra en eldre versjon, start med en tom database: `docker compose down -v` og så `docker compose up --build`. **`-v` sletter alle data.** |
+| Første oppstart tar lang tid | Docker laster ned .NET- og MariaDB-bildene første gang. Appen er klar når terminalen viser `Now listening on: http://[::]:8080`. |
+| Kartet er grått, men markørene vises | Kartbildene hentes fra OpenStreetMap og krever internett. Markørene og resten av appen virker uten. |
+
+## Navigasjon i applikasjonen
+
+![Navigasjonskart: hva hver rolle kan nå](docs/navigasjonskart.png)
+
+*Hva hver rolle kan nå. Den uthevede veien er tildelingen, som er kjernen i systemet.*
+
+Alle sider har den samme toppen: nødnumrene 110, 112 og 113, språkknappen («English» / «Norsk») og menyen. Bunnen av siden har lenker til spørsmål og svar, personvern, vilkår, cookies og tilgjengelighetserklæringen. Hva man ser i menyen, avhenger av rollen.
+
+**Uten å være logget inn**
+- Menyen har «Forside», «Ressurser» og «Søk».
+- Forsiden har to innganger: «Jeg trenger hjelp» og «Jeg kan hjelpe». Begge krever innlogging. Man sendes til innloggingssiden og kommer tilbake til skjemaet etterpå.
+- Har man ikke konto, trykker man «Registrer deg» og får rollen Frivillig.
+
+**Frivillig** (testbruker `privatperson@test.no`)
+- **Melde behov:** «Jeg trenger hjelp» eller «Meld behov», fyll ut skjemaet, og man får en kvittering. Under «Mine behov» ser man statusen og historikken.
+- **Registrere ressurs:** «Jeg kan hjelpe» eller «Registrer en ressurs», fyll ut skjemaet, og man får en kvittering. Under «Mine ressurser» kan man endre eller slette ressursen.
+- Brukermenyen (e-posten øverst til høyre) har «Min konto», «Mine behov», «Mine ressurser» og «Logg ut».
+- Når en ressurs blir tildelt, får eieren et varsel på forsiden og på «Mine ressurser». Det forsvinner når man trykker «Jeg har sett det».
+
+**Kommune** (testbruker `kommune@test.no`)
+
+Får i tillegg menyen «Kriseledelse» med «Behovskø», «Ressursliste», «Tildeling» og «Kommandobro». Slik går et behov fra meldt til løst:
+1. **Behovskø**, fanen «Åpne»: trykk «Start vurdering» på behovet.
+2. **Tildeling**: trykk «Finn ressurs» på behovet. Siden «Match ressurs» viser ressursene som passer, nærmeste først. Det samme kan gjøres ved å trykke på behovet på kartet i Kommandobro.
+3. Trykk «Tildel ressurs». Ble det feil, trykker man «Angre tildeling» på resultatsiden eller i behovskøen.
+4. Når hjelpen er gitt: **Behovskø**, fanen «Pågår», trykk «Marker som løst». Ressursen blir ledig igjen.
+
+Under «Ressursliste» ser man alle ressursene og kan skrive ut en liste per fylke eller kommune. Under «Ønskede ressurser» (lenke i bunnen av siden) kan kommunen legge ut hva den trenger.
+
+**Admin** (testbruker `admin@test.no`)
+
+Har alt Kommune har, og i tillegg «Brukere» i menyen «Kriseledelse»: endre roller, låse kontoer, nullstille 2FA, slette brukere og lage invitasjonslenker (se «Administrasjon av brukerkontoer»).
+
 ## Teknologi
 
 Prosjektet bruker:
@@ -231,9 +276,43 @@ Sanntid går gjennom SignalR. Nettleseren kobler seg til `/oppdateringer` (`Hubs
 | `Nabohjelp.csproj`, `Nabohjelp.slnx` | Prosjektfilen, og løsningsfilen som åpner appen og testene sammen i Visual Studio/Rider. |
 | `Program.cs` | Starter appen og setter opp database, innlogging, roller og språk. |
 
+## Database
+
+Databasen er MariaDB. Strukturen styres av migrasjonene i `Migrations/`, som appen kjører selv ved oppstart. Tabellene som hører til appen:
+
+| Tabell | Hva den lagrer |
+|---|---|
+| `Behovsliste` | Behovene: type, hast, status, posisjon, kommune og kontaktinfo (telefon og e-post er kryptert) |
+| `Ressurser` | Ressursene: type, posisjon, når de er tilgjengelige, status og kontaktperson (navn og telefon er kryptert) |
+| `Tildelinger` | Hvilken ressurs som ble tildelt hvilket behov, hvem som gjorde det, når, og om eieren har sett varselet |
+| `StatusEndringer` | Historikken til hvert behov: fra og til status, tid og hvem som endret |
+| `OnskedeRessurser` | Ressurser kriseledelsen ønsker seg |
+| `Invitasjoner` | Invitasjonslenker til rollene Kommune og Admin (bare et fingeravtrykk av koden) |
+| `AspNetUsers`, `AspNetRoles`, `AspNetUserRoles` m.fl. | Brukere og roller, laget av ASP.NET Core Identity |
+
+```mermaid
+erDiagram
+    Behovsliste ||--o{ Tildelinger : "RESTRICT"
+    Ressurser ||--o{ Tildelinger : "RESTRICT"
+    AspNetUsers ||--o{ Tildelinger : "tildelte, RESTRICT"
+    Behovsliste ||--o{ StatusEndringer : "CASCADE"
+    AspNetUsers ||--o{ AspNetUserRoles : "CASCADE"
+    AspNetRoles ||--o{ AspNetUserRoles : "CASCADE"
+```
+
+**Hva skjer når noe slettes?** Hver fremmednøkkel har en regel (satt i `Data/ApplicationDbContext.cs`):
+
+| Fremmednøkkel | Regel | Betyr |
+|---|---|---|
+| `Tildelinger` → `Behovsliste`, `Ressurser` og `AspNetUsers` | RESTRICT | Et behov, en ressurs eller en bruker kan ikke slettes så lenge en tildeling viser til dem. Tildelingene er historikk for kriseledelsen og skal ikke forsvinne. |
+| `StatusEndringer` → `Behovsliste` | CASCADE | Slettes et behov, slettes historikken med det. |
+| Identity-tabellene → `AspNetUsers` og `AspNetRoles` | CASCADE | Slettes en bruker, forsvinner rollene og innloggingene hennes. |
+
+Hvem som eier et behov eller en ressurs (`OpprettetAvBrukerId`), har **ingen** fremmednøkkel. Eierskapet sjekkes i koden, og `Services/KontoService.cs` sletter brukerens behov og ressurser før kontoen. Sletter man en bruker direkte i databasen, blir ressursene liggende uten eier (se «Integritetstester» under «Testing»).
+
 ## Kartfunksjonalitet
 
-Kartet viser en oversikt over registrerte ressurser og aktive behov, direkte på Kommandobro-siden. Det oppdateres når siden lastes på nytt. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
+Kartet viser en oversikt over registrerte ressurser og aktive behov, direkte på Kommandobro-siden. Det oppdateres av seg selv: med en gang noe endres (SignalR), og ellers hvert 15. sekund. Det er laget med Leaflet og bruker kartdata fra OpenStreetMap.
 
 Kartet er ikke en egen side i navigasjonsmenyen – det er bare tilgjengelig for brukere med rollen `Admin` eller `Kommune`, på samme måte som resten av Kommandobro.
 
@@ -463,7 +542,7 @@ Uten `SYSTEMTEST_URL` hopper systemtestene over seg selv.
 
 GitHub Actions (`.github/workflows/ci.yml`) kjører enhetstestene ved hver pull request og push mot `main`. Jobben `systemtest` starter appen og MariaDB med Docker og kjører systemtestene, så den sjekker også at Docker-oppsettet og migrasjonene virker.
 
-**Brukertest** med ekte personer kan ikke automatiseres. Planen med oppgaver, resultatskjema og SUS-skjema ligger i gruppens dokument «Brukertest – BeredskapsPortalen».
+**Brukertest** med ekte personer kan ikke automatiseres. Oppgavene, spørsmålene og resultatet står under «Brukervennlighetstest» lenger ned.
 
 ### Manuelle tester av kartet
 
@@ -524,27 +603,110 @@ Navigasjonen skal endres til en mobilmeny, og kortet med kartet skal fortsatt vi
 **Resultat:**
 Bestått.
 
+### Tester av universell utforming
+
+- Alle sidene er sjekket med [axe-core](https://github.com/dequelabs/axe-core) mot WCAG 2.1 A og AA, for alle tre rollene, både i full bredde og i mobilbredde. Ingen feil.
+- Hovedflytene (melde behov, registrere ressurs, tildele) er gått gjennom med bare tastatur.
+- Ingen side må rulles sideveis i 390 piksler bredde. Det ble sjekket automatisk for alle sidene.
+- Det som ikke virker godt nok ennå, står i tilgjengelighetserklæringen: kartet kan ikke brukes med skjermleser. De samme behovene og ressursene finnes i behovskøen og ressurslisten.
+
+### Integritetstester av databasen
+
+Vi testet hva som skjer når man sletter noe andre rader er avhengige av. Testene ble kjørt rett i MariaDB inne i en transaksjon (`START TRANSACTION` og til slutt `ROLLBACK`), så alt ble angret etterpå. Databasen hadde én tildeling: ressurs 1 var tildelt behov 2 av `admin@test.no`.
+
+```sql
+START TRANSACTION;
+DELETE FROM Ressurser WHERE Id = 1;
+ROLLBACK;
+```
+
+| Test | Resultat | Hvorfor |
+|---|---|---|
+| Slette en bruker som har gjort en tildeling (`admin@test.no`) | Stoppet med `ERROR 1451` | RESTRICT på `Tildelinger.TildeltAvBrukerId` |
+| Slette en bruker som eier en ressurs, men ikke har gjort noen tildeling | Tillatt. Rollekoblingen slettes (CASCADE), men ressursen blir liggende uten eier | `Ressurser` har ingen fremmednøkkel til brukeren |
+| Slette en ressurs som er brukt i en tildeling | Stoppet med `ERROR 1451` | RESTRICT på `Tildelinger.RessursId` |
+| Slette et behov som er brukt i en tildeling | Stoppet med `ERROR 1451`. Historikken (CASCADE) ble heller ikke slettet | RESTRICT på `Tildelinger.BehovId`, og en `DELETE` er alt eller ingenting |
+
+Etter testene fantes ressurs 1, behov 2 og tildeling 1 fortsatt, og alle tre testbrukerne var på plass. Gjennom appen kan det ikke oppstå ressurser uten eier, fordi `KontoService` sletter dem før kontoen. Men databasen hindrer det ikke selv. En fremmednøkkel med SET NULL, sammen med at navn og telefon tømmes, ville løst det uten å bryte personvernet. Det er ikke laget ennå.
+
+### Brukervennlighetstest
+Vi har gjennomført en innledende brukervennlighetstest av BeredskapsPortalen (tidligere Nabohjelp) for å undersøke hvor enkelt det er for en ny bruker å navigere applikasjonen og gjennomføre essensielle oppgaver.
+
+Målet med testen var å identifisere eventuelle utfordringer i brukergrensesnittet og samle konkrete tilbakemeldinger som kan brukes til videreutvikling.
+
+Det er den eneste brukervennlighetstesten vi rakk å gjennomføre.
+
+Testperson var en mann i 30 årene, testtypen var moderat brukervennlighetstest og den samlede tidsbruken for alle oppgavene var ca. 7 minutter.
+
+Testpersonen fikk tre oppgaver som skulle gjennomføres i applikasjonen på en bærbar datamaskin. Oppgavene ble presentert uten en forhåndsforklaring.
+
+Oppgave 1: Registrere en ny brukerkonto - Resultat: Fullført.
+
+Oppgave 2: Strømmen er borte hjemme, og du trenger en aggregat. Registrer behovet. - Resultat: Fullført, men med utfordringer.
+
+Oppgave 3: Du har en tilhenger du ønsker å låne bort. Registrer ressursen. -
+Resultat: Fullført.
+
+Samlet resultat: Testperson fullførte alle tre oppgaver på omtrent 7 minutter.
+
+Vurdering av brukervennlighet:
+Testperson ble bedt om å vurdere applikasjonen på en skala fra 1 til 5. (1= svært vanskelig, 5= svært enkelt)
+
+Spørsmål:
+Hvor enkelt oppleves systemet å bruke?
+Svar: 4
+
+Hvor mye hjelp ville du hatt behov for?
+Svar: 1
+
+Generelle spørsmål etter testen:
+1. Hvilken oppgave var vanskeligst?
+
+Svar: Legge inn ressurs var mest krevende, prosessen krevde mer informasjon og hadde flere steg, testperson fikk også en feilmelding grunnet tiden som ble lagt inn var i "fortid".
+
+2. Var det noen knapper eller begreper du ikke forstod?
+
+Svar: Ikke underveis i testen, men når testperson skulle se over sine registreringer, syntes vedkommende at det var vanskelig å skille mellom "Mine Behov" og "Mine Ressurser" og mente at de burde skilles mer tydelig med farge.
+
+3. Var det tydelig når en registrering var fullført?
+
+Svar: Ja, det var tydelig og vedkommende fikk en kvittering med oppsummering.
+
+4. Hva ville du forbedret i applikasjonen?
+
+Svar: En egen knapp på forsiden der mine registreringer står tydelig, da vedkommende brukte litt tid på å finne frem til den i etterkant av testen. Testperson mente også at kommandobro burde ha en oversikt over alle tilgjengelige ressurser på lik linje som registrerte behov.
+
+Resultatene av denne brukervennlighetstesten er foreløpige og basert på kun én testperson. Flere tester med ulike målgrupper vil være nødvendig for å vurdere hvor representative funnene er.
+
+**Endringer etter testen:**
+
+| Det testpersonen fant | Det vi endret |
+|---|---|
+| Feilmelding fordi «Tilgjengelig fra» var satt til en tid som hadde vært | Feltet er nå fylt inn med tiden nå, så feilen kommer ikke med mindre brukeren endrer det |
+| Vanskelig å skille «Mine behov» og «Mine ressurser» | De har fått hver sin farge (rød og grønn) i menyen, på Min konto og i overskriften |
+| Brukte tid på å finne egne registreringer | Innloggede får boksen «Mine registreringer» på forsiden |
+| Kommandobro burde liste ressursene slik den lister behovene | Ikke endret. Ressursene vises på kartet, og hele listen ligger under «Ressursliste» |
+
 ## Git og GitHub
 
-Utviklingen gjøres med Git og GitHub.
+Hver funksjon utvikles på sin egen branch, for eksempel `feature/sanntidsoppdatering-hele-nettsiden` eller `fiks/etter-signalr`, og kommer inn i `main` gjennom en pull request som en annen i gruppa ser over.
 
-Funksjonalitet utvikles på egne feature branches før den integreres med resten av prosjektet.
+Slik var det ikke fra starten. Før pushet vi ofte rett til `main`. 11. november gjorde en slik commit at `Program.cs` mistet 145 linjer og README ble redusert fra 634 til 34 linjer, så appen ikke kunne bygges. Etter det ble regelen at alt skal gjennom en pull request.
 
-Kartfunksjonaliteten ble opprinnelig utviklet på `feature/map`, og senere videreutviklet og koblet inn i Kommandobro på `feature/ressurs-kart`. Dette gjorde det mulig å utvikle og teste kartfunksjonen uten å påvirke hovedbranchen direkte.
+GitHub Actions (`.github/workflows/ci.yml`) bygger appen og kjører testene ved hver pull request og hver push til `main`. En endring som ødelegger hovedflyten, blir stoppet før den kommer inn.
+
+Oppgavene ligger i GitHub Projects, med MoSCoW-prioritet og sprint.
 
 ## Dokumentasjon i kode
 
-Koden inneholder korte kommentarer som forklarer sentrale deler av implementasjonen.
+Koden er kommentert på enkel norsk, slik at også de i gruppa som ikke skrev en del, kan forstå den. De fleste filene starter med en kommentar om hva filen gjør, og kommentarene inne i koden forklarer hvorfor noe er gjort, ikke bare hva. Noen eksempler:
 
-Kommentarene brukes blant annet til å forklare:
+- `Data/ApplicationDbContext.cs` forklarer slettereglene (Restrict og Cascade) og hvilke felt som krypteres.
+- `Services/KontoService.cs` forklarer hvorfor en konto med tildelinger ikke slettes automatisk, og hvorfor alt slettes i én transaksjon.
+- `Models/BehovStatusflyt.cs` viser hele statusflyten som en tegning i en kommentar, og samler reglene for hvilke overganger som er lov.
+- `wwwroot/js/sanntid.js` forklarer hvorfor listene viser «Oppdater listen» i stedet for å laste siden på nytt.
 
-- Opprettelse av kartet.
-- Kartlaget.
-- Markøren.
-- Henting av koordinater.
-- Lagring av koordinater.
-- GET- og POST-metoder.
-- Navigasjon og visning av data.
+Testene i `Nabohjelp.Tests/` har navn som sier hva de sjekker, for eksempel `Hovedflyt_MeldeBehov_RegistrereRessurs_Tildele` og `MangeInnloggingsforsok_GirFeilkode429`.
 
 ## Bruk av kunstig intelligens
 
@@ -620,53 +782,3 @@ Under utviklingen ble forslagene:
 Et eksempel var overføring av koordinater fra kartet. Kartet viste riktige koordinater, men resultatsiden viste først `0`. Network-verktøyet i nettleseren ble brukt for å kontrollere at koordinatene faktisk ble sendt med POST. Deretter ble problemet isolert til behandlingen av dataene i ASP.NET Core, og implementasjonen ble justert og testet på nytt.
 
 I databasearbeidet fungerte ikke alle forslag med en gang. Flere løsninger måtte gjøres om, og feilmeldinger ble feilsøkt steg for steg før databasen fungerte i Docker.
-
-
-### Brukervennlighetstest
-Vi har gjennomført en innledende brukervennlighetstest av tidligere nabohjelp, nå BeredskapsPortalen for å undersøke hvor enkelt det er for en ny bruker å navigere applikasjonen og gjennomføre essensielle oppgaver.
-
-Målet med testen var å identifisere eventuelle utfordringer i brukergrensesnittet og samle konkrete tilbakemeldinger som kan brukes til videreutvikling.
-
-Dette er den første brukervennlighetstesten. Vi planlegger å teste systemet med flere ulike målgrupper etter hvert.
-
-Testperson var en mann i 30 årene, testtypen var moderat brukervennlighetstest og det samledet tidsbruket for alle oppgavene var ca. 7 minutter.
-
-Testpersonen fikk tre oppgaver som skulle gjennomføres i applikasjonen på en bærbar datamaskin. Oppgavene ble presentert uten en forhåndsforklaring.
-
-Oppgave 1: Registrere en ny brukerkonto - Resultat: Fullført.
-
-Oppgave 2: Strømmen er borte hjemme, og du trenger en aggregat. Registrer behovet. - Resultat: Fullført, men med utfordringer.
-
-Oppgave 3: Du har en tilhenger du ønsker å låne bort. Registrer ressursen. -
-Resultat: Fullført.
-
-Samlet resultat: Testperson fullførte alle tre oppgaver på omtrent 7 miutter.
-
-Vurdering av brukervennlighet:
-Testperson ble bedt om å vurdere applikasjonen på en skala fra 1 til 5. (1= svært vanskelig, 5= svært enkelt)
-
-Spørsmål:
-Hvor enkelt oppleves systemet å bruke?
-Svar: 4
-
-Hvor mye hjelp ville du hatt behov for?
-Svar: 1
-
-Generelle spørsmål etter testen:
-1. Hvilken oppgave var vanskeligst?
-
-Svar: Legge inn ressurs var mest krevende, prosessen krevde mer informasjon og hadde flere steg, testperson fikk også en feilmelding grunnet tiden som ble lagt inn var i "fortid".
-
-2. Var det noen knapper eller begreper du ikke forstod?
-
-Svar: Ikke underveis i testen, men når testperson skulle se over sine registreringer, syntes vedkommende at det var vanskelig å skille mellom "Mine Behov" og "Mine Ressurser" og mente at de burde skilles mer tydelig med farge.
-
-3. Var det tydelig når en registrering var fullført?
-
-Svar: Ja, det var tydelig og vedkommende fikk en kvittering med oppsummering.
-
-4. Hva ville du forbedret i applikasjonen?
-
-Svar: En egen knapp på forsiden der mine registreringer står tydelig, da vedkommende brukt litt tid på å finne frem til den i etterkant av testen. Testperson mente også at kommandobro burde ha en oversikt over alle tilgjengelige ressurser på lik linje som registrerte behov.
-
-Resultatet av denne brukervennlighetstesten er foreløpige og baser på kun én testperson. Flere tester med ulike målgrupper vil være nødvendig for å vurdere hvor representative funnene er.
